@@ -6,13 +6,13 @@
 #    By: cbertola <cbertola@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/09/21 15:12:58 by cbertola          #+#    #+#              #
-#    Updated: 2020/11/17 17:59:03 by cbertola         ###   ########.fr        #
+#    Updated: 2020/11/17 18:27:12 by cbertola         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME		= webserv
 SRCS_PATH	= ./
-OBJS_PATH	= ./srcs/Main/
+OBJS_PATH	= ./srcs/
 SRCSC		= webserv.cpp
 
 SRCSH		=
