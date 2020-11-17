@@ -14,6 +14,10 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/time.h>
+#include <iostream>
+#include <fstream>
+#include <iomanip>
+#include <sys/stat.h>
 
 # define RESET   		"\033[0m"
 # define BLACK   		"\033[30m"				/* Black */

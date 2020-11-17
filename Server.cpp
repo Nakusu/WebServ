@@ -6,7 +6,7 @@
 /*   By: cbertola <cbertola@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/09/24 10:09:23 by cbertola          #+#    #+#             */
-/*   Updated: 2020/11/17 17:09:55 by cbertola         ###   ########.fr       */
+/*   Updated: 2020/11/17 17:15:46 by cbertola         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,20 +26,11 @@ Server::Server(Server const & src) {
 Server::~Server() {}
 
 Server &										Server::operator=( Server const & rhs) {
-	if (this != &rhs)
-	{
-		this->_fd = rhs._fd;
-		this->_address = rhs._address;
-	}
-	return (*this);
+
 }
 
 int												Server::init_fd(int domain, int type, int protocol){
-    if( (this->_fd = socket(domain , type , protocol)) == 0){   
-        perror("socket failed");   
-        exit(EXIT_FAILURE);   
-    }
-	return (this->_fd);
+
 }
 
 void											Server::init_link(void){
