@@ -31,11 +31,10 @@ int main(void)
 			//printf("New connection , socket fd is %d , ip is : %s , port : %d\n\n %s\n" , serv->get_fd() , inet_ntoa(address.sin_addr) , ntohs(address.sin_port), req->get_buffer());
             if (strcmp(req->get_uri(), "/")) {
                 std::string fcontent = serv->open_file(req->get_uri());
-                std::cout << "FILE CONTENT AFTER " << fcontent << std::endl;
                 if (fcontent.empty())
                     message = "HTTP/1.1 404\r\nContent-Type: text/html\n\n<html><head><link rel=\"stylesheet\" href=\"style.css\"></head><h1>Page introuvable</h1></html>";
                 else {
-                    message = "HTTP/1.1 200\r\nContent-Type: text/css\n\n";
+                    message = "HTTP/1.1 200\r\nContent-Type: " + req->get_typecontent() + "\n\n";
                     message += fcontent;
                 }
             }
