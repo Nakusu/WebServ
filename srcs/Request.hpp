@@ -1,39 +1,41 @@
 #ifndef REQUEST_HPP
 #define REQUEST_HPP
 
-#include <iostream>
-#include <string>
+#include "Header.hpp"
 
-class request {
+class Request {
 	public:
-		request() {
+		Request() {
 			this->_socket = 0;
 			this->_uri = NULL;
 		}
-		request(int socket) {
+		Request(int socket) {
 			this->_socket = socket;
 			this->_buffer[recv(this->_socket, &this->_buffer, sizeof(this->_buffer), 0)] = 0;
 			this->_type = this->_buffer[0];
 			std::string string(this->_buffer);
 			this->_uri = strndup(&this->_buffer[string.find("/")], (string.find("H") - 5));
 		}
-		virtual ~request() {
+		virtual ~Request() {
 			close(this->_socket);
 			return ; 
 		}
-		char	*getUri() const {
+		char			*get_uri() const {
 			return (this->_uri);
 		}
-		char	getType() const { 
+		char			*get_buffer(){
+			return (this->_buffer);
+		}
+		char			get_type() const { 
 			return (this->_type);
 		}
-		int		getSocket() const {
+		int				get_socket() const {
 			return (this->_socket);
 		}
-		void	setSocket(int socket) {
+		void			set_socket(int socket) {
 			this->_socket = socket;
 		}
-		void	sendPacket(char *content) {
+		void			send_packet(const char *content) {
 			send(this->_socket, content, strlen(content), 0);
 		}
 
