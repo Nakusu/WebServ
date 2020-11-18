@@ -9,7 +9,6 @@ int main(void)
            
     //a message  
     std::string message; 
-	message = "HTTP/1.1 200\r\nContent-Type: text/html\n\n<html><head><link rel=\"stylesheet\" href=\"style.css\"></head><h1>Hello from server</h1></html>";   
          
     //accept the incoming connection  
     int addrlen = sizeof(serv->get_address());
@@ -21,17 +20,25 @@ int main(void)
     {   
 		serv->clear_fd();
 		serv->set_fd();
+        serv->set_repos("public");
 
         //Le server attends un nouvelle activité (une requete)
-      	serv->wait_select();
-		std::cout << "test ici" << std::endl;
-  
+      	serv->wait_select();  
         //Si une requete est envoyé au serv->get_fd()
         if (serv->wait_request()){   
 			Request *req = new Request(accept(serv->get_fd(), (struct sockaddr *)&address, (socklen_t *)&addrlen));
-			
-			std::cout << " URI : " << req->get_uri() << " TYPE : " << req->get_type() << std::endl;
-			printf("New connection , socket fd is %d , ip is : %s , port : %d\n\n %s\n" , serv->get_fd() , inet_ntoa(address.sin_addr) , ntohs(address.sin_port), req->get_buffer());
+			//std::cout << " URI : " << req->get_uri() << " TYPE : " << req->get_type() << std::endl;
+			//printf("New connection , socket fd is %d , ip is : %s , port : %d\n\n %s\n" , serv->get_fd() , inet_ntoa(address.sin_addr) , ntohs(address.sin_port), req->get_buffer());
+            if (strcmp(req->get_uri(), "/")) {
+                std::string fcontent = serv->open_file(req->get_uri());
+                std::cout << "FILE CONTENT AFTER " << fcontent << std::endl;
+                if (fcontent.empty())
+                    message = "HTTP/1.1 404\r\nContent-Type: text/html\n\n<html><head><link rel=\"stylesheet\" href=\"style.css\"></head><h1>Page introuvable</h1></html>";
+                else {
+                    message = "HTTP/1.1 200\r\nContent-Type: text/css\n\n";
+                    message += fcontent;
+                }
+            }
 			req->send_packet(message.c_str());
 
 			delete req;
