@@ -120,9 +120,6 @@ class Server
 				}
 			}
 			file.close();
-			for (std::map<std::string, std::string>::iterator it=this->_conf.begin(); it != this->_conf.end(); ++it){
-				std::cout << "key = " << it->first << " value = " << it->second << std::endl;
-			}
 		}
 
 	private:
