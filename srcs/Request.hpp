@@ -20,19 +20,22 @@ class Request {
 			close(this->_socket);
 			return ; 
 		}
-		char	*getUri() const {
+		char			*get_uri() const {
 			return (this->_uri);
 		}
-		char	getType() const { 
+		char			*get_buffer(){
+			return (this->_buffer);
+		}
+		char			get_type() const { 
 			return (this->_type);
 		}
-		int		getSocket() const {
+		int				get_socket() const {
 			return (this->_socket);
 		}
-		void	setSocket(int socket) {
+		void			set_socket(int socket) {
 			this->_socket = socket;
 		}
-		void	sendPacket(const char *content) {
+		void			send_packet(const char *content) {
 			send(this->_socket, content, strlen(content), 0);
 		}
 

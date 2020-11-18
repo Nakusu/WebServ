@@ -27,17 +27,14 @@ int main(void)
 		std::cout << "test ici" << std::endl;
   
         //Si une requete est envoyé au serv->get_fd()
-        if (serv->wait_request())   
-        {   
-			Request *obj = new Request(accept(serv->get_fd(), (struct sockaddr *)&address, (socklen_t *)&addrlen));
+        if (serv->wait_request()){   
+			Request *req = new Request(accept(serv->get_fd(), (struct sockaddr *)&address, (socklen_t *)&addrlen));
 			
-			std::cout << " URI : " << obj->getUri() << " TYPE : " << obj->getType() << std::endl;
-			printf("New connection , socket fd is %d , ip is : %s , port : %d\n" , serv->get_fd() , inet_ntoa(address.sin_addr) , ntohs(address.sin_port));
-			obj->sendPacket(message.c_str());
+			std::cout << " URI : " << req->get_uri() << " TYPE : " << req->get_type() << std::endl;
+			printf("New connection , socket fd is %d , ip is : %s , port : %d\n\n %s\n" , serv->get_fd() , inet_ntoa(address.sin_addr) , ntohs(address.sin_port), req->get_buffer());
+			req->send_packet(message.c_str());
 
-
-			
-			delete obj;
+			delete req;
         }
     }     
     return 0;   
