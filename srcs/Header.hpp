@@ -18,6 +18,7 @@
 #include <fstream>
 #include <iomanip>
 #include <sys/stat.h>
+#include <stdint.h>
 
 # define RESET   		"\033[0m"
 # define BLACK   		"\033[30m"				/* Black */
