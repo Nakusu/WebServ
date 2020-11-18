@@ -8,10 +8,11 @@ class Server
 {
 	public:
 		Server(void){
+			parsing_conf();
 			init_fd(AF_INET , SOCK_STREAM , 0);
 			init_addr(AF_INET, INADDR_ANY, htons(PORT));
 			init_link();
-			init_listen(3);
+			init_listen(this->_conf.operator["worker_processes"]);
 			set_repos("~");
 		}
 		Server(Server const &){}
@@ -62,10 +63,10 @@ class Server
 			return (this->_fd);
 		}
 		void						clear_fd(void){
-			FD_ZERO(&this->readfds);   
+			FD_ZERO(&this->_readfds);   
 		}
 		void						set_fd(void){
-			FD_SET(this->_fd, &this->readfds);    
+			FD_SET(this->_fd, &this->_readfds);    
 		}
 		struct sockaddr_in			get_address(void){
 			return (this->_address);
@@ -73,29 +74,50 @@ class Server
 		void						wait_select(void){
 			int activity;
 
-			activity = select(this->_fd + 1, &this->readfds , NULL , NULL , NULL); 
+			activity = select(this->_fd + 1, &this->_readfds , NULL , NULL , NULL); 
 			if ((activity < 0) && (errno!=EINTR)){   
 				printf("select error");   
 			}  
 		}
 		int							wait_request(void){
-			return (FD_ISSET(this->_fd, &this->readfds));
+			return (FD_ISSET(this->_fd, &this->_readfds));
 		}
 		std::string					get_repos(void){
-			return (this->repos);
+			return (this->_repos);
 		}
-		void						set_repos(std::string repos){
-			struct stat info;
+		void                        set_repos(std::string repos){
+            std::ifstream folder(repos.c_str());
+            if(folder.good())
+                this->_repos = repos;
+            else
+                std::cout << "REPO NOT FOUND" << repos << std::endl;
+            // FAIRE L'ERROR DE LANCEMENT SI FOLDER NOT FOUND 
+        }
+		void						parsing_conf(void){
+			std::ifstream			file("srcs/server.conf");
+			std::string				line;
 
-			if( stat( repos.c_str(), &info ) != 0 )
-				this->repos = repos;
+			while (getline(file, line)){
+				if (line.find(";") != __SIZE_MAX__ && (line.find("#") == __SIZE_MAX__)){
+					int start = line.find_first_not_of(" \t",0);
+					int endkey = line.find_first_of(" ",start);
+					std::string key = line.substr(start, endkey - start);
+					std::string value = line.substr(line.find_first_not_of(" ",endkey), line.find_first_of(";",start) - start);
+					this->_conf[key] = value;
+				}
+			}
+			file.close();
+			for (std::map<std::string, std::string>::iterator it=this->_conf.begin(); it != this->_conf.end(); ++it){
+				std::cout << "key = " << it->first << " value = " << it->second << std::endl;
+			}
 		}
 
 	private:
-		int 						_fd;
-		struct sockaddr_in 			_address;
-		fd_set 						readfds;
-		std::string					repos;
+		int 									_fd;
+		struct sockaddr_in 						_address;
+		fd_set 									_readfds;
+		std::string								_repos;
+		std::map<std::string, std::string>		_conf;
 };
 
 #endif
