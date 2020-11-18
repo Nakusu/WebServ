@@ -84,11 +84,26 @@ class Server
 		std::string					get_repos(void){
 			return (this->repos);
 		}
+		std::string					open_file(std::string file) {
+			std::ifstream opfile;
+			std::string content;
+			std::string reponse;
+			std::string tmp = this->repos + file;
+  			opfile.open(tmp.data());
+			if (!opfile.is_open())
+				return (NULL);
+			while (std::getline(opfile, content))
+				reponse += content;
+			std:: cout << "REPONSE BEFORE " << reponse.c_str() << std::endl;
+			return (reponse);
+		}
 		void						set_repos(std::string repos){
-			struct stat info;
-
-			if( stat( repos.c_str(), &info ) != 0 )
+			std::ifstream folder(repos.c_str());
+			if(folder.good())
 				this->repos = repos;
+			else
+				std::cout << "REPO NOT FOUND" << repos << std::endl;
+			// FAIRE L'ERROR DE LANCEMENT SI FOLDER NOT FOUND 
 		}
 
 	private:
