@@ -12,7 +12,7 @@ class Server
 			init_fd(AF_INET , SOCK_STREAM , 0);
 			init_addr(AF_INET, INADDR_ANY, htons(PORT));
 			init_link();
-			init_listen(this->_conf.operator["worker_processes"]);
+			init_listen(atoi(this->_conf["worker_processes"].c_str()));
 			set_repos("~");
 		}
 		Server(Server const &){}
@@ -88,23 +88,16 @@ class Server
 		std::string					open_file(std::string file) {
 			std::ifstream opfile;
 			std::string content;
-			std::string reponse;
-			std::string tmp = this->repos + file;
+			std::string reponse = "";
+			std::string tmp = this->_repos + file;
   			opfile.open(tmp.data());
 			if (!opfile.is_open())
-				return (NULL);
+				return (reponse);
 			while (std::getline(opfile, content))
 				reponse += content;
 			std:: cout << "REPONSE BEFORE " << reponse.c_str() << std::endl;
 			return (reponse);
 		}
-		void						set_repos(std::string repos){
-			std::ifstream folder(repos.c_str());
-			if(folder.good())
-				this->repos = repos;
-			else
-				std::cout << "REPO NOT FOUND" << repos << std::endl;
-			// FAIRE L'ERROR DE LANCEMENT SI FOLDER NOT FOUND 
 		void                        set_repos(std::string repos){
             std::ifstream folder(repos.c_str());
             if(folder.good())
