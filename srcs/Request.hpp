@@ -44,6 +44,9 @@ class Request {
 		void				send_packet(const char *content) {
 			send(this->_socket, content, strlen(content), 0);
 		}
+		void				send_packet(const char *content, size_t len) {
+			send(this->_socket, content, len, 0);
+		}
 
 		void				find_uri(void) {
 			this->_uri = NULL;

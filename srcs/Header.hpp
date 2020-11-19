@@ -21,6 +21,7 @@
 #include <sys/stat.h>
 #include <stdint.h>
 #include <map>
+#include <vector>
 
 
 # define RESET   		"\033[0m"

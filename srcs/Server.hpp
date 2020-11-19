@@ -3,6 +3,7 @@
 #define SERVER_HPP
 
 #include "./Header.hpp"
+#include "Request.hpp"
 
 class Server
 {
@@ -95,7 +96,21 @@ class Server
 				return (reponse);
 			while (std::getline(opfile, content))
 				reponse += content;
+			opfile.close();
 			return (reponse);
+		}
+		void						open_Binary(std::string file, Request *req) {
+			std::ifstream		opfile;
+			char 				*content = new char[4096];
+			std::string tmp = this->_repos + file;
+  			opfile.open(tmp.data());
+			  if (!opfile.is_open())
+			  	return ;
+			while (!opfile.eof()) {
+				opfile.read(content, 4096); 
+				req->send_packet(content, 4096);
+			}
+			opfile.close();
 		}
 		void                        set_repos(std::string repos){
             std::ifstream folder(repos.c_str());
