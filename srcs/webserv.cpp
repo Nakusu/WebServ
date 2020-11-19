@@ -29,16 +29,21 @@ int main(void)
 			Request *req = new Request(accept(serv->get_fd(), (struct sockaddr *)&address, (socklen_t *)&addrlen));
 			//std::cout << " URI : " << req->get_uri() << " TYPE : " << req->get_type() << std::endl;
 			//printf("New connection , socket fd is %d , ip is : %s , port : %d\n\n %s\n" , serv->get_fd() , inet_ntoa(address.sin_addr) , ntohs(address.sin_port), req->get_buffer());
-            if (strcmp(req->get_uri(), "/")) {
+			std::cout << YELLOW << req->get_typecontent() << RESET << std::endl;
+		    if (strcmp(req->get_uri(), "/")) {
                 std::string fcontent = serv->open_file(req->get_uri());
-                std::cout << "FILE CONTENT AFTER " << fcontent << std::endl;
                 if (fcontent.empty())
-                    message = "HTTP/1.1 404\r\nContent-Type: text/html\n\n<html><head><link rel=\"stylesheet\" href=\"style.css\"></head><h1>Page introuvable</h1></html>";
-                else {
-                    message = "HTTP/1.1 200\r\nContent-Type: text/css\n\n";
-                    message += fcontent;
+                    req->send_packet("HTTP/1.1 404\r\nContent-Type: text/html\n\n<html><head><link rel=\"stylesheet\" href=\"style.css\"></head><h1>Page introuvable</h1></html>");
+                else if (req->get_typecontent().find("image") != SIZE_MAX) {
+                     req->send_packet("HTTP/1.1 200\n\n");
+                     serv->open_Binary(req->get_uri(), req);
                 }
-            }
+				else{
+					 req->send_packet("HTTP/1.1 200\n\n");
+					 req->send_packet(fcontent.c_str());
+				}
+            } else 
+                message = "HTTP/1.1 404\r\nContent-Type: text/html\n\n<html><head><link rel=\"stylesheet\" href=\"style.css\"></head><h1>Page introuvable</h1></html>";
 			req->send_packet(message.c_str());
 
 			delete req;

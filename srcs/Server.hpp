@@ -3,6 +3,7 @@
 #define SERVER_HPP
 
 #include "./Header.hpp"
+#include "Request.hpp"
 
 class Server
 {
@@ -12,8 +13,8 @@ class Server
 			init_fd(AF_INET , SOCK_STREAM , 0);
 			init_addr(AF_INET, INADDR_ANY, htons(PORT));
 			init_link();
-			init_listen(this->_conf.operator["worker_processes"]);
-			set_repos("~");
+			init_listen(atoi(this->_conf["worker_processes"].c_str()));
+			set_repos("/home/user42/CPP/WebServ");
 		}
 		Server(Server const &){}
 		virtual ~Server(void){}
@@ -88,23 +89,30 @@ class Server
 		std::string					open_file(std::string file) {
 			std::ifstream opfile;
 			std::string content;
-			std::string reponse;
-			std::string tmp = this->repos + file;
+			std::string reponse = "";
+			std::string tmp = this->_repos + file;
   			opfile.open(tmp.data());
 			if (!opfile.is_open())
-				return (NULL);
+				return (reponse);
 			while (std::getline(opfile, content))
 				reponse += content;
-			std:: cout << "REPONSE BEFORE " << reponse.c_str() << std::endl;
+			opfile.close();
 			return (reponse);
 		}
-		void						set_repos(std::string repos){
-			std::ifstream folder(repos.c_str());
-			if(folder.good())
-				this->repos = repos;
-			else
-				std::cout << "REPO NOT FOUND" << repos << std::endl;
-			// FAIRE L'ERROR DE LANCEMENT SI FOLDER NOT FOUND 
+		void						open_Binary(std::string file, Request *req) {
+			std::ifstream		opfile;
+			char 				*content = new char[4096];
+			std::string tmp = this->_repos + file;
+			memset(content,0,4096);
+  			opfile.open(tmp.data());
+			  if (!opfile.is_open())
+			  	return ;
+			while (!opfile.eof()) {
+				opfile.read(content, 4096); 
+				req->send_packet(content, 4096);
+			}
+			opfile.close();
+		}
 		void                        set_repos(std::string repos){
             std::ifstream folder(repos.c_str());
             if(folder.good())
@@ -127,9 +135,6 @@ class Server
 				}
 			}
 			file.close();
-			for (std::map<std::string, std::string>::iterator it=this->_conf.begin(); it != this->_conf.end(); ++it){
-				std::cout << "key = " << it->first << " value = " << it->second << std::endl;
-			}
 		}
 
 	private:

@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <sys/types.h>
+#include <sstream>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/time.h>
@@ -20,6 +21,8 @@
 #include <sys/stat.h>
 #include <stdint.h>
 #include <map>
+#include <vector>
+#include <list>
 
 
 # define RESET   		"\033[0m"
