@@ -15,6 +15,7 @@ class Request {
 			this->_buffer[recv(this->_socket, &this->_buffer, sizeof(this->_buffer), 0)] = 0;
 			this->_type = this->_buffer[0];
 			parsing_map();
+			parsing_mime();
 			this->find_uri();
 			this->find_typecontent();
 		}
@@ -56,7 +57,7 @@ class Request {
 
 		void				find_typecontent(void) {
 			this->_typecontent = "";
-			this->_typecontent = this->_map["Accept"].substr(1, this->_map["Accept"].find_first_of(",",0) - 1);
+			this->_typecontent = this->_map["Accept"];
 			std::cout << RED << this->_typecontent << RESET << std::endl;
 			// std::string findExtension = this->_uri;
 			// if (static_cast<std::string>(this->_uri).find(".") != SIZE_MAX)
@@ -85,14 +86,34 @@ class Request {
 				std::cout << GREEN << "key = " << it->first << std::endl << BLUE << " value = " << it->second << std::endl;
 			}
 		}
+		void				parsing_mime(){
+			std::ifstream			file("srcs/mime.types");
+			std::string				line;
+
+			while (getline(file, line)){
+				size_t end = line.find_first_of("\t",0);
+				std::string key = line.substr(0, end);
+				// std::cout << BLUE << key << RESET << std::endl;
+				size_t start = line.find_first_not_of("\t",end);
+				std::list<std::string> value;
+				while ((end = line.find_first_of(" ",start)) != SIZE_MAX){
+					value.push_back(line.substr(start, end));
+					// std::cout << GREEN << line.substr(start, end) << RESET << std::endl;
+					start = end + 1;
+				}
+				this->_map_mime[key] = value;
+			}
+			file.close();
+		}
 
 	private:
-		int										_socket;
-		char									_buffer[1025];
-		char									*_uri;
-		char									_type;
-		std::string								_typecontent;
-		std::map<std::string, std::string>		_map;
+		int													_socket;
+		char												_buffer[1025];
+		char												*_uri;
+		char												_type;
+		std::string											_typecontent;
+		std::map<std::string, std::string>					_map;
+		std::map<std::string, std::list<std::string> >		_map_mime;
 };
 
 #endif

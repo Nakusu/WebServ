@@ -103,6 +103,7 @@ class Server
 			std::ifstream		opfile;
 			char 				*content = new char[4096];
 			std::string tmp = this->_repos + file;
+			memset(content,0,4096);
   			opfile.open(tmp.data());
 			  if (!opfile.is_open())
 			  	return ;
