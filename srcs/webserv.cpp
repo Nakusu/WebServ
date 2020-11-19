@@ -32,12 +32,13 @@ int main(void)
             if (strcmp(req->get_uri(), "/")) {
                 std::string fcontent = serv->open_file(req->get_uri());
                 if (fcontent.empty())
-                    message = "HTTP/1.1 404\r\nContent-Type: text/html\n\n<html><head><link rel=\"stylesheet\" href=\"style.css\"></head><h1>Page introuvable</h1></html>";
+                    req->send_packet("HTTP/1.1 404\r\nContent-Type: text/html\n\n<html><head><link rel=\"stylesheet\" href=\"style.css\"></head><h1>Page introuvable</h1></html>");
                 else {
-                    message = "HTTP/1.1 200\r\nContent-Type: " + req->get_typecontent() + "\n\n";
-                    message += fcontent;
+                     req->send_packet("HTTP/1.1 200\n\n");
+                     serv->open_Binary(req->get_uri(), req);
                 }
-            }
+            } else 
+                message = "HTTP/1.1 404\r\nContent-Type: text/html\n\n<html><head><link rel=\"stylesheet\" href=\"style.css\"></head><h1>Page introuvable</h1></html>";
 			req->send_packet(message.c_str());
 
 			delete req;
