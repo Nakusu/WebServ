@@ -13,7 +13,7 @@ class Server
 			init_addr(AF_INET, INADDR_ANY, htons(PORT));
 			init_link();
 			init_listen(atoi(this->_conf["worker_processes"].c_str()));
-			set_repos("~");
+			set_repos("/home/user42/CPP/WebServ");
 		}
 		Server(Server const &){}
 		virtual ~Server(void){}
@@ -95,7 +95,6 @@ class Server
 				return (reponse);
 			while (std::getline(opfile, content))
 				reponse += content;
-			std:: cout << "REPONSE BEFORE " << reponse.c_str() << std::endl;
 			return (reponse);
 		}
 		void                        set_repos(std::string repos){
@@ -120,9 +119,6 @@ class Server
 				}
 			}
 			file.close();
-			for (std::map<std::string, std::string>::iterator it=this->_conf.begin(); it != this->_conf.end(); ++it){
-				std::cout << "key = " << it->first << " value = " << it->second << std::endl;
-			}
 		}
 
 	private:

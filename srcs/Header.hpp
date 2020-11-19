@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <sys/types.h>
+#include <sstream>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/time.h>
