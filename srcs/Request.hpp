@@ -16,6 +16,7 @@ class Request {
 			this->_type = this->_buffer[0];
 			parsing_map();
 			parsing_mime();
+			parse_get();
 			this->find_uri();
 			this->find_typecontent();
 		}
@@ -59,10 +60,6 @@ class Request {
 			this->_typecontent = "";
 			this->_typecontent = this->_map["Accept"];
 			std::cout << RED << this->_typecontent << RESET << std::endl;
-			// std::string findExtension = this->_uri;
-			// if (static_cast<std::string>(this->_uri).find(".") != SIZE_MAX)
-			// 	this->_typecontent = &this->_uri[findExtension.find(".") + 1];
-			
 		}
 		void				parsing_map(){
 			std::string 			pars = _buffer;
@@ -86,6 +83,18 @@ class Request {
 				std::cout << GREEN << "key = " << it->first << std::endl << BLUE << " value = " << it->second << std::endl;
 			}
 		}
+		void				parse_get(void) {
+			this->_path = "";
+
+			this->_path = &this->_map["First"][this->_map["First"].find(" ") + 1];
+			this->_path = (this->_path.find("?") != SIZE_MAX) ? this->_path.substr(0, this->_path.find("?") - 1)
+			: this->_path.substr(0, this->_path.find("HTTP") - 1);
+			std::cout << RED << "[" << this->_path << "]" << RESET << std::endl;
+			this->_file = (this->_path.rfind("/") != SIZE_MAX) ? &this->_path[this->_path.rfind("/") + 1] : this->_path;
+			std::cout << RED << "[" << this->_file << "]" << RESET << std::endl;
+			this->_extension = (this->_file.rfind(".") != SIZE_MAX) ? &this->_file[this->_file.rfind(".") + 1] : "";
+			std::cout << RED << "[" << this->_extension << "]" << RESET << std::endl;
+		}
 		void				parsing_mime(){
 			std::ifstream			file("srcs/mime.types");
 			std::string				line;
@@ -93,12 +102,10 @@ class Request {
 			while (getline(file, line)){
 				size_t end = line.find_first_of("\t",0);
 				std::string key = line.substr(0, end);
-				// std::cout << BLUE << key << RESET << std::endl;
 				size_t start = line.find_first_not_of("\t",end);
 				std::list<std::string> value;
 				while ((end = line.find_first_of(" ",start)) != SIZE_MAX){
 					value.push_back(line.substr(start, end));
-					// std::cout << GREEN << line.substr(start, end) << RESET << std::endl;
 					start = end + 1;
 				}
 				this->_map_mime[key] = value;
@@ -114,6 +121,9 @@ class Request {
 		std::string											_typecontent;
 		std::map<std::string, std::string>					_map;
 		std::map<std::string, std::list<std::string> >		_map_mime;
+		std::string											_path;
+		std::string											_file;
+		std::string											_extension;
 };
 
 #endif
