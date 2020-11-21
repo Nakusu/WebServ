@@ -60,10 +60,6 @@ class Request {
 			this->_typecontent = "";
 			this->_typecontent = this->_map["Accept"];
 			std::cout << RED << this->_typecontent << RESET << std::endl;
-			// std::string findExtension = this->_uri;
-			// if (static_cast<std::string>(this->_uri).find(".") != SIZE_MAX)
-			// 	this->_typecontent = &this->_uri[findExtension.find(".") + 1];
-			
 		}
 		void				parsing_map(){
 			std::string 			pars = _buffer;
@@ -106,12 +102,10 @@ class Request {
 			while (getline(file, line)){
 				size_t end = line.find_first_of("\t",0);
 				std::string key = line.substr(0, end);
-				// std::cout << BLUE << key << RESET << std::endl;
 				size_t start = line.find_first_not_of("\t",end);
 				std::list<std::string> value;
 				while ((end = line.find_first_of(" ",start)) != SIZE_MAX){
 					value.push_back(line.substr(start, end));
-					// std::cout << GREEN << line.substr(start, end) << RESET << std::endl;
 					start = end + 1;
 				}
 				this->_map_mime[key] = value;

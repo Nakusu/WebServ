@@ -119,7 +119,6 @@ class Server
                 this->_repos = repos;
             else
                 std::cout << "REPO NOT FOUND" << repos << std::endl;
-            // FAIRE L'ERROR DE LANCEMENT SI FOLDER NOT FOUND 
         }
 		
 		void						parsing_conf(void){
