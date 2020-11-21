@@ -35,6 +35,7 @@ int main(void)
                 if (fcontent.empty())
                     req->send_packet("HTTP/1.1 404\r\nContent-Type: text/html\n\n<html><head><link rel=\"stylesheet\" href=\"style.css\"></head><h1>Page introuvable</h1></html>");
                 else if (req->get_typecontent().find("image") != SIZE_MAX) {
+					std::cout << "test" << std::endl;
                      req->send_packet("HTTP/1.1 200\n\n");
                      serv->open_Binary(req->get_uri(), req);
                 }

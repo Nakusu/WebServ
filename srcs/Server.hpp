@@ -121,6 +121,7 @@ class Server
                 std::cout << "REPO NOT FOUND" << repos << std::endl;
             // FAIRE L'ERROR DE LANCEMENT SI FOLDER NOT FOUND 
         }
+		
 		void						parsing_conf(void){
 			std::ifstream			file("srcs/server.conf");
 			std::string				line;
