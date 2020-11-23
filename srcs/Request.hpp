@@ -72,11 +72,6 @@ class Request {
 		char												*_uri;
 		char												_type;
 		std::string											_typecontent;
-		std::map<std::string, std::string>					_map;
-		std::map<std::string, std::list<std::string> >		_map_mime;
-		std::string											_path;
-		std::string											_file;
-		std::string											_extension;
 		Parsing_request										_parsing;
 };
 
