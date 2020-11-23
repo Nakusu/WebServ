@@ -85,33 +85,34 @@ class Server
 		std::string					get_repos(void){
 			return (this->_repos);
 		}
-		std::string					open_file(std::string file) {
+		int							open_file(std::string file, Request *req) {
 			std::ifstream opfile;
 			std::string content;
-			std::string reponse = "";
 			std::string tmp = this->_repos + file;
   			opfile.open(tmp.data());
 			if (!opfile.is_open())
-				return (reponse);
+				return (0);
+			req->send_packet("HTTP/1.1 200\n\n");
 			while (std::getline(opfile, content))
-				reponse += content;
+				req->send_packet(content.c_str());
 			opfile.close();
-			return (reponse);
+			return (1);
 		}
-		void						open_Binary(std::string file, Request *req) {
+		int							open_Binary(std::string file, Request *req) {
 			std::ifstream		opfile;
 			char 				*content = new char[4096];
 			std::string tmp = this->_repos + file;
 			memset(content,0,4096);
   			opfile.open(tmp.data());
 			  if (!opfile.is_open())
-			  	return ;
+			  	return (0);
 			req->send_packet("HTTP/1.1 200\n\n");
 			while (!opfile.eof()) {
 				opfile.read(content, 4096); 
 				req->send_packet(content, 4096);
 			}
 			opfile.close();
+			return (1);
 		}
 		void                        set_repos(std::string repos){
             std::ifstream folder(repos.c_str());
