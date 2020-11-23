@@ -115,13 +115,23 @@ class Server
 			return (1);
 		}
 		void                        set_repos(std::string repos){
-            std::ifstream folder(repos.c_str());
-            if(folder.good())
+            std::ifstream	folder(repos.c_str());
+            if(folder.good() && this->check_repo(repos))
                 this->_repos = repos;
             else
                 std::cout << "REPO NOT FOUND" << repos << std::endl;
 				// ERROR DE REPO BLOCK
         }
+
+		bool						check_repo(std::string repos) {
+			DIR		*folder = opendir((this->_repos + repos).c_str());
+			bool	ret = false;
+            if(folder) {
+				closedir(folder);
+                ret = true;
+			}
+            return (ret);
+		}
 		
 		void						parsing_conf(void){
 			std::ifstream			file("srcs/server.conf");
@@ -137,6 +147,23 @@ class Server
 				}
 			}
 			file.close();
+		}
+
+		std::vector<std::string>	get_fileInFolder(std::string repos) {
+			struct dirent				*entry;
+			DIR							*folder;
+			std::vector<std::string>	ret;
+
+			folder = opendir((this->_repos + repos).c_str());
+			if (folder) {
+				while ((entry = readdir(folder))) {
+					if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..")) {
+						ret.push_back(entry->d_name);
+						std::cout << "FILE : " << entry->d_name << std::endl;
+					} 
+				}
+			}
+			return (ret);
 		}
 
 	private:

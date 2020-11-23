@@ -15,6 +15,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/time.h>
+#include <dirent.h>
 #include <iostream>
 #include <fstream>
 #include <iomanip>

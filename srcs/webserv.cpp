@@ -29,7 +29,12 @@ int main(void)
 			Request *req = new Request(accept(serv->get_fd(), (struct sockaddr *)&address, (socklen_t *)&addrlen));
 			std::cout << YELLOW << req->get_typecontent() << RESET << std::endl;
 		    if (strcmp(req->get_uri(), "/")) {
-                if ((req->get_extension() == "css" || req->get_extension() == "html") && serv->open_file(req->get_uri(), req)) {
+                if (serv->check_repo(req->get_uri())) {
+                    serv->get_fileInFolder(req->get_uri()); // RECUPERATION DES FICHIERS DANS LE FOLDER
+                    // VOIR SI UN FICHIER DU FOLDER EST UN INDEX, SI C'EST LE CAS IL FAUT L'AFFICHER
+                    // SINON VOIR SI L'AUTOINDEX EST ON ET AFFICHER UN AUTOINDEX SI C'EST LE CAS
+                    req->send_packet("HTTP/1.1 403\r\nContent-Type: text/html\n\nInteraction interdite..."); // SI IL N'Y A PAS D'INDEX DE BASE ET QUE L'AUTOINDEX EST SUR OFF
+                } else if ((req->get_extension() == "css" || req->get_extension() == "html") && serv->open_file(req->get_uri(), req)) {
                     std::cout << "YES OPENFILE" << std::endl;
                 } else if (serv->open_Binary(req->get_uri(), req)) {
                     std::cout << "YES OPENFILE BINARY" << std::endl;
