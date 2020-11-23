@@ -34,19 +34,14 @@ int main(void)
                 std::string fcontent = serv->open_file(req->get_uri());
                 if (fcontent.empty())
                     req->send_packet("HTTP/1.1 404\r\nContent-Type: text/html\n\n<html><head><link rel=\"stylesheet\" href=\"style.css\"></head><h1>Page introuvable</h1></html>");
-                else if (req->get_typecontent().find("image") != SIZE_MAX) {
-					std::cout << "test" << std::endl;
-                     req->send_packet("HTTP/1.1 200\n\n");
-                     serv->open_Binary(req->get_uri(), req);
-                }
-				else{
+                else if (req->get_extension() == "css" || req->get_extension() == "html") {
 					 req->send_packet("HTTP/1.1 200\n\n");
 					 req->send_packet(fcontent.c_str());
 				}
+                else
+					serv->open_Binary(req->get_uri(), req);
             } else 
-                message = "HTTP/1.1 404\r\nContent-Type: text/html\n\n<html><head><link rel=\"stylesheet\" href=\"style.css\"></head><h1>Page introuvable</h1></html>";
-			req->send_packet(message.c_str());
-
+                req->send_packet("HTTP/1.1 404\r\nContent-Type: text/html\n\n<html><head><link rel=\"stylesheet\" href=\"style.css\"></head><h1>Page introuvable</h1></html>");
 			delete req;
         }
     }     

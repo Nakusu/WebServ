@@ -1,4 +1,3 @@
-
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
@@ -107,6 +106,7 @@ class Server
   			opfile.open(tmp.data());
 			  if (!opfile.is_open())
 			  	return ;
+			req->send_packet("HTTP/1.1 200\n\n");
 			while (!opfile.eof()) {
 				opfile.read(content, 4096); 
 				req->send_packet(content, 4096);
@@ -119,6 +119,7 @@ class Server
                 this->_repos = repos;
             else
                 std::cout << "REPO NOT FOUND" << repos << std::endl;
+				// ERROR DE REPO BLOCK
         }
 		
 		void						parsing_conf(void){
