@@ -47,6 +47,9 @@ class Request {
 		void				set_socket(int socket) {
 			this->_socket = socket;
 		}
+		void				set_uri(std::string uri) {
+			this->_uri = (char *)uri.c_str();
+		}
 		void				send_packet(const char *content) {
 			send(this->_socket, content, strlen(content), 0);
 		}

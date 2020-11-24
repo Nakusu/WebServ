@@ -13,7 +13,7 @@ class Server
 			init_addr(AF_INET, INADDR_ANY, htons(PORT));
 			init_link();
 			init_listen(atoi(this->_conf["worker_processes"].c_str()));
-			set_repos("/home/user42/CPP/WebServ");
+			set_repos("public");
 		}
 		Server(Server const &){}
 		virtual ~Server(void){}
@@ -124,7 +124,7 @@ class Server
         }
 
 		bool						check_repo(std::string repos) {
-			DIR		*folder = opendir((this->_repos + repos).c_str());
+			DIR		*folder = opendir((repos).c_str());
 			bool	ret = false;
             if(folder) {
 				closedir(folder);
@@ -163,15 +163,40 @@ class Server
 					} 
 				}
 			}
+			this->_repos = this->_repos.substr(this->_repos.find_first_not_of("\n "), this->_repos.size());
 			return (ret);
 		}
 
+		size_t							get_index_size(){
+			return (this->_index.size());
+		}
+		std::string						get_index(size_t i){
+			return(this->_index[i]);
+		}
+		int								get_AutoIndex(std::string uri){
+			for (size_t i = 0; i < this->_locations.size(); i++)
+			{
+				if (!this->_locations[i]["key"].compare(uri)){
+					if (this->_autoIndex || this->_locations[i]["autoindex"] == "on")
+						return (1);
+				}
+			}
+			return(0);
+		}
+
 	private:
-		int 									_fd;
-		struct sockaddr_in 						_address;
-		fd_set 									_readfds;
-		std::string								_repos;
-		std::map<std::string, std::string>		_conf;
+		int 															_fd;
+		struct sockaddr_in 												_address;
+		fd_set 															_readfds;
+		std::string														_repos;
+		std::map<std::string, std::string>								_conf;
+		std::vector<std::map<std::string, std::string> >				_locations;
+        std::vector<std::string>										_serverName;
+        std::string														_root;
+        std::vector<std::string>										_index;
+        std::string														_listen;
+        std::vector<std::string>										_serverText;
+
 };
 
 #endif
