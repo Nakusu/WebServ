@@ -27,26 +27,22 @@ int main(void)
         //Si une requete est envoyé au serv->get_fd()
         if (serv->wait_request()){   
 			Request *req = new Request(accept(serv->get_fd(), (struct sockaddr *)&address, (socklen_t *)&addrlen));
-			//std::cout << " URI : " << req->get_uri() << " TYPE : " << req->get_type() << std::endl;
-			//printf("New connection , socket fd is %d , ip is : %s , port : %d\n\n %s\n" , serv->get_fd() , inet_ntoa(address.sin_addr) , ntohs(address.sin_port), req->get_buffer());
 			std::cout << YELLOW << req->get_typecontent() << RESET << std::endl;
 		    if (strcmp(req->get_uri(), "/")) {
-                std::string fcontent = serv->open_file(req->get_uri());
-                if (fcontent.empty())
+                if (serv->check_repo(req->get_uri())) {
+                    serv->get_fileInFolder(req->get_uri()); // RECUPERATION DES FICHIERS DANS LE FOLDER
+                    // VOIR SI UN FICHIER DU FOLDER EST UN INDEX, SI C'EST LE CAS IL FAUT L'AFFICHER
+                    // SINON VOIR SI L'AUTOINDEX EST ON ET AFFICHER UN AUTOINDEX SI C'EST LE CAS
+                    req->send_packet("HTTP/1.1 403\r\nContent-Type: text/html\n\nInteraction interdite..."); // SI IL N'Y A PAS D'INDEX DE BASE ET QUE L'AUTOINDEX EST SUR OFF
+                } else if ((req->get_extension() == "css" || req->get_extension() == "html") && serv->open_file(req->get_uri(), req)) {
+                    std::cout << "YES OPENFILE" << std::endl;
+                } else if (serv->open_Binary(req->get_uri(), req)) {
+                    std::cout << "YES OPENFILE BINARY" << std::endl;
+                } else {
                     req->send_packet("HTTP/1.1 404\r\nContent-Type: text/html\n\n<html><head><link rel=\"stylesheet\" href=\"style.css\"></head><h1>Page introuvable</h1></html>");
-                else if (req->get_typecontent().find("image") != SIZE_MAX) {
-					std::cout << "test" << std::endl;
-                     req->send_packet("HTTP/1.1 200\n\n");
-                     serv->open_Binary(req->get_uri(), req);
                 }
-				else{
-					 req->send_packet("HTTP/1.1 200\n\n");
-					 req->send_packet(fcontent.c_str());
-				}
             } else 
-                message = "HTTP/1.1 404\r\nContent-Type: text/html\n\n<html><head><link rel=\"stylesheet\" href=\"style.css\"></head><h1>Page introuvable</h1></html>";
-			req->send_packet(message.c_str());
-
+                req->send_packet("HTTP/1.1 404\r\nContent-Type: text/html\n\n<html><head><link rel=\"stylesheet\" href=\"style.css\"></head><h1>Page introuvable</h1></html>");
 			delete req;
         }
     }     
