@@ -176,7 +176,7 @@ class Server
 		int								get_AutoIndex(std::string uri){
 			for (size_t i = 0; i < this->_locations.size(); i++)
 			{
-				if (!this->_locations[i]["key"].compare(uri)){
+				if (this->_autoIndex || this->_locations[i]["key"].find(uri) == 0){
 					if (this->_autoIndex || this->_locations[i]["autoindex"] == "on")
 						return (1);
 				}
