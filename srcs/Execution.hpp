@@ -32,18 +32,19 @@ class Execution
 
 		}
 		int								index(void){
-			if (this->serv->check_repo(this->req->get_uri())) {
+			if (this->serv->check_repo(this->serv->get_repos() + this->req->get_uri())) {
 				std::vector<std::string> files;
 				std::string autoindex = "HTTP/1.1 403\r\nContent-Type: text/html\n\n<h1>Index of : " + std::string(this->req->get_uri()) + "</h1>";
 				files = this->serv->get_fileInFolder(this->req->get_uri()); // RECUPERATION DES FICHIERS DANS LE FOLDER
 				for (size_t i = 0; i < this->serv->get_index_size(); i++){
 					for (size_t j = 0; j < files.size(); j++){
-						if (this->serv->get_index(i).compare(files[j].c_str())){
-							this->req->set_uri(std::string(this->req->get_uri()) + "/" + files[j]);
-							return (1);
+						if (!this->serv->get_index(i).compare(files[j].c_str())){
+							this->req->set_uri(std::string(this->req->get_uri()) + files[j]);
+							return (0);
 						}
 					}
 				}
+				std::cout << YELLOW << this->req->get_uri() << RESET << std::endl;
 				if (this->serv->get_AutoIndex(this->req->get_uri())){
 					for (size_t j = 0; j < files.size(); j++){
 						autoindex += "<a href=\"" + std::string(this->req->get_uri()) + files[j] +"\">" + files[j] + "</a></br>";

@@ -4,7 +4,7 @@
 #include "Request.hpp" 
 #include "Execution.hpp" 
 
-int main(void)   
+int main(int argc, char **argv)   
 {   
 	Server *serv = new Server;
            
@@ -16,7 +16,38 @@ int main(void)
 	struct sockaddr_in address = serv->get_address();
 
     puts("Waiting for connections ...");   
-         
+    
+	std::string defaultConf = "srcs/default.conf";
+	
+	// Verification des arguments d'entrée && lecture du fichier
+	if (argc > 1)
+		defaultConf = std::string(argv[1]) + "/" + defaultConf;
+	std::ifstream	ifs(defaultConf.c_str());
+	if (ifs.fail())
+	{
+		std::cerr << "Reading Error" << std::endl;
+		return (0);
+	}
+
+	// Recupération du fichier default.conf dans un container vector
+	std::string  line;
+	std::vector<std::string> file;
+	while (std::getline(ifs, line))
+	{
+		line = (line.find_first_not_of("\t ") != SIZE_MAX) ? line.substr(line.find_first_not_of("\t "), line.size()) : line;
+		if (!line.empty())
+			file.push_back(line);
+	}
+	ifs.close();
+	serv->set_file(file);
+	serv->parsingServerText();
+	serv->parsingListen();
+	serv->parsingServerNames();
+	serv->parsingRoot();
+	serv->parsingIndex();
+	serv->parsingLocations();
+	serv->parsingAutoIndex();
+
     while(TRUE)   
     {   
 		serv->clear_fd();

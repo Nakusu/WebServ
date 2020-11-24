@@ -17,7 +17,7 @@ class Server
 		}
 		Server(Server const &){}
 		virtual ~Server(void){}
-		Server &					operator=( Server const &rhs){
+		Server &														operator=( Server const &rhs){
 			if (this != &rhs){
 				this->_fd = rhs._fd;
 				this->_address = rhs._address;
@@ -25,7 +25,7 @@ class Server
 			return (*this);
 		}
 
-		int							init_fd(int domain, int type, int protocol){
+		int																init_fd(int domain, int type, int protocol){
 			int opt = TRUE;
 
 			if( (this->_fd = socket(domain , type , protocol)) == 0){   
@@ -38,14 +38,14 @@ class Server
 			}
 			return (this->_fd);
 		}
-		struct sockaddr_in			init_addr(int family, in_addr_t s_addr, in_port_t port){
+		struct sockaddr_in												init_addr(int family, in_addr_t s_addr, in_port_t port){
 			this->_address.sin_family = family;   
 			this->_address.sin_addr.s_addr = s_addr;   
    			this->_address.sin_port = port;
 			return (this->_address); 
 
 		}
-		void						init_link(void){
+		void															init_link(void){
 			if (this->_fd != 0){
 				if(bind(this->_fd, (struct sockaddr *)&this->_address, sizeof(this->_address)) < 0){   
        				perror("bind failed");   
@@ -53,25 +53,25 @@ class Server
 				}
  		   }
 		}
-		void						init_listen(int number){
+		void															init_listen(int number){
 			if (listen(this->_fd, number) < 0){
       			perror("listen");   
      			exit(EXIT_FAILURE);
 			}   
 		}
-		int							get_fd(void){
+		int																get_fd(void){
 			return (this->_fd);
 		}
-		void						clear_fd(void){
+		void															clear_fd(void){
 			FD_ZERO(&this->_readfds);   
 		}
-		void						set_fd(void){
+		void															set_fd(void){
 			FD_SET(this->_fd, &this->_readfds);    
 		}
-		struct sockaddr_in			get_address(void){
+		struct sockaddr_in												get_address(void){
 			return (this->_address);
 		}
-		void						wait_select(void){
+		void															wait_select(void){
 			int activity;
 
 			activity = select(this->_fd + 1, &this->_readfds , NULL , NULL , NULL); 
@@ -79,13 +79,13 @@ class Server
 				printf("select error");   
 			}  
 		}
-		int							wait_request(void){
+		int																wait_request(void){
 			return (FD_ISSET(this->_fd, &this->_readfds));
 		}
-		std::string					get_repos(void){
+		std::string														get_repos(void){
 			return (this->_repos);
 		}
-		int							open_file(std::string file, Request *req) {
+		int																open_file(std::string file, Request *req) {
 			std::ifstream opfile;
 			std::string content;
 			std::string tmp = this->_repos + file;
@@ -98,7 +98,7 @@ class Server
 			opfile.close();
 			return (1);
 		}
-		int							open_Binary(std::string file, Request *req) {
+		int																open_Binary(std::string file, Request *req) {
 			std::ifstream		opfile;
 			char 				*content = new char[4096];
 			std::string tmp = this->_repos + file;
@@ -114,7 +114,7 @@ class Server
 			opfile.close();
 			return (1);
 		}
-		void                        set_repos(std::string repos){
+		void                      										set_repos(std::string repos){
             std::ifstream	folder(repos.c_str());
             if(folder.good() && this->check_repo(repos))
                 this->_repos = repos;
@@ -123,7 +123,7 @@ class Server
 				// ERROR DE REPO BLOCK
         }
 
-		bool						check_repo(std::string repos) {
+		bool															check_repo(std::string repos) {
 			DIR		*folder = opendir((repos).c_str());
 			bool	ret = false;
             if(folder) {
@@ -132,8 +132,8 @@ class Server
 			}
             return (ret);
 		}
-		
-		void						parsing_conf(void){
+
+		void															parsing_conf(void){
 			std::ifstream			file("srcs/server.conf");
 			std::string				line;
 
@@ -149,7 +149,7 @@ class Server
 			file.close();
 		}
 
-		std::vector<std::string>	get_fileInFolder(std::string repos) {
+		std::vector<std::string>										get_fileInFolder(std::string repos) {
 			struct dirent				*entry;
 			DIR							*folder;
 			std::vector<std::string>	ret;
@@ -167,36 +167,139 @@ class Server
 			return (ret);
 		}
 
-		size_t							get_index_size(){
+		size_t															get_index_size(){
 			return (this->_index.size());
 		}
-		std::string						get_index(size_t i){
+		std::string														get_index(size_t i){
 			return(this->_index[i]);
 		}
-		int								get_AutoIndex(std::string uri){
+		int																get_AutoIndex(std::string uri){
 			for (size_t i = 0; i < this->_locations.size(); i++)
 			{
-				if (this->_autoIndex || this->_locations[i]["key"].find(uri) == 0){
-					if (this->_autoIndex || this->_locations[i]["autoindex"] == "on")
+				std::cout << RED << this->_autoIndex << RESET << std::endl;
+				if ((strncmp((char *)this->_locations[i]["key"].c_str(), (char *)uri.c_str(), this->_locations[i]["key"].length()) == 0) && 
+				!this->_locations[i]["autoindex"].empty()){
+					if (this->_locations[i]["autoindex"] == "on")
 						return (1);
+					else if (this->_locations[i]["autoindex"] == "off")
+						return (0);
 				}
 			}
-			return(0);
+			return (this->_autoIndex);
 		}
-
+		void															parsingServerText(void){
+			for (unsigned int i = 0; i < this->_file.size(); i++){
+				if (this->_file[i].find("server ") != SIZE_MAX || this->_file[i].find("server{") != SIZE_MAX){	
+					unsigned int j = i + 1;
+					unsigned int brackets = 1;
+					this->_serverText.push_back(this->_file[i]);
+					while (brackets != 0 && j < this->_file.size())
+					{
+						if (this->_file[j].find("{") != SIZE_MAX)
+							brackets++;
+						else if (this->_file[j].find("}") != SIZE_MAX)
+							brackets--;
+							this->_serverText.push_back(this->_file[j]);
+						j++;
+					}
+				}
+				return ;
+			}
+		}
+		void															parsingListen(void){
+			for (unsigned int i = 0; i < this->_serverText.size(); i++)
+				if (this->_serverText[i].find("listen ") != SIZE_MAX)
+					this->_listen.push_back(this->_serverText[i].substr(7, this->_serverText[i].size() - 8));
+		}
+		void															parsingServerNames(void){
+			for (unsigned int i = 0; i < this->_serverText.size(); i++)
+			{
+				if (this->_serverText[i].find("server_name ") != SIZE_MAX)
+				{
+					std::istringstream iss(this->_serverText[i]);
+					std::vector<std::string> results(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>());
+					results.erase(results.begin());
+					this->_serverNames = results;
+					this->_serverNames.back().pop_back();
+				}
+			}
+		}
+		void															parsingRoot(void){
+			for (unsigned int i = 0; i < this->_serverText.size(); i++)
+			{
+				if (this->_serverText[i].find("root ") != SIZE_MAX)
+				{
+					this->_root = this->_serverText[i].substr(5, this->_serverText[i].size() - 6);
+					return ;
+				}
+			}
+		}
+		void															parsingIndex(void){
+			for (unsigned int i = 0; i < this->_serverText.size(); i++)
+			{
+				if (this->_serverText[i].find("index ") == 0)
+				{
+					std::istringstream iss(this->_serverText[i]);
+					std::vector<std::string> results(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>());
+					results.erase(results.begin());
+					this->_index = results;
+					this->_index.back().pop_back();
+				}
+			}
+		}
+		void															parsingAutoIndex(void){
+			for (unsigned int i = 0; i < this->_serverText.size(); i++)
+			{
+				if (this->_serverText[i].find("autoindex ") != SIZE_MAX)
+				{
+					if (this->_serverText[i].find("off") != SIZE_MAX)
+						this->_autoIndex = false;
+					else
+						this->_autoIndex = true;
+					return ;
+				}
+			}
+		}
+		void															parsingLocations(void){
+			std::map<std::string, std::string> value;
+			for (unsigned int i = 0; i < this->_serverText.size(); i++)
+			{
+				if (this->_serverText[i].find("location") != SIZE_MAX)
+				{
+					unsigned int j = i + 1;
+					value["key"] = this->_serverText[i].substr(this->_serverText[i].find_first_not_of(" \t", 8), this->_serverText[i].size() - (this->_serverText[i].find_first_not_of(" \t", 8) + 2));
+					while (this->_serverText[j].find("}") == SIZE_MAX && j < this->_serverText.size())
+					{
+						std::istringstream iss(this->_serverText[j]);
+						std::vector<std::string> results(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>());
+						value[results[0]] = &this->_serverText[j][results[0].size() + 1];
+						value[results[0]].pop_back();
+						j++;
+					}
+					this->_locations.push_back(value);
+					value.clear();
+				}
+			}
+			std::cout << "[" << this->_locations[0]["autoindex"] << "]" << std::endl;
+		}
+		void															set_file(std::vector<std::string> file){
+			this->_file = file;
+		}
 	private:
 		int 															_fd;
 		struct sockaddr_in 												_address;
 		fd_set 															_readfds;
 		std::string														_repos;
 		std::map<std::string, std::string>								_conf;
-		std::vector<std::map<std::string, std::string> >				_locations;
-        std::vector<std::string>										_serverName;
-        std::string														_root;
-        std::vector<std::string>										_index;
-        std::string														_listen;
-        std::vector<std::string>										_serverText;
 
+		std::vector<std::string>										_serverText;
+		std::vector<std::string>										_listen;
+		std::vector<std::string>										_serverNames;
+		std::string														_root;
+		std::vector<std::string>										_index;
+		bool															_autoIndex;
+		std::vector<std::map<std::string, std::string> >				_locations;
+		std::vector<std::string> 										_file;
 };
 
 #endif
