@@ -15,6 +15,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/time.h>
+#include <dirent.h>
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -23,6 +24,21 @@
 #include <map>
 #include <vector>
 #include <list>
+#include <sstream>
+#include <fstream>
+#include <iterator>
+
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <map>
+#include <string>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <iterator>
+#include <sstream>
 
 
 # define RESET   		"\033[0m"
