@@ -6,7 +6,7 @@
 #    By: cbertola <cbertola@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/09/21 15:12:58 by cbertola          #+#    #+#              #
-#    Updated: 2020/11/18 15:42:20 by cbertola         ###   ########.fr        #
+#    Updated: 2020/11/24 17:45:51 by cbertola         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,7 +20,7 @@ SRCS		= $(addprefix $(SRCS_PATH),$(SRCSC))
 OBJS 		= $(addprefix $(OBJS_PATH),$(OBJS_NAME))
 OBJS_NAME	= $(SRCSC:%.cpp=%.o)
 LIBS 		= 
-CXXFLAGS	= -Wall -Wextra -Werror -std=c++98 -g -fsanitize=address
+CXXFLAGS	= -Wall -Wextra -Werror -g -fsanitize=address
 #  -g -fsanitize=address
 CXX			= clang++
 LOGFILE		= $(LOGPATH) `date +'%y.%m.%d %H:%M:%S'`

@@ -2,8 +2,9 @@
 #include "Header.hpp" 
 #include "Server.hpp" 
 #include "Request.hpp" 
+#include "Execution.hpp" 
 
-int main(void)   
+int main(int argc, char **argv)   
 {   
 	Server *serv = new Server;
            
@@ -15,12 +16,43 @@ int main(void)
 	struct sockaddr_in address = serv->get_address();
 
     puts("Waiting for connections ...");   
-         
+    
+	std::string defaultConf = "srcs/default.conf";
+	
+	// Verification des arguments d'entrée && lecture du fichier
+	if (argc > 1)
+		defaultConf = std::string(argv[1]) + "/" + defaultConf;
+	std::ifstream	ifs(defaultConf.c_str());
+	if (ifs.fail())
+	{
+		std::cerr << "Reading Error" << std::endl;
+		return (0);
+	}
+
+	// Recupération du fichier default.conf dans un container vector
+	std::string  line;
+	std::vector<std::string> file;
+	while (std::getline(ifs, line))
+	{
+		line = (line.find_first_not_of("\t ") != SIZE_MAX) ? line.substr(line.find_first_not_of("\t "), line.size()) : line;
+		if (!line.empty())
+			file.push_back(line);
+	}
+	ifs.close();
+	serv->set_file(file);
+	serv->parsingServerText();
+	serv->parsingListen();
+	serv->parsingServerNames();
+	serv->parsingRoot();
+	serv->parsingIndex();
+	serv->parsingLocations();
+	serv->parsingAutoIndex();
+
     while(TRUE)   
     {   
 		serv->clear_fd();
 		serv->set_fd();
-        serv->set_repos("public");
+        // serv->set_repos("public");
 
         //Le server attends un nouvelle activité (une requete)
       	serv->wait_select();  
@@ -28,21 +60,9 @@ int main(void)
         if (serv->wait_request()){   
 			Request *req = new Request(accept(serv->get_fd(), (struct sockaddr *)&address, (socklen_t *)&addrlen));
 			std::cout << YELLOW << req->get_typecontent() << RESET << std::endl;
-		    if (strcmp(req->get_uri(), "/")) {
-                if (serv->check_repo(req->get_uri())) {
-                    serv->get_fileInFolder(req->get_uri()); // RECUPERATION DES FICHIERS DANS LE FOLDER
-                    // VOIR SI UN FICHIER DU FOLDER EST UN INDEX, SI C'EST LE CAS IL FAUT L'AFFICHER
-                    // SINON VOIR SI L'AUTOINDEX EST ON ET AFFICHER UN AUTOINDEX SI C'EST LE CAS
-                    req->send_packet("HTTP/1.1 403\r\nContent-Type: text/html\n\nInteraction interdite..."); // SI IL N'Y A PAS D'INDEX DE BASE ET QUE L'AUTOINDEX EST SUR OFF
-                } else if ((req->get_extension() == "css" || req->get_extension() == "html") && serv->open_file(req->get_uri(), req)) {
-                    std::cout << "YES OPENFILE" << std::endl;
-                } else if (serv->open_Binary(req->get_uri(), req)) {
-                    std::cout << "YES OPENFILE BINARY" << std::endl;
-                } else {
-                    req->send_packet("HTTP/1.1 404\r\nContent-Type: text/html\n\n<html><head><link rel=\"stylesheet\" href=\"style.css\"></head><h1>Page introuvable</h1></html>");
-                }
-            } else 
-                req->send_packet("HTTP/1.1 404\r\nContent-Type: text/html\n\n<html><head><link rel=\"stylesheet\" href=\"style.css\"></head><h1>Page introuvable</h1></html>");
+			Execution exec = Execution(serv, req);
+			if (!exec.index() && !exec.text(req->get_uri()) && !exec.binary_file(req->get_uri()))
+				exec.redir_404();
 			delete req;
         }
     }     
