@@ -35,6 +35,7 @@ int main(int argc, char **argv)
 	while (std::getline(ifs, line))
 	{
 		line = (line.find_first_not_of("\t ") != SIZE_MAX) ? line.substr(line.find_first_not_of("\t "), line.size()) : line;
+		line = (line.find_last_not_of("\t ") != SIZE_MAX) ? line.substr(0, line.find_last_not_of("\t ") + 1) : line;
 		if (!line.empty())
 			file.push_back(line);
 	}
