@@ -174,11 +174,10 @@ class Server
 			return(this->_index[i]);
 		}
 		int																get_AutoIndex(std::string uri){
+			// (void)uri;
 			for (size_t i = 0; i < this->_locations.size(); i++)
 			{
-				std::cout << RED << this->_autoIndex << RESET << std::endl;
-				if ((strncmp((char *)this->_locations[i]["key"].c_str(), (char *)uri.c_str(), this->_locations[i]["key"].length()) == 0) && 
-				!this->_locations[i]["autoindex"].empty()){
+				if(uri.compare(this->_locations[i]["key"]) == 0	&& !this->_locations[i]["autoindex"].empty()){
 					if (this->_locations[i]["autoindex"] == "on")
 						return (1);
 					else if (this->_locations[i]["autoindex"] == "off")
@@ -266,10 +265,12 @@ class Server
 			{
 				if (this->_serverText[i].find("location") != SIZE_MAX)
 				{
-					unsigned int j = i + 1;
-					value["key"] = this->_serverText[i].substr(this->_serverText[i].find_first_not_of(" \t", 8), this->_serverText[i].size() - (this->_serverText[i].find_first_not_of(" \t", 8) + 2));
-					while (this->_serverText[j].find("}") == SIZE_MAX && j < this->_serverText.size())
-					{
+					value["key"] = (this->_serverText[i].find("{") != SIZE_MAX) ? this->_serverText[i].substr(8, this->_serverText[i].size() - 9) : this->_serverText[i].substr(8, this->_serverText[i].size() - 8);
+					value["key"] = value["key"].substr(value["key"].find_first_not_of("\t "), value["key"].size());
+					unsigned int j = (this->_serverText[i].find("{") != SIZE_MAX) ? i + 1 : i + 2;
+					while (value["key"].find_last_not_of(" \t") != value["key"].size() -1 && value["key"].find_first_not_of(" \t") != SIZE_MAX)
+							value["key"].pop_back();
+           			 while (this->_serverText[j].find("}") == SIZE_MAX && j < this->_serverText.size()){
 						std::istringstream iss(this->_serverText[j]);
 						std::vector<std::string> results(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>());
 						value[results[0]] = &this->_serverText[j][results[0].size() + 1];
@@ -280,7 +281,6 @@ class Server
 					value.clear();
 				}
 			}
-			std::cout << "[" << this->_locations[0]["autoindex"] << "]" << std::endl;
 		}
 		void															set_file(std::vector<std::string> file){
 			this->_file = file;

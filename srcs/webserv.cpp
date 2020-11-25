@@ -48,6 +48,7 @@ int main(int argc, char **argv)
 	serv->parsingLocations();
 	serv->parsingAutoIndex();
 
+
     while(TRUE)   
     {   
 		serv->clear_fd();
@@ -61,8 +62,10 @@ int main(int argc, char **argv)
 			Request *req = new Request(accept(serv->get_fd(), (struct sockaddr *)&address, (socklen_t *)&addrlen));
 			std::cout << YELLOW << req->get_typecontent() << RESET << std::endl;
 			Execution exec = Execution(serv, req);
-			if (!exec.index() && !exec.text(req->get_uri()) && !exec.binary_file(req->get_uri()))
-				exec.redir_404();
+			if (exec.redirectToFolder()){
+				if (!exec.index() && !exec.text(req->get_uri()) && !exec.binary_file(req->get_uri()))
+					exec.redir_404();
+			}
 			delete req;
         }
     }     

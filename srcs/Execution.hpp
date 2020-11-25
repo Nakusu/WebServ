@@ -31,10 +31,26 @@ class Execution
 			return (*this);
 
 		}
+		int								redirectToFolder(void){
+			if (this->serv->check_repo(this->serv->get_repos() + this->req->get_uri())) {
+				std::string uri = this->req->get_uri();
+				if (uri.rfind('/') == uri.size() - 1){
+					return (1);
+				}
+				else{
+					uri.push_back('/');
+					std::string request = "HTTP/1.1 301 Moved Permanently\r\nContent-Type: text/html\r\nLocation:" +  uri + "\n\n";
+					this->req->send_packet(request.c_str());
+					return (0);
+				}
+			}
+			return (1);
+		}
 		int								index(void){
 			if (this->serv->check_repo(this->serv->get_repos() + this->req->get_uri())) {
 				std::vector<std::string> files;
 				std::string autoindex = "HTTP/1.1 403\r\nContent-Type: text/html\n\n<h1>Index of : " + std::string(this->req->get_uri()) + "</h1>";
+				// std::string autoindex = "HTTP/1.1 301 Moved Permanently\r\nContent-Type: text/html\r\nLocation: /images/\n\n<h1>Index of : " + std::string(this->req->get_uri()) + "</h1>";
 				files = this->serv->get_fileInFolder(this->req->get_uri()); // RECUPERATION DES FICHIERS DANS LE FOLDER
 				for (size_t i = 0; i < this->serv->get_index_size(); i++){
 					for (size_t j = 0; j < files.size(); j++){
@@ -44,7 +60,8 @@ class Execution
 						}
 					}
 				}
-				std::cout << YELLOW << this->req->get_uri() << RESET << std::endl;
+				// std::string uri = std::string(this->req->get_uri()) + "/";
+				// if (this->serv->get_AutoIndex(this->req->get_uri()) || this->serv->get_AutoIndex(uri.c_str())){
 				if (this->serv->get_AutoIndex(this->req->get_uri())){
 					for (size_t j = 0; j < files.size(); j++){
 						autoindex += "<a href=\"" + std::string(this->req->get_uri()) + files[j] +"\">" + files[j] + "</a></br>";
@@ -59,14 +76,14 @@ class Execution
 		}
 		int								text(char *uri){
 			if ((this->req->get_extension() == "css" || this->req->get_extension() == "html") && this->serv->open_file(uri, this->req)) {
-				std::cout << "YES OPENFILE" << std::endl;
+				std::cout << "OPENFILE CSS HTML" << std::endl;
 				return (1);
 			}
 			return (0);
 		}
 		int								binary_file(char *uri){
 			if (this->serv->open_Binary(uri, this->req)) {
-				std::cout << "YES OPENFILE BINARY" << std::endl;
+				std::cout << "OPENFILE BINARY" << std::endl;
 				return (1);
 			}
 			return (0);
