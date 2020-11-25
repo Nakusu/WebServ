@@ -66,7 +66,6 @@ class Request {
 		void				find_typecontent(void) {
 			this->_typecontent = "";
 			this->_typecontent = this->_parsing.get_map()["Accept"];
-			std::cout << RED << this->_typecontent << RESET << std::endl;
 		}
 
 	private:
