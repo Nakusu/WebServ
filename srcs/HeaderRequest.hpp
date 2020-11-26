@@ -9,7 +9,7 @@
 class HeaderRequest {
 	public:
 		HeaderRequest() {
-			this->_size = 0;
+			this->_content.insert(std::pair<std::string, std::string>("HTTP/1.1", "200 OK"));
 		}
 		virtual	~HeaderRequest() {
 			return ;
@@ -26,7 +26,7 @@ class HeaderRequest {
 			this->_content[key] = content;
 		}
 		size_t											get_size() const {
-			return (this->_size);
+			return (this->_content.size());
 		}
 		std::map<std::string, std::string>				get_content() const {
 			return (this->_content);
@@ -35,15 +35,20 @@ class HeaderRequest {
 			return (this->_content[key]);
 		}
 		void											send_header(Request req) {
-			std::map<std::string, std::string>::iterator i = this->_content.begin();
-			for (; i != this->_content.end(); i++) {
-				req->send_packet((std::get<0>(i) + " " std::get<1>(i) + "\n\r").c_str());
+			std::map<std::string, std::string>::iterator	i = this->_content.begin();
+			std::string										rep;
+			for (size_t j = 0; i != this->_content.end(); i++) {
+				rep += std::get<0>(i) + " " std::get<1>(i);
+				j++;
+				if (this->_content.size() == j)
+					rep += "\n\n";
+				else
+					rep += "\n\r";
 			}
-			req->send_packet(("\n\n").c_str());
+			req->send_packet(rep.c_str());
 		}
 	private:
 		std::map<std::string, std::string>				_content;
-		size_t											_size;
 };
 
 #endif
