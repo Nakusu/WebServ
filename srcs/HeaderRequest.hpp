@@ -4,6 +4,7 @@
 #include <iostream>
 #include <map>
 #include <string>
+#include "Request.hpp"
 
 class HeaderRequest {
 	public:
@@ -32,6 +33,13 @@ class HeaderRequest {
 		}
 		std::string										get_content(std::string key) {
 			return (this->_content[key]);
+		}
+		void											send_header(Request req) {
+			std::map<std::string, std::string>::iterator i = this->_content.begin();
+			for (; i != this->_content.end(); i++) {
+				req->send_packet((std::get<0>(i) + " " std::get<1>(i) + "\n\r").c_str());
+			}
+			req->send_packet(("\n\n").c_str());
 		}
 	private:
 		std::map<std::string, std::string>				_content;
