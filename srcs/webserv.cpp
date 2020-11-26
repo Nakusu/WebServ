@@ -32,9 +32,9 @@ int main(int argc, char **argv)
 	// Recupération du fichier default.conf dans un container vector
 	std::string  line;
 	std::vector<std::string> file;
-	while (std::getline(ifs, line))
-	{
+	while (std::getline(ifs, line)){
 		line = (line.find_first_not_of("\t ") != SIZE_MAX) ? line.substr(line.find_first_not_of("\t "), line.size()) : line;
+		line = (line.find_last_not_of("\t ") != SIZE_MAX) ? line.substr(0, line.find_last_not_of("\t ") + 1) : line;
 		if (!line.empty())
 			file.push_back(line);
 	}
@@ -47,7 +47,6 @@ int main(int argc, char **argv)
 	serv->parsingIndex();
 	serv->parsingLocations();
 	serv->parsingAutoIndex();
-
 
     while(TRUE)   
     {   
@@ -62,6 +61,7 @@ int main(int argc, char **argv)
 			Request *req = new Request(accept(serv->get_fd(), (struct sockaddr *)&address, (socklen_t *)&addrlen));
 			std::cout << YELLOW << req->get_typecontent() << RESET << std::endl;
 			Execution exec = Execution(serv, req);
+			
 			if (exec.redirectToFolder()){
 				if (!exec.index() && !exec.text(req->get_uri()) && !exec.binary_file(req->get_uri()))
 					exec.redir_404();

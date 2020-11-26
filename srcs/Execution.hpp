@@ -49,8 +49,7 @@ class Execution
 		int								index(void){
 			if (this->serv->check_repo(this->serv->get_repos() + this->req->get_uri())) {
 				std::vector<std::string> files;
-				std::string autoindex = "HTTP/1.1 403\r\nContent-Type: text/html\n\n<h1>Index of : " + std::string(this->req->get_uri()) + "</h1>";
-				// std::string autoindex = "HTTP/1.1 301 Moved Permanently\r\nContent-Type: text/html\r\nLocation: /images/\n\n<h1>Index of : " + std::string(this->req->get_uri()) + "</h1>";
+				std::string autoindex = "HTTP/1.1 200\r\nContent-Type: text/html\n\n<h1>Index of " + std::string(this->req->get_uri()) + "</h1><hr><pre>";
 				files = this->serv->get_fileInFolder(this->req->get_uri()); // RECUPERATION DES FICHIERS DANS LE FOLDER
 				for (size_t i = 0; i < this->serv->get_index_size(); i++){
 					for (size_t j = 0; j < files.size(); j++){
@@ -60,12 +59,12 @@ class Execution
 						}
 					}
 				}
-				// std::string uri = std::string(this->req->get_uri()) + "/";
-				// if (this->serv->get_AutoIndex(this->req->get_uri()) || this->serv->get_AutoIndex(uri.c_str())){
 				if (this->serv->get_AutoIndex(this->req->get_uri())){
+						autoindex += "<a href=\"../\"> ../</a><br/>";
 					for (size_t j = 0; j < files.size(); j++){
-						autoindex += "<a href=\"" + std::string(this->req->get_uri()) + files[j] +"\">" + files[j] + "</a></br>";
+						autoindex += "<a href=\"" + std::string(this->req->get_uri()) + files[j] +"\">" + files[j] + "</a><br/>";
 					}
+						autoindex += "</pre><hr>";
 					this->req->send_packet(autoindex.c_str());
 				}
 				else
