@@ -47,6 +47,7 @@ int main(int argc, char **argv)
 	serv->parsingIndex();
 	serv->parsingLocations();
 	serv->parsingAutoIndex();
+	serv->parsingErrorGbl();
 
     while(TRUE)   
     {   

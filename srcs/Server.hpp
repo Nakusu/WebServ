@@ -177,15 +177,16 @@ class Server
 			// (void)uri;
 			for (size_t i = 0; i < this->_locations.size(); i++)
 			{
-				if(uri.compare(this->_locations[i]["key"]) == 0	&& !this->_locations[i]["autoindex"].empty()){
-					if (this->_locations[i]["autoindex"] == "on")
+				if(uri.compare(this->_locations[i]["key"][0]) == 0	&& !this->_locations[i]["autoindex"][0].empty()){
+					if (this->_locations[i]["autoindex"][0] == "on")
 						return (1);
-					else if (this->_locations[i]["autoindex"] == "off")
+					else if (this->_locations[i]["autoindex"][0] == "off")
 						return (0);
 				}
 			}
 			return (this->_autoIndex);
 		}
+
 		void															parsingServerText(void){
 			for (unsigned int i = 0; i < this->_file.size(); i++){
 				if (this->_file[i].find("server ") != SIZE_MAX || this->_file[i].find("server{") != SIZE_MAX){	
@@ -259,29 +260,69 @@ class Server
 				}
 			}
 		}
-		void															parsingLocations(void){
-			std::map<std::string, std::string> value;
+		void	parsingLocations()
+		{
+		std::map<std::string, std::vector<std::string>> value;
+		for (unsigned int i = 0; i < this->_serverText.size(); i++)
+		{
+			if (this->_serverText[i].find("location") != SIZE_MAX)
+			{
+				if (this->_serverText[i].find("{") != SIZE_MAX)
+					value["key"].push_back(this->_serverText[i].substr(8, this->_serverText[i].size() - 9));
+				else
+					value["key"].push_back(this->_serverText[i].substr(8, this->_serverText[i].size() - 8));
+				value["key"][0] = value["key"][0].substr(value["key"][0].find_first_not_of("\t "), value["key"][0].size());
+				unsigned int j = (this->_serverText[i].find("{") != SIZE_MAX) ? i + 1 : i + 2;
+				while (value["key"][0].find_last_not_of(" \t") != value["key"][0].size() -1 && value["key"][0].find_first_not_of(" \t") != SIZE_MAX)
+						value["key"][0].pop_back();
+				while (this->_serverText[j].find("}") == SIZE_MAX && j < this->_serverText.size())
+				{
+					std::istringstream iss(this->_serverText[j]);
+					std::vector<std::string> results(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>());
+					value[results[0]].push_back(&this->_serverText[j][results[0].size() + 1]);
+					value[results[0]][value[results[0]].size() - 1].pop_back();
+					j++;
+				}
+				this->_locations.push_back(value);
+				value.clear();
+			}
+	}
+}
+
+		void 	parsingErrorGbl(){
+			unsigned int cpt = 0;
 			for (unsigned int i = 0; i < this->_serverText.size(); i++)
 			{
-				if (this->_serverText[i].find("location") != SIZE_MAX)
+				if (this->_serverText[i].find("{") != SIZE_MAX)
+					cpt++;
+				else if (this->_serverText[i].find("}") != SIZE_MAX)
+					cpt--;
+				if (this->_serverText[i].find("error_page") != SIZE_MAX && (cpt == 1))
 				{
-					value["key"] = (this->_serverText[i].find("{") != SIZE_MAX) ? this->_serverText[i].substr(8, this->_serverText[i].size() - 9) : this->_serverText[i].substr(8, this->_serverText[i].size() - 8);
-					value["key"] = value["key"].substr(value["key"].find_first_not_of("\t "), value["key"].size());
-					unsigned int j = (this->_serverText[i].find("{") != SIZE_MAX) ? i + 1 : i + 2;
-					while (value["key"].find_last_not_of(" \t") != value["key"].size() -1 && value["key"].find_first_not_of(" \t") != SIZE_MAX)
-							value["key"].pop_back();
-           			 while (this->_serverText[j].find("}") == SIZE_MAX && j < this->_serverText.size()){
-						std::istringstream iss(this->_serverText[j]);
-						std::vector<std::string> results(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>());
-						value[results[0]] = &this->_serverText[j][results[0].size() + 1];
-						value[results[0]].pop_back();
-						j++;
-					}
-					this->_locations.push_back(value);
-					value.clear();
+					this->_errorPages.push_back(this->_serverText[i].substr(10, this->_serverText[i].size() - 11));
 				}
 			}
 		}
+
+		std::map<std::string, std::string>	recupErrorByLocations (std::vector<std::string>	&locations){
+			std::map<std::string, std::string> errorsMap;
+
+			if (!locations.empty())
+			{
+				for (unsigned int i = 0; i < locations.size(); i++)
+				{
+					std::istringstream iss(locations[i]);
+					std::vector<std::string> results(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>());
+					for (unsigned int j = 0; j < results.size() - 1; j++)
+					{
+						if (atoi(results[j].c_str()) > 99 && atoi(results[j].c_str()) < 600 && errorsMap[results[j]].empty())
+							errorsMap[results[j]] = results[results.size() - 1];
+					}
+				}
+			}
+			return (errorsMap);
+		}
+
 		void															set_file(std::vector<std::string> file){
 			this->_file = file;
 		}
@@ -298,7 +339,8 @@ class Server
 		std::string														_root;
 		std::vector<std::string>										_index;
 		bool															_autoIndex;
-		std::vector<std::map<std::string, std::string> >				_locations;
+		std::vector<std::map<std::string, std::vector<std::string>>> 	_locations;
+		std::vector<std::string>										_errorPages;
 		std::vector<std::string> 										_file;
 };
 
