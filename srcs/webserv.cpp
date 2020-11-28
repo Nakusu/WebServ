@@ -1,7 +1,8 @@
 
-#include "Header.hpp" 
+#include "Header.hpp"
 #include "Server.hpp" 
 #include "Request.hpp" 
+#include "HeaderRequest.hpp" 
 #include "Execution.hpp" 
 
 int main(int argc, char **argv)   
@@ -47,7 +48,7 @@ int main(int argc, char **argv)
 	serv->parsingIndex();
 	serv->parsingLocations();
 	serv->parsingAutoIndex();
-	serv->parsingErrorGbl();
+	serv->parsingRedirGbl();
 
     while(TRUE)   
     {   
@@ -60,14 +61,16 @@ int main(int argc, char **argv)
         //Si une requete est envoyé au serv->get_fd()
         if (serv->wait_request()){   
 			Request *req = new Request(accept(serv->get_fd(), (struct sockaddr *)&address, (socklen_t *)&addrlen));
+			HeaderRequest *header = new HeaderRequest();
 			std::cout << YELLOW << req->get_typecontent() << RESET << std::endl;
-			Execution exec = Execution(serv, req);
+			Execution exec = Execution(serv, req, header);
 			
 			if (exec.redirectToFolder()){
 				if (!exec.index() && !exec.text(req->get_uri()) && !exec.binary_file(req->get_uri()))
-					exec.redir_404();
+					exec.redir_404(req->get_uri());
 			}
 			delete req;
+			delete header;
         }
     }     
     return 0;   

@@ -54,9 +54,6 @@ class Parsing_request {
 					this->_map[key] = value;
 				}
 			}
-			for (std::map<std::string, std::string>::iterator it=this->_map.begin(); it != this->_map.end(); ++it){
-				std::cout << GREEN << "key = " << it->first << std::endl << BLUE << " value = " << it->second << std::endl;
-			}
 		}
 		std::string											get_path() const {
 			return (this->_path);

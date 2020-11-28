@@ -1,11 +1,8 @@
 #ifndef HEADERREQUEST_HPP
 #define HEADERREQUEST_HPP
 
-#include <iostream>
-#include <map>
-#include <string>
+#include "Header.hpp"
 #include "Request.hpp"
-
 class HeaderRequest {
 	public:
 		HeaderRequest() {
@@ -34,21 +31,24 @@ class HeaderRequest {
 		std::string										get_content(std::string key) {
 			return (this->_content[key]);
 		}
-		void											send_header(Request req) {
-			std::map<std::string, std::string>::iterator	i = this->_content.begin();
+		void											send_header(Request *req) {
 			std::string										rep;
-			for (size_t j = 0; i != this->_content.end(); i++) {
-				rep += std::get<0>(i) + " " std::get<1>(i);
-				j++;
-				if (this->_content.size() == j)
-					rep += "\n\n";
-				else
-					rep += "\n\r";
+			rep = "HTTP/1.1 " + this->_content["HTTP/1.1"] + "\r\n";
+			for (std::map<std::string, std::string>::iterator i = this->_content.begin(); i != this->_content.end(); i++) {
+				if (i->first != "HTTP/1.1"){
+					rep += i->first + ": " + i->second;
+					rep += "\r\n";
+				}
 			}
+			rep.pop_back();
+			rep.pop_back();
+			rep += "\n\n";
+			std::cout << rep << std::endl;
 			req->send_packet(rep.c_str());
 		}
 	private:
 		std::map<std::string, std::string>				_content;
+		size_t											_size;
 };
 
 #endif
