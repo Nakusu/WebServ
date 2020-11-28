@@ -1,5 +1,3 @@
-
-
 #ifndef HEADER_H
 #define HEADER_H
 
@@ -24,22 +22,9 @@
 #include <map>
 #include <vector>
 #include <list>
-#include <sstream>
-#include <fstream>
 #include <iterator>
-
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <vector>
-#include <map>
-#include <string>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <iterator>
-#include <sstream>
-
+#include <tuple>
+#include <utility>
 
 # define RESET   		"\033[0m"
 # define BLACK   		"\033[30m"				/* Black */
