@@ -1,13 +1,13 @@
-#ifndef SERVER_HPP
-#define SERVER_HPP
+#ifndef VIRTUALSERVER_HPP
+#define VIRTUALSERVER_HPP
 
 #include "./Header.hpp"
 #include "Request.hpp"
 
-class Server
+class VirtualServer
 {
 	public:
-		Server(void){
+		VirtualServer(void){
 			parsing_conf();
 			init_fd(AF_INET , SOCK_STREAM , 0);
 			init_addr(AF_INET, INADDR_ANY, htons(PORT));
@@ -15,9 +15,9 @@ class Server
 			init_listen(atoi(this->_conf["worker_processes"].c_str()));
 			set_repos("public");
 		}
-		Server(Server const &){}
-		virtual ~Server(void){}
-		Server &														operator=( Server const &rhs){
+		VirtualServer(VirtualServer const &){}
+		virtual ~VirtualServer(void){}
+		VirtualServer &													operator=( VirtualServer const &rhs){
 			if (this != &rhs){
 				this->_fd = rhs._fd;
 				this->_address = rhs._address;
@@ -25,66 +25,6 @@ class Server
 			return (*this);
 		}
 
-		int																init_fd(int domain, int type, int protocol){
-			int opt = TRUE;
-
-			if( (this->_fd = socket(domain , type , protocol)) == 0){   
-				perror("socket failed");   
-				exit(EXIT_FAILURE);   
-			}
-			if( setsockopt(this->_fd, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0 ){   
-				perror("setsockopt");   
-				exit(EXIT_FAILURE);   
-			}
-			return (this->_fd);
-		}
-		struct sockaddr_in												init_addr(int family, in_addr_t s_addr, in_port_t port){
-			this->_address.sin_family = family;   
-			this->_address.sin_addr.s_addr = s_addr;   
-   			this->_address.sin_port = port;
-			return (this->_address); 
-
-		}
-		void															init_link(void){
-			if (this->_fd != 0){
-				if(bind(this->_fd, (struct sockaddr *)&this->_address, sizeof(this->_address)) < 0){   
-       				perror("bind failed");   
-        			exit(EXIT_FAILURE);   
-				}
- 		   }
-		}
-		void															init_listen(int number){
-			if (listen(this->_fd, number) < 0){
-      			perror("listen");   
-     			exit(EXIT_FAILURE);
-			}   
-		}
-		int																get_fd(void){
-			return (this->_fd);
-		}
-		void															clear_fd(void){
-			FD_ZERO(&this->_readfds);   
-		}
-		void															set_fd(void){
-			FD_SET(this->_fd, &this->_readfds);    
-		}
-		struct sockaddr_in												get_address(void){
-			return (this->_address);
-		}
-		void															wait_select(void){
-			int activity;
-
-			activity = select(this->_fd + 1, &this->_readfds , NULL , NULL , NULL); 
-			if ((activity < 0) && (errno!=EINTR)){   
-				printf("select error");   
-			}  
-		}
-		int																wait_request(void){
-			return (FD_ISSET(this->_fd, &this->_readfds));
-		}
-		std::string														get_repos(void){
-			return (this->_repos);
-		}
 		int																open_file(std::string file, Request *req) {
 			std::ifstream opfile;
 			std::string content;
@@ -124,41 +64,6 @@ class Server
 			opfile.close();
 			return (1);
 		}
-		void                      										set_repos(std::string repos){
-            std::ifstream	folder(repos.c_str());
-            if(folder.good() && this->check_repo(repos))
-                this->_repos = repos;
-            else
-                std::cout << "REPO NOT FOUND" << repos << std::endl;
-				// ERROR DE REPO BLOCK
-        }
-
-		bool															check_repo(std::string repos) {
-			DIR		*folder = opendir((repos).c_str());
-			bool	ret = false;
-            if(folder) {
-				closedir(folder);
-                ret = true;
-			}
-            return (ret);
-		}
-
-		void															parsing_conf(void){
-			std::ifstream			file("srcs/server.conf");
-			std::string				line;
-
-			while (getline(file, line)){
-				if (line.find(";") != __SIZE_MAX__ && (line.find("#") == __SIZE_MAX__)){
-					int start = line.find_first_not_of(" \t",0);
-					int endkey = line.find_first_of(" ",start);
-					std::string key = line.substr(start, endkey - start);
-					std::string value = line.substr(line.find_first_not_of(" ",endkey), line.find_first_of(";",start) - start);
-					this->_conf[key] = value;
-				}
-			}
-			file.close();
-		}
-
 		std::vector<std::string>										get_fileInFolder(std::string repos) {
 			struct dirent				*entry;
 			DIR							*folder;
@@ -175,7 +80,6 @@ class Server
 			this->_repos = this->_repos.substr(this->_repos.find_first_not_of("\n "), this->_repos.size());
 			return (ret);
 		}
-
 		size_t															get_index_size(){
 			return (this->_index.size());
 		}
@@ -196,36 +100,59 @@ class Server
 			return (this->_autoIndex);
 		}
 
-		void															parsingServerText(void){
+		/***************************************************
+		******************    Parsing    *******************
+		***************************************************/
+		void															parsing(std::vector<std::string> file){
+			this->parsingServerToVector();
+			this->parsingListen();
+			this->parsingServerNames();
+			this->parsingRoot();
+			this->parsingIndex();
+			this->parsingLocations();
+			this->parsingAutoIndex();
+			this->parsingRedirGbl();
+		}
+		void															parsingListen(void){
+			for (unsigned int i = 0; i < this->_virtualserver.size(); i++)
+				if (this->_virtualserver[i].find("listen ") != SIZE_MAX)
+					this->_listen.push_back(this->_virtualserver[i].substr(7, this->_virtualserver[i].size() - 8));
+		}
+		void															parsingRoot(void){
+			for (unsigned int i = 0; i < this->_virtualserver.size(); i++)
+			{
+				if (this->_virtualserver[i].find("root ") != SIZE_MAX)
+				{
+					this->_root = this->_virtualserver[i].substr(5, this->_virtualserver[i].size() - 6);
+					return ;
+				}
+			}
+		}
+		void															parsingServerToVector(void){
 			for (unsigned int i = 0; i < this->_file.size(); i++){
 				if (this->_file[i].find("server ") != SIZE_MAX || this->_file[i].find("server{") != SIZE_MAX){	
 					unsigned int j = i + 1;
 					unsigned int brackets = 1;
-					this->_serverText.push_back(this->_file[i]);
+					this->_virtualserver.push_back(this->_file[i]);
 					while (brackets != 0 && j < this->_file.size())
 					{
 						if (this->_file[j].find("{") != SIZE_MAX)
 							brackets++;
 						else if (this->_file[j].find("}") != SIZE_MAX)
 							brackets--;
-							this->_serverText.push_back(this->_file[j]);
+							this->_virtualserver.push_back(this->_file[j]);
 						j++;
 					}
 				}
 				return ;
 			}
 		}
-		void															parsingListen(void){
-			for (unsigned int i = 0; i < this->_serverText.size(); i++)
-				if (this->_serverText[i].find("listen ") != SIZE_MAX)
-					this->_listen.push_back(this->_serverText[i].substr(7, this->_serverText[i].size() - 8));
-		}
 		void															parsingServerNames(void){
-			for (unsigned int i = 0; i < this->_serverText.size(); i++)
+			for (unsigned int i = 0; i < this->_virtualserver.size(); i++)
 			{
-				if (this->_serverText[i].find("server_name ") != SIZE_MAX)
+				if (this->_virtualserver[i].find("server_name ") != SIZE_MAX)
 				{
-					std::istringstream iss(this->_serverText[i]);
+					std::istringstream iss(this->_virtualserver[i]);
 					std::vector<std::string> results(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>());
 					results.erase(results.begin());
 					this->_serverNames = results;
@@ -233,22 +160,12 @@ class Server
 				}
 			}
 		}
-		void															parsingRoot(void){
-			for (unsigned int i = 0; i < this->_serverText.size(); i++)
-			{
-				if (this->_serverText[i].find("root ") != SIZE_MAX)
-				{
-					this->_root = this->_serverText[i].substr(5, this->_serverText[i].size() - 6);
-					return ;
-				}
-			}
-		}
 		void															parsingIndex(void){
-			for (unsigned int i = 0; i < this->_serverText.size(); i++)
+			for (unsigned int i = 0; i < this->_virtualserver.size(); i++)
 			{
-				if (this->_serverText[i].find("index ") == 0)
+				if (this->_virtualserver[i].find("index ") == 0)
 				{
-					std::istringstream iss(this->_serverText[i]);
+					std::istringstream iss(this->_virtualserver[i]);
 					std::vector<std::string> results(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>());
 					results.erase(results.begin());
 					this->_index = results;
@@ -257,11 +174,11 @@ class Server
 			}
 		}
 		void															parsingAutoIndex(void){
-			for (unsigned int i = 0; i < this->_serverText.size(); i++)
+			for (unsigned int i = 0; i < this->_virtualserver.size(); i++)
 			{
-				if (this->_serverText[i].find("autoindex ") != SIZE_MAX)
+				if (this->_virtualserver[i].find("autoindex ") != SIZE_MAX)
 				{
-					if (this->_serverText[i].find("off") != SIZE_MAX)
+					if (this->_virtualserver[i].find("off") != SIZE_MAX)
 						this->_autoIndex = false;
 					else
 						this->_autoIndex = true;
@@ -269,24 +186,23 @@ class Server
 				}
 			}
 		}
-		void	parsingLocations()
-		{
+		void															parsingLocations(void){
 		std::map<std::string, std::vector<std::string>> value;
-		for (unsigned int i = 0; i < this->_serverText.size(); i++)
+		for (unsigned int i = 0; i < this->_virtualserver.size(); i++)
 		{
-			if (this->_serverText[i].find("location") != SIZE_MAX)
+			if (this->_virtualserver[i].find("location") != SIZE_MAX)
 			{
-				std::istringstream qss(this->_serverText[i]);
+				std::istringstream qss(this->_virtualserver[i]);
 				std::vector<std::string> res(std::istream_iterator<std::string>{qss}, std::istream_iterator<std::string>());
 				value["key"].push_back(res[1]);
-				unsigned int j = (this->_serverText[i].find("{") != SIZE_MAX) ? i + 1 : i + 2;
+				unsigned int j = (this->_virtualserver[i].find("{") != SIZE_MAX) ? i + 1 : i + 2;
 				while (value["key"][0].find_last_not_of(" \t") != value["key"][0].size() -1 && value["key"][0].find_first_not_of(" \t") != SIZE_MAX)
 						value["key"][0].pop_back();
-				while (this->_serverText[j].find("}") == SIZE_MAX && j < this->_serverText.size())
+				while (this->_virtualserver[j].find("}") == SIZE_MAX && j < this->_virtualserver.size())
 				{
-					std::istringstream iss(this->_serverText[j]);
+					std::istringstream iss(this->_virtualserver[j]);
 					std::vector<std::string> results(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>());
-					value[results[0]].push_back(&this->_serverText[j][results[0].size() + 1]);
+					value[results[0]].push_back(&this->_virtualserver[j][results[0].size() + 1]);
 					value[results[0]][value[results[0]].size() - 1].pop_back();
 					j++;
 				}
@@ -294,24 +210,23 @@ class Server
 				value.clear();
 			}
 	}
-}
-
-		void 	parsingRedirGbl(){
+		}
+		void 															parsingRedirGbl(void){
 			unsigned int cpt = 0;
-			for (unsigned int i = 0; i < this->_serverText.size(); i++)
+			for (unsigned int i = 0; i < this->_virtualserver.size(); i++)
 			{
-				if (this->_serverText[i].find("{") != SIZE_MAX)
+				if (this->_virtualserver[i].find("{") != SIZE_MAX)
 					cpt++;
-				else if (this->_serverText[i].find("}") != SIZE_MAX)
+				else if (this->_virtualserver[i].find("}") != SIZE_MAX)
 					cpt--;
-				if (this->_serverText[i].find("error_page") != SIZE_MAX && (cpt == 1))
-					this->_errorPages.push_back(this->_serverText[i].substr(10, this->_serverText[i].size() - 11));
-				if (this->_serverText[i].find("rewrite") != SIZE_MAX && (cpt == 1))
-                    this->_errorPages.push_back(this->_serverText[i].substr(7, this->_serverText[i].size() - 8));
+				if (this->_virtualserver[i].find("error_page") != SIZE_MAX && (cpt == 1))
+					this->_errorPages.push_back(this->_virtualserver[i].substr(10, this->_virtualserver[i].size() - 11));
+				if (this->_virtualserver[i].find("rewrite") != SIZE_MAX && (cpt == 1))
+                    this->_errorPages.push_back(this->_virtualserver[i].substr(7, this->_virtualserver[i].size() - 8));
 			}
 		}
 
-		std::map<std::string, std::string>	recupErrorByKeyLocations (std::vector<std::string>	&locations){
+		std::map<std::string, std::string>								recupErrorByKeyLocations (std::vector<std::string>	&locations){
 			std::map<std::string, std::string> errorsMap;
 
 			if (!locations.empty())
@@ -329,10 +244,7 @@ class Server
 			}
 			return (errorsMap);
 		}
-
-		
-
-		std::vector<size_t>    findLocations(std::string uri){
+		std::vector<size_t>												findLocations(std::string uri){
 			std::vector<size_t> index;
 			while (uri.find('/') != SIZE_MAX){
 				for (size_t i = 0; i < this->_locations.size(); i++){
@@ -348,8 +260,7 @@ class Server
 			}
 			return (index);
 		}
-
-		std::string        FindRedirection(std::string key , std::string option, std::string uri){
+		std::string														findRedirection(std::string key , std::string option, std::string uri){
 			std::vector<size_t> tab;
 
 			tab = findLocations(uri); //recherche des locations en rapport avec uri (du plus profond jusqu'a /) ex : index[0]:/var/toto/ index[1]:/var/ index[2]:/
@@ -388,25 +299,16 @@ class Server
 			}
 			return ("error");
         }
-		void															set_file(std::vector<std::string> file){
-			this->_file = file;
-		}
-	private:
-		int 															_fd;
-		struct sockaddr_in 												_address;
-		fd_set 															_readfds;
-		std::string														_repos;
-		std::map<std::string, std::string>								_conf;
 
-		std::vector<std::string>										_serverText;
+	private:
+		bool															_autoIndex;
+		std::vector<std::string>										_virtualserver;
 		std::vector<std::string>										_listen;
 		std::vector<std::string>										_serverNames;
 		std::string														_root;
 		std::vector<std::string>										_index;
-		bool															_autoIndex;
 		std::vector<std::map<std::string, std::vector<std::string>>> 	_locations;
 		std::vector<std::string>										_errorPages;
-		std::vector<std::string> 										_file;
 		std::vector<std::string> 										_rewrite;
 
 };

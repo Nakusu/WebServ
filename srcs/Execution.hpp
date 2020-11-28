@@ -99,7 +99,7 @@ class Execution
 		void							redir_404(std::string uri){
 			std::cout << RED << uri << RESET << std::endl;
 			std::string redir;
-			if ((redir = this->serv->FindRedirection("404", "error_page", uri)) == "error" || this->serv->try_open_file(redir) == 0){
+			if ((redir = this->serv->findRedirection("404", "error_page", uri)) == "error" || this->serv->try_open_file(redir) == 0){
 				std::cout << RED << redir << RESET << std::endl;
 				this->header->update_content("HTTP/1.1", "404 Not Found");
 				this->header->update_content("Content-Type", "text/html");
