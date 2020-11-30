@@ -84,23 +84,19 @@ class Execution
 		}
 		int								text(char *uri){
 			if ((this->req->get_extension() == "css" || this->req->get_extension() == "html") && this->serv->open_file(uri, this->req)) {
-				std::cout << "OPENFILE CSS HTML" << std::endl;
 				return (1);
 			}
 			return (0);
 		}
 		int								binary_file(char *uri){
 			if (this->serv->open_Binary(uri, this->req)) {
-				std::cout << "OPENFILE BINARY" << std::endl;
 				return (1);
 			}
 			return (0);
 		}
 		void							redir_404(std::string uri){
-			std::cout << RED << uri << RESET << std::endl;
 			std::string redir;
 			if ((redir = this->serv->findRedirection("404", "error_page", uri)) == "error" || this->serv->try_open_file(redir) == 0){
-				std::cout << RED << redir << RESET << std::endl;
 				this->header->update_content("HTTP/1.1", "404 Not Found");
 				this->header->update_content("Content-Type", "text/html");
 				this->header->send_header(this->req);
@@ -108,7 +104,6 @@ class Execution
 				req->send_packet("<html><head><title>404 Not Found</title></head><body bgcolor=\"white\"><center><h1>404 Not Found</h1></center><hr><center>Les Poldters Server Web</center></html>");
 			}
 			else {
-					std::cout << YELLOW << redir << RESET << std::endl;
 					this->header->update_content("HTTP/1.1", "301 Moved Permanently");
 					this->header->update_content("Content-Type", "text/html");
 					this->header->update_content("Location", redir);
