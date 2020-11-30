@@ -3,7 +3,7 @@
 #define EXECUTION_H
 
 #include "Header.hpp"
-#include "Server.hpp"
+#include "VirtualServer.hpp"
 #include "Request.hpp"
 
 class Execution
@@ -14,7 +14,7 @@ class Execution
 			this->req = NULL;
 			this->header = NULL;
 		}
-		Execution(Server *serv, Request *req, HeaderRequest *header){
+		Execution(VirtualServer *serv, Request *req, HeaderRequest *header){
 			this->serv = serv;
 			this->req = req;
 			this->header = header;
@@ -119,7 +119,7 @@ class Execution
 		
 
 	private:
-		Server*				serv;
+		VirtualServer*		serv;
 		Request* 			req;
 		HeaderRequest*		header;
 };

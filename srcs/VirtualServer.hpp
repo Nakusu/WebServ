@@ -8,19 +8,19 @@ class VirtualServer
 {
 	public:
 		VirtualServer(void){
-			parsing_conf();
-			init_fd(AF_INET , SOCK_STREAM , 0);
-			init_addr(AF_INET, INADDR_ANY, htons(PORT));
-			init_link();
-			init_listen(atoi(this->_conf["worker_processes"].c_str()));
-			set_repos("public");
+
 		}
-		VirtualServer(VirtualServer const &){}
+		VirtualServer(std::vector<std::string> file, std::string repos){
+			this->_file = file;
+			this->_repos = repos;
+			this->parsing();
+		}
+		VirtualServer(VirtualServer const &rhs){
+			operator=(rhs);
+		}
 		virtual ~VirtualServer(void){}
 		VirtualServer &													operator=( VirtualServer const &rhs){
 			if (this != &rhs){
-				this->_fd = rhs._fd;
-				this->_address = rhs._address;
 			}
 			return (*this);
 		}
@@ -99,11 +99,32 @@ class VirtualServer
 			}
 			return (this->_autoIndex);
 		}
+		std::string														get_repos(void){
+			return (this->_repos);
+		}
+		void                      										set_repos(std::string repos){
+            std::ifstream	folder(repos.c_str());
+            if(folder.good() && this->check_repo(repos))
+                this->_repos = repos;
+            else
+                std::cout << "REPO NOT FOUND" << repos << std::endl;
+				// ERROR DE REPO BLOCK
+        }
+		bool															check_repo(std::string repos) {
+			DIR		*folder = opendir((repos).c_str());
+			bool	ret = false;
+            if(folder) {
+				closedir(folder);
+                ret = true;
+			}
+            return (ret);
+		}
+
 
 		/***************************************************
 		******************    Parsing    *******************
 		***************************************************/
-		void															parsing(std::vector<std::string> file){
+		void															parsing(){
 			this->parsingServerToVector();
 			this->parsingListen();
 			this->parsingServerNames();
@@ -299,6 +320,9 @@ class VirtualServer
 			}
 			return ("error");
         }
+		void															set_file(std::vector<std::string> file){
+			this->_file = file;
+		}
 
 	private:
 		bool															_autoIndex;
@@ -310,6 +334,9 @@ class VirtualServer
 		std::vector<std::map<std::string, std::vector<std::string>>> 	_locations;
 		std::vector<std::string>										_errorPages;
 		std::vector<std::string> 										_rewrite;
+		std::vector<std::string> 										_file;
+		std::string 													_repos;
+
 
 };
 

@@ -32,11 +32,8 @@ int main(int argc, char **argv)
     puts("Waiting for connections ...");   
     
 	defaultConf = checkArgs(argc, argv, &defaultConf, serv);
-
-	
-
-	// Recupération du fichier default.conf dans un container vector
-	virtualserv->parsing(file);
+	serv->parsingVrServ();
+	serv->CreateVServs();
 
     while(TRUE)   
     {   
@@ -49,7 +46,7 @@ int main(int argc, char **argv)
 			Request *req = new Request(accept(serv->get_fd(), (struct sockaddr *)&address, (socklen_t *)&addrlen));
 			HeaderRequest *header = new HeaderRequest();
 			std::cout << YELLOW << req->get_typecontent() << RESET << std::endl;
-			Execution exec = Execution(serv, req, header);
+			Execution exec = Execution(serv->getVS(0), req, header);
 			
 			if (exec.redirectToFolder()){
 				if (!exec.index() && !exec.text(req->get_uri()) && !exec.binary_file(req->get_uri()))

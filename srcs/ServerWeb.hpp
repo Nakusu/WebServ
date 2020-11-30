@@ -3,6 +3,7 @@
 
 #include "./Header.hpp"
 #include "Request.hpp"
+#include "VirtualServer.hpp"
 
 class ServerWeb
 {
@@ -15,7 +16,9 @@ class ServerWeb
 			init_listen(atoi(this->_conf["worker_processes"].c_str()));
 			set_repos("public");
 		}
-		ServerWeb(ServerWeb const &){}
+		ServerWeb(ServerWeb const &rhs){
+			operator=(rhs);
+		}
 		virtual ~ServerWeb(void){}
 		ServerWeb &														operator=( ServerWeb const &rhs){
 			if (this != &rhs){
@@ -117,19 +120,53 @@ class ServerWeb
 			}
 			file.close();
 		}
-		void															set_file(std::vector<std::string> file){
-			this->_file = file;
-		}
-		int																OpenDefault(std::ifstream	*ifs){
+		void															OpenDefault(std::ifstream	*ifs){
 			std::string  line;
-			std::vector<std::string> file;
-			while (std::getline(ifs, line)){
+			while (std::getline(*ifs, line)){
 				line = (line.find_first_not_of("\t ") != SIZE_MAX) ? line.substr(line.find_first_not_of("\t "), line.size()) : line;
 				line = (line.find_last_not_of("\t ") != SIZE_MAX) ? line.substr(0, line.find_last_not_of("\t ") + 1) : line;
 				if (!line.empty())
-					file.push_back(line);
+					this->_file.push_back(line);
 			}
-			ifs.close();
+			(*ifs).close();
+		}
+		void                                                            parsingVrServ(void){
+            std::vector<std::string> Serv;
+			std::cout << this->_file.size() << std::endl;
+            for (unsigned int i = 0; i < this->_file.size(); i++)
+            {
+                unsigned int cpt = 0;
+                // std::istringstream iss(this->_file[i]);
+                // std::vector<std::string> results(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>());
+                if ((this->_file[i].find("server") != SIZE_MAX))
+                // || (results[0].find("server{") != SIZE_MAX && results[0].size() == 7))
+                {
+                    Serv.push_back(this->_file[i]);
+                    i = (this->_file[i].find("{") != SIZE_MAX) ? i + 1 : i + 2;
+                    cpt++;
+                    while (cpt != 0 && i < this->_file.size())
+                    {
+                        if (this->_file[i].find('{') != SIZE_MAX)
+                            cpt++;
+                        if (this->_file[i].find('}') != SIZE_MAX)
+                            cpt--;
+                        Serv.push_back(this->_file[i]);
+                        i++;
+                    }
+                }
+                this->_separateVrServ.push_back(Serv);
+                Serv.clear();
+            }
+					std::cout << this->_separateVrServ.size() << std::endl;
+        }
+		void															CreateVServs(void){
+			for (size_t i = 0; i < this->_separateVrServ.size(); i++){
+				VirtualServer *vserv = new VirtualServer(this->_separateVrServ[i], this->_repos);
+				this->_VServs.push_back(vserv);
+			}
+		}
+		VirtualServer*													getVS(int i){
+			return (this->_VServs[i]);
 		}
 	private:
 		int 															_fd;
@@ -138,6 +175,9 @@ class ServerWeb
 		std::string														_repos;
 		std::map<std::string, std::string>								_conf;
 		std::vector<std::string> 										_file;
+		std::vector<VirtualServer*> 									_VServs;
+		std::vector<std::vector<std::string>>                           _separateVrServ;
+
 };
 
 #endif
