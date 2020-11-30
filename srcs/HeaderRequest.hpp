@@ -43,7 +43,6 @@ class HeaderRequest {
 			rep.pop_back();
 			rep.pop_back();
 			rep += "\n\n";
-			std::cout << rep << std::endl;
 			req->send_packet(rep.c_str());
 		}
 	private:

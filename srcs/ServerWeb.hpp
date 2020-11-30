@@ -9,11 +9,8 @@ class ServerWeb
 {
 	public:
 		ServerWeb(void){
+			this->_fdmax = 0;
 			parsing_conf();
-			init_fd(AF_INET , SOCK_STREAM , 0);
-			init_addr(AF_INET, INADDR_ANY, htons(PORT));
-			init_link();
-			init_listen(atoi(this->_conf["worker_processes"].c_str()));
 			set_repos("public");
 		}
 		ServerWeb(ServerWeb const &rhs){
@@ -22,69 +19,22 @@ class ServerWeb
 		virtual ~ServerWeb(void){}
 		ServerWeb &														operator=( ServerWeb const &rhs){
 			if (this != &rhs){
-				this->_fd = rhs._fd;
-				this->_address = rhs._address;
 			}
 			return (*this);
 		}
 
-		int																init_fd(int domain, int type, int protocol){
-			int opt = TRUE;
 
-			if( (this->_fd = socket(domain , type , protocol)) == 0){   
-				perror("socket failed");   
-				exit(EXIT_FAILURE);   
-			}
-			if( setsockopt(this->_fd, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0 ){   
-				perror("setsockopt");   
-				exit(EXIT_FAILURE);   
-			}
-			return (this->_fd);
-		}
-		struct sockaddr_in												init_addr(int family, in_addr_t s_addr, in_port_t port){
-			this->_address.sin_family = family;   
-			this->_address.sin_addr.s_addr = s_addr;   
-   			this->_address.sin_port = port;
-			return (this->_address); 
-
-		}
-		void															init_link(void){
-			if (this->_fd != 0){
-				if(bind(this->_fd, (struct sockaddr *)&this->_address, sizeof(this->_address)) < 0){   
-       				perror("bind failed");   
-        			exit(EXIT_FAILURE);   
-				}
- 		   }
-		}
-		void															init_listen(int number){
-			if (listen(this->_fd, number) < 0){
-      			perror("listen");   
-     			exit(EXIT_FAILURE);
-			}   
-		}
-		int																get_fd(void){
-			return (this->_fd);
-		}
-		void															clear_fd(void){
-			FD_ZERO(&this->_readfds);   
-		}
-		void															set_fd(void){
-			FD_SET(this->_fd, &this->_readfds);    
-		}
-		struct sockaddr_in												get_address(void){
-			return (this->_address);
-		}
-		void															wait_select(void){
+		
+		int															wait_select(void){
 			int activity;
 
-			activity = select(this->_fd + 1, &this->_readfds , NULL , NULL , NULL); 
+			activity = select(this->_fdmax + 1, &this->_readfds , NULL , NULL , NULL);
 			if ((activity < 0) && (errno!=EINTR)){   
 				printf("select error");   
-			}  
+			}
+			return (activity);
 		}
-		int																wait_request(void){
-			return (FD_ISSET(this->_fd, &this->_readfds));
-		}
+		
 		std::string														get_repos(void){
 			return (this->_repos);
 		}
@@ -132,20 +82,16 @@ class ServerWeb
 		}
 		void                                                            parsingVrServ(void){
             std::vector<std::string> Serv;
-			std::cout << this->_file.size() << std::endl;
+
             for (unsigned int i = 0; i < this->_file.size(); i++)
             {
                 unsigned int cpt = 0;
-                // std::istringstream iss(this->_file[i]);
-                // std::vector<std::string> results(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>());
-                if ((this->_file[i].find("server") != SIZE_MAX))
-                // || (results[0].find("server{") != SIZE_MAX && results[0].size() == 7))
+			    if ((this->_file[i].find("server") != SIZE_MAX))
                 {
                     Serv.push_back(this->_file[i]);
                     i = (this->_file[i].find("{") != SIZE_MAX) ? i + 1 : i + 2;
                     cpt++;
-                    while (cpt != 0 && i < this->_file.size())
-                    {
+                    while (cpt != 0 && i < this->_file.size()){
                         if (this->_file[i].find('{') != SIZE_MAX)
                             cpt++;
                         if (this->_file[i].find('}') != SIZE_MAX)
@@ -153,11 +99,11 @@ class ServerWeb
                         Serv.push_back(this->_file[i]);
                         i++;
                     }
+					i--;
                 }
                 this->_separateVrServ.push_back(Serv);
                 Serv.clear();
             }
-					std::cout << this->_separateVrServ.size() << std::endl;
         }
 		void															CreateVServs(void){
 			for (size_t i = 0; i < this->_separateVrServ.size(); i++){
@@ -165,17 +111,35 @@ class ServerWeb
 				this->_VServs.push_back(vserv);
 			}
 		}
+		void															clear_fd(void){
+			FD_ZERO(&this->_readfds);   
+		}
+		void															set_fd(void){
+			for (size_t i = 0; i < this->_VServs.size(); i++){
+				FD_SET(this->_VServs[i]->get_fd() , &this->_readfds);
+				if (this->_fdmax < this->_VServs[i]->get_fd())
+					this->_fdmax = this->_VServs[i]->get_fd();
+			}
+			
+		}
+		int																wait_request(int fd){
+			return (FD_ISSET(fd, &this->_readfds));
+		}
 		VirtualServer*													getVS(int i){
 			return (this->_VServs[i]);
 		}
+		int																get_fdmax(void){
+			return (this->_fdmax);
+		}
+		std::vector<VirtualServer*> 									_VServs;
 	private:
-		int 															_fd;
-		struct sockaddr_in 												_address;
-		fd_set 															_readfds;
+
+
 		std::string														_repos;
+		int																_fdmax;
+		fd_set		 													_readfds;
 		std::map<std::string, std::string>								_conf;
 		std::vector<std::string> 										_file;
-		std::vector<VirtualServer*> 									_VServs;
 		std::vector<std::vector<std::string>>                           _separateVrServ;
 
 };

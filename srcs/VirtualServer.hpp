@@ -8,12 +8,16 @@ class VirtualServer
 {
 	public:
 		VirtualServer(void){
-
+			init_addr(AF_INET, INADDR_ANY, htons(PORT));
 		}
 		VirtualServer(std::vector<std::string> file, std::string repos){
 			this->_file = file;
 			this->_repos = repos;
 			this->parsing();
+			init_addr(AF_INET, INADDR_ANY, htons(atoi(this->_listen[0].c_str())));
+			init_fd(AF_INET , SOCK_STREAM , 0);
+			init_link();
+			init_listen(4);
 		}
 		VirtualServer(VirtualServer const &rhs){
 			operator=(rhs);
@@ -24,6 +28,54 @@ class VirtualServer
 			}
 			return (*this);
 		}
+
+		struct sockaddr_in												init_addr(int family, in_addr_t s_addr, in_port_t port){
+			this->_address.sin_family = family;   
+			this->_address.sin_addr.s_addr = s_addr;   
+   			this->_address.sin_port = port;
+			return (this->_address); 
+
+		}
+		void															init_link(void){
+			if (this->_fd != 0){
+				if(bind(this->_fd, (struct sockaddr *)&this->_address, sizeof(this->_address)) < 0){   
+       				perror("bind failed");   
+        			exit(EXIT_FAILURE);   
+				}
+ 		   }
+		}
+		void															init_listen(int number){
+			if (listen(this->_fd, number) < 0){
+      			perror("listen");   
+     			exit(EXIT_FAILURE);
+			}   
+		}
+		int																init_fd(int domain, int type, int protocol){
+			int opt = TRUE;
+
+			if( (this->_fd = socket(domain , type , protocol)) == 0){   
+				perror("socket failed");   
+				exit(EXIT_FAILURE);   
+			}
+			if( setsockopt(this->_fd, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0 ){   
+				perror("setsockopt");   
+				exit(EXIT_FAILURE);   
+			}
+			return (this->_fd);
+		}
+		struct sockaddr_in												*get_address(void){
+			return (&this->_address);
+		}
+		int																get_fd(void){
+			return (this->_fd);
+		}
+		
+		
+		
+
+
+
+
 
 		int																open_file(std::string file, Request *req) {
 			std::ifstream opfile;
@@ -41,7 +93,6 @@ class VirtualServer
 		int																try_open_file(std::string file) {
 			std::ifstream opfile;
 			std::string tmp = this->_repos + file;
-			std::cout << GREEN << tmp << RESET << std::endl;
   			opfile.open(tmp.data());
 			if (!opfile.is_open())
 				return (0);
@@ -124,7 +175,7 @@ class VirtualServer
 		/***************************************************
 		******************    Parsing    *******************
 		***************************************************/
-		void															parsing(){
+		void															parsing(void){
 			this->parsingServerToVector();
 			this->parsingListen();
 			this->parsingServerNames();
@@ -136,8 +187,9 @@ class VirtualServer
 		}
 		void															parsingListen(void){
 			for (unsigned int i = 0; i < this->_virtualserver.size(); i++)
-				if (this->_virtualserver[i].find("listen ") != SIZE_MAX)
+				if (this->_virtualserver[i].find("listen ") != SIZE_MAX){
 					this->_listen.push_back(this->_virtualserver[i].substr(7, this->_virtualserver[i].size() - 8));
+				}
 		}
 		void															parsingRoot(void){
 			for (unsigned int i = 0; i < this->_virtualserver.size(); i++)
@@ -269,15 +321,12 @@ class VirtualServer
 			std::vector<size_t> index;
 			while (uri.find('/') != SIZE_MAX){
 				for (size_t i = 0; i < this->_locations.size(); i++){
-					std::cout << GREEN << this->_locations[i]["key"][0] << RESET << std::endl;
 					if (this->_locations[i]["key"][0] == uri){
-						std::cout << "URI PUSH = " + uri << std::endl;
 						index.push_back(i);
 					}
 				}
 				uri.pop_back();
 				uri = (uri.rfind('/') != SIZE_MAX) ? uri.substr(0,uri.rfind('/') + 1) : uri ;
-				std::cout << uri << std::endl;
 			}
 			return (index);
 		}
@@ -303,14 +352,12 @@ class VirtualServer
 							}
 						}
 						//Si on trouve une correspondance avec notre clé dans notre location
-						std::cout << "Ici on cherche : " + recupErrorByKeyLocations(_locations[tab[i]][option])[key] << std::endl;
 						if (!recupErrorByKeyLocations(this->_locations[tab[i]][option])[key].empty())
 							return (recupErrorByKeyLocations(_locations[tab[i]][option])[key]);
 					}
 				}
 			} // Sinon on recherche dans le global
             if (option == "error_page"){
-				std::cout << BLUE << recupErrorByKeyLocations(this->_errorPages)[key] << RESET << std::endl;
 				if (!recupErrorByKeyLocations(this->_errorPages)[key].empty())
 					return (recupErrorByKeyLocations(this->_errorPages)[key]);
 			}
@@ -325,9 +372,11 @@ class VirtualServer
 		}
 
 	private:
+		int 															_fd;
 		bool															_autoIndex;
 		std::vector<std::string>										_virtualserver;
-		std::vector<std::string>										_listen;
+		struct sockaddr_in 												_address;
+	std::vector<std::string>											_listen;
 		std::vector<std::string>										_serverNames;
 		std::string														_root;
 		std::vector<std::string>										_index;
