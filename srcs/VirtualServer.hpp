@@ -179,7 +179,7 @@ class VirtualServer
 			this->parsingServerToVector();
 			this->parsingListen();
 			this->parsingServerNames();
-			this->parsingRoot();
+			this->parsingRepos();
 			this->parsingIndex();
 			this->parsingLocations();
 			this->parsingAutoIndex();
@@ -191,14 +191,14 @@ class VirtualServer
 					this->_listen.push_back(this->_virtualserver[i].substr(7, this->_virtualserver[i].size() - 8));
 				}
 		}
-		void															parsingRoot(void){
+		void															parsingRepos(void){
 			for (unsigned int i = 0; i < this->_virtualserver.size(); i++)
 			{
-				if (this->_virtualserver[i].find("root ") != SIZE_MAX)
-				{
-					this->_root = this->_virtualserver[i].substr(5, this->_virtualserver[i].size() - 6);
+				if (this->_virtualserver[i].find("root ") != SIZE_MAX){
+					this->_repos = this->_virtualserver[i].substr(5, this->_virtualserver[i].size() - 6);
 					return ;
 				}
+
 			}
 		}
 		void															parsingServerToVector(void){
@@ -378,7 +378,6 @@ class VirtualServer
 		struct sockaddr_in 												_address;
 	std::vector<std::string>											_listen;
 		std::vector<std::string>										_serverNames;
-		std::string														_root;
 		std::vector<std::string>										_index;
 		std::vector<std::map<std::string, std::vector<std::string>>> 	_locations;
 		std::vector<std::string>										_errorPages;

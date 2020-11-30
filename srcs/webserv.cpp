@@ -20,7 +20,7 @@ int			checkArgs(int argc, char **argv, std::string *defaultConf, ServerWeb *serv
 	return (1);
 }
 
-int main(int argc, char **argv)   
+int			main(int argc, char **argv)   
 {   
 	ServerWeb *serv = new ServerWeb;
     std::string message; 
@@ -44,11 +44,10 @@ int main(int argc, char **argv)
 		for (size_t i = 0; i < serv->_VServs.size() && nb_activity; i++)
 		{
 			if (serv->wait_request(serv->_VServs[i]->get_fd())){
-				int addrlen = sizeof(serv->_VServs[i]->get_address()); //virtual server
+				int addrlen = sizeof(serv->_VServs[i]->get_address());
 				Request *req = new Request(accept(serv->_VServs[i]->get_fd(), (struct sockaddr *)serv->_VServs[i]->get_address(), (socklen_t *)&addrlen));
 				HeaderRequest *header = new HeaderRequest();
-				Execution exec = Execution(serv->getVS(0), req, header);
-				
+				Execution exec = Execution(serv->_VServs[i], req, header);
 				if (exec.redirectToFolder()){
 					if (!exec.index() && !exec.text(req->get_uri()) && !exec.binary_file(req->get_uri()))
 						exec.redir_404(req->get_uri());
