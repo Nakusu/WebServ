@@ -8,7 +8,7 @@ class Request {
 	public:
 		Request() {
 			this->_socket = 0;
-			this->_uri = NULL;
+			this->_uri = "";
 			this->_typecontent = "";
 		}
 		Request(int socket) {
@@ -26,7 +26,7 @@ class Request {
 			close(this->_socket);
 			return ; 
 		}
-		char				*get_uri() const {
+		std::string			get_uri() const {
 			return (this->_uri);
 		}
 		char				*get_buffer(){
@@ -48,7 +48,7 @@ class Request {
 			this->_socket = socket;
 		}
 		void				set_uri(std::string uri) {
-			this->_uri = (char *)uri.c_str();
+			this->_uri = uri;
 		}
 		void				send_packet(const char *content) {
 			send(this->_socket, content, strlen(content), 0);
@@ -58,7 +58,7 @@ class Request {
 		}
 
 		void				find_uri(void) {
-			this->_uri = NULL;
+			this->_uri = "";
 			std::string string(this->_buffer);
 			this->_uri = strndup(&this->_buffer[string.find("/")], (string.find("HTTP") - 5));
 		}
@@ -71,8 +71,8 @@ class Request {
 	private:
 		int													_socket;
 		char												_buffer[1025];
-		char												*_uri;
 		char												_type;
+		std::string											_uri;
 		std::string											_typecontent;
 		Parsing_request										_parsing;
 };

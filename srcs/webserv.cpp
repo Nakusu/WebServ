@@ -20,27 +20,26 @@ int			checkArgs(int argc, char **argv, std::string *defaultConf, ServerWeb *serv
 	return (1);
 }
 
-int			main(int argc, char **argv)   
+int			main(int argc, char **argv)
 {   
 	ServerWeb *serv = new ServerWeb;
-    std::string message; 
+	std::string message; 
 	std::string defaultConf;
 	int			nb_activity;
-         
 
-    puts("Waiting for connections ...");   
-    
+	puts("Waiting for connections ...");
+
 	defaultConf = checkArgs(argc, argv, &defaultConf, serv);
 	serv->parsingVrServ();
 	serv->CreateVServs();
 	
-    while(TRUE)   
-    {   
+	while(TRUE)
+	{
 		serv->clear_fd();
 		serv->set_fd();
-        //Le server attends un nouvelle activité (une requete)
-      	nb_activity = serv->wait_select();  
-        //Si une requete est envoyé au serv->get_fd()
+		//Le server attends un nouvelle activité (une requete)
+	  	nb_activity = serv->wait_select();
+		//Si une requete est envoyé au serv->get_fd()
 		for (size_t i = 0; i < serv->getVSsize() && nb_activity; i++)
 		{
 			if (serv->wait_request(serv->getVS(i)->get_fd())){
@@ -57,6 +56,6 @@ int			main(int argc, char **argv)
 				nb_activity--;
 			}
 		}
-    }     
-    return 0;   
-}   
+	}
+	return 0;
+}

@@ -33,6 +33,10 @@ class Execution
 			return (*this);
 
 		}
+
+		/***************************************************
+		******************    Redirect    ******************
+		***************************************************/
 		int								redirectToFolder(void){
 			if (this->serv->check_repo(this->serv->get_repos() + this->req->get_uri())) {
 				std::string uri = this->req->get_uri();
@@ -82,18 +86,6 @@ class Execution
 			}
 			return (0);
 		}
-		int								text(char *uri){
-			if ((this->req->get_extension() == "css" || this->req->get_extension() == "html") && this->serv->open_file(uri, this->req)) {
-				return (1);
-			}
-			return (0);
-		}
-		int								binary_file(char *uri){
-			if (this->serv->open_Binary(uri, this->req)) {
-				return (1);
-			}
-			return (0);
-		}
 		void							redir_404(std::string uri){
 			std::string redir;
 			if ((redir = this->serv->findRedirection("404", "error_page", uri)) == "error" || this->serv->try_open_file(redir) == 0){
@@ -109,6 +101,22 @@ class Execution
 					this->header->update_content("Location", redir);
 					this->header->send_header(this->req);
 			}
+		}
+
+		/***************************************************
+		*****************    OpenFiles    ******************
+		***************************************************/
+		int								text(std::string uri){
+			if ((this->req->get_extension() == "css" || this->req->get_extension() == "html") && this->serv->open_file(uri, this->req)) {
+				return (1);
+			}
+			return (0);
+		}
+		int								binary_file(std::string uri){
+			if (this->serv->open_Binary(uri, this->req)) {
+				return (1);
+			}
+			return (0);
 		}
 
 		
