@@ -24,11 +24,24 @@ class ServerWeb
 		}
 
 		/***************************************************
-		******************    GET/SET   ********************
+		********************    GET   **********************
 		***************************************************/
 		std::string														get_repos(void){
 			return (this->_repos);
 		}
+		VirtualServer*													getVS(int i){
+			return (this->_VServs[i]);
+		}
+		size_t															getVSsize(void){
+			return (this->_VServs.size());
+		}
+		int																get_fdmax(void){
+			return (this->_fdmax);
+		}
+
+		/***************************************************
+		********************    SET   **********************
+		***************************************************/
 		void					  										set_repos(std::string repos){
 			std::ifstream	folder(repos.c_str());
 			if(folder.good() && this->check_repo(repos))
@@ -45,6 +58,10 @@ class ServerWeb
 			}
 			
 		}
+
+		/***************************************************
+		*******************    WAIT   **********************
+		***************************************************/
 		int																wait_select(void){
 			int activity;
 
@@ -54,16 +71,13 @@ class ServerWeb
 			}
 			return (activity);
 		}
-		VirtualServer*													getVS(int i){
-			return (this->_VServs[i]);
-		}
-		size_t															getVSsize(void){
-			return (this->_VServs.size());
-		}
-		int																get_fdmax(void){
-			return (this->_fdmax);
+		int																wait_request(int fd){
+			return (FD_ISSET(fd, &this->_readfds));
 		}
 
+		/***************************************************
+		******************    PARSING   ********************
+		***************************************************/
 		void															parsing_conf(void){
 			std::ifstream			file("srcs/server.conf");
 			std::string				line;
@@ -78,26 +92,6 @@ class ServerWeb
 				}
 			}
 			file.close();
-		}
-
-		bool															check_repo(std::string repos){
-			DIR		*folder = opendir((repos).c_str());
-			bool	ret = false;
-			if(folder) {
-				closedir(folder);
-				ret = true;
-			}
-			return (ret);
-		}
-		void															OpenDefault(std::ifstream	*ifs){
-			std::string  line;
-			while (std::getline(*ifs, line)){
-				line = (line.find_first_not_of("\t ") != SIZE_MAX) ? line.substr(line.find_first_not_of("\t "), line.size()) : line;
-				line = (line.find_last_not_of("\t ") != SIZE_MAX) ? line.substr(0, line.find_last_not_of("\t ") + 1) : line;
-				if (!line.empty())
-					this->_file.push_back(line);
-			}
-			(*ifs).close();
 		}
 		void															parsingVrServ(void){
 			std::vector<std::string> Serv;
@@ -124,6 +118,29 @@ class ServerWeb
 				Serv.clear();
 			}
 		}
+
+		/***************************************************
+		******************    OTHERS   *********************
+		***************************************************/
+		bool															check_repo(std::string repos){
+			DIR		*folder = opendir((repos).c_str());
+			bool	ret = false;
+			if(folder) {
+				closedir(folder);
+				ret = true;
+			}
+			return (ret);
+		}
+		void															OpenDefault(std::ifstream	*ifs){
+			std::string  line;
+			while (std::getline(*ifs, line)){
+				line = (line.find_first_not_of("\t ") != SIZE_MAX) ? line.substr(line.find_first_not_of("\t "), line.size()) : line;
+				line = (line.find_last_not_of("\t ") != SIZE_MAX) ? line.substr(0, line.find_last_not_of("\t ") + 1) : line;
+				if (!line.empty())
+					this->_file.push_back(line);
+			}
+			(*ifs).close();
+		}
 		void															CreateVServs(void){
 			for (size_t i = 0; i < this->_separateVrServ.size(); i++){
 				VirtualServer *vserv = new VirtualServer(this->_separateVrServ[i], this->_repos);
@@ -132,9 +149,6 @@ class ServerWeb
 		}
 		void															clear_fd(void){
 			FD_ZERO(&this->_readfds);   
-		}
-		int																wait_request(int fd){
-			return (FD_ISSET(fd, &this->_readfds));
 		}
 
 	private:
