@@ -349,6 +349,7 @@ class VirtualServer
 				{
 					std::istringstream iss(this->_virtualserver[j]);
 					std::vector<std::string> results(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>());
+					//std::cout << "Value = " << &this->_virtualserver[j][results[0].size() + 1] << std::endl;
 					value[results[0]].push_back(&this->_virtualserver[j][results[0].size() + 1]);
 					value[results[0]][value[results[0]].size() - 1].pop_back();
 					j++;
