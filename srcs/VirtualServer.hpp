@@ -379,7 +379,7 @@ class VirtualServer
 		bool															_autoIndex;
 		std::vector<std::string>										_virtualserver;
 		struct sockaddr_in 												_address;
-	std::vector<std::string>											_listen;
+		std::vector<std::string>										_listen;
 		std::vector<std::string>										_serverNames;
 		std::vector<std::string>										_index;
 		std::vector<std::map<std::string, std::vector<std::string>>> 	_locations;

@@ -8,9 +8,28 @@ class Parsing_request {
 			this->_file = "";
 			this->_path = "";
 		}
-		virtual ~Parsing_request() { return ; }
+		virtual ~Parsing_request() {}
 
-		void				parse_get() {
+		/***************************************************
+		********************    GET   **********************
+		***************************************************/
+		std::string											get_path(void) const{
+			return (this->_path);
+		}
+		std::string											get_file(void) const{
+			return (this->_file);
+		}
+		std::string											get_extension(void) const{
+			return (this->_extension);
+		}
+		std::map<std::string, std::string>					get_map(void) const{
+			return (this->_map);
+		}
+
+		/***************************************************
+		******************    PARSING   ********************
+		***************************************************/
+		void												parse_get(void){
 			this->_path = "";
 
 			this->_path = &this->_map["First"][this->_map["First"].find(" ") + 1];
@@ -19,7 +38,7 @@ class Parsing_request {
 			this->_file = (this->_path.rfind("/") != SIZE_MAX) ? &this->_path[this->_path.rfind("/") + 1] : this->_path;
 			this->_extension = (this->_file.rfind(".") != SIZE_MAX) ? &this->_file[this->_file.rfind(".") + 1] : "";
 		}
-		void				parsing_mime(){
+		void												parsing_mime(void){
 			std::ifstream			file("srcs/mime.types");
 			std::string				line;
 
@@ -36,7 +55,7 @@ class Parsing_request {
 			}
 			file.close();
 		}
-		void				parsing_map(char *_buffer){
+		void												parsing_map(char *_buffer){
 			std::string 			pars = _buffer;
 			std::istringstream 		buff(pars);
 
@@ -55,18 +74,7 @@ class Parsing_request {
 				}
 			}
 		}
-		std::string											get_path() const {
-			return (this->_path);
-		}
-		std::string											get_file() const {
-			return (this->_file);
-		}
-		std::string											get_extension() const {
-			return (this->_extension);
-		}
-		std::map<std::string, std::string>					get_map() const {
-			return (this->_map);
-		}
+
 	private:
 		std::string											_path;
 		std::string											_file;
