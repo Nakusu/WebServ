@@ -38,7 +38,7 @@ class Execution
 		******************    Redirect    ******************
 		***************************************************/
 		int								redirectToFolder(void){
-			if (this->serv->check_repo(this->serv->get_repos() + this->req->get_uri())) {
+			if (this->serv->check_repo(get_root() + this->req->get_uri())) {
 				std::string uri = this->req->get_uri();
 				if (uri.rfind('/') == uri.size() - 1){
 					return (1);
@@ -55,7 +55,7 @@ class Execution
 			return (1);
 		}
 		int								index(void){
-			if (this->serv->check_repo(this->serv->get_repos() + this->req->get_uri())) {
+			if (this->serv->check_repo(get_root() + this->req->get_uri())) {
 				std::vector<std::string> files;
 				this->header->update_content("Content-Type", "text/html");
 				std::string autoindex = "<h1>Index of " + std::string(this->req->get_uri()) + "</h1><hr><pre>";
@@ -103,6 +103,14 @@ class Execution
 			}
 		}
 
+		std::string				get_root(void){
+			std::string redir;
+			if ((redir = this->serv->findRedirection("", "root", this->req->get_uri())) != "error")
+				return (redir);
+			else
+				return (this->serv->get_repos());
+		}
+
 		/***************************************************
 		*****************    OpenFiles    ******************
 		***************************************************/
@@ -118,6 +126,7 @@ class Execution
 			}
 			return (0);
 		}
+
 
 		
 
