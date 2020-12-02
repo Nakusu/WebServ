@@ -38,14 +38,14 @@ class Execution
 		/***************************************************
 		******************    Redirect    ******************
 		***************************************************/
-		std::string						getRoot(void){
+		std::string									getRoot(void){
 			std::vector<std::string> redir;
-			redir = this->vserv->findOption("root",this->req->getUri(), 1, this->vserv->get_root());
+			redir = this->vserv->findOption("root", this->req->getUri(), 1, this->vserv->get_root());
 			if (redir.empty())
 				return (this->serv->get_root());
 			return (redir[0]);
 		}
-		bool							getAutoIndex(void){
+		bool										getAutoIndex(void){
 			std::vector<std::string> redir;
 			redir = this->vserv->findOption("autoindex",this->req->getUri(), 1, redir);
 			if (redir.empty())
@@ -55,7 +55,7 @@ class Execution
 			else
 				return (0);
 		}
-		int								needRedirection(void){
+		int											needRedirection(void){
 			if (this->vserv->folderIsOpenable(getRoot() + this->req->getUri())) {
 				std::string uri = this->req->getUri();
 				if (uri.rfind('/') == uri.size() - 1){
@@ -72,7 +72,7 @@ class Execution
 			}
 			return (0);
 		}
-		int								index(void){
+		int											index(void){
 			//If it's a folder
 			if (this->vserv->folderIsOpenable(getRoot() + this->req->getUri())) {
 				std::string					autoindex;
@@ -111,23 +111,23 @@ class Execution
 			}
 			return (0);
 		}
-		void							error404(void){
+		void										error404(void){
 			std::string redir;
 			std::vector<std::string> vec = this->vserv->findOption("error_page", this->req->getUri(), 1, this->vserv->get_errorPages());
 		
 			this->header->updateContent("HTTP/1.1", "404 Not Found");
 			this->header->updateContent("Content-Type", "text/html");
 			this->header->sendHeader(this->req);
-			if (searchInVec("404", vec) || searchInVec("404", this->vserv->get_errorPages()))
+			redir = vec.empty() ? this->getRoot() : this->getRoot() + "/" + vec[vec.size() - 1];
+			if ((searchInVec("404", vec) == -1 && searchInVec("404", this->vserv->get_errorPages()) == -1) ||
+			!fileIsOpenable(redir))
 				req->sendPacket("<html><head><title>404 Not Found</title></head><body bgcolor=\"white\"><center><h1>404 Not Found</h1></center><hr><center>Les Poldters Server Web</center></html>");
-			else {
-				redir = this->getRoot() + vec[vec.size()];
-			}
+			else 
+				req->sendPacket(fileToString(redir));
 		}
-		int								fileIsOpenable(std::string file){
+		int											fileIsOpenable(std::string path){
 			std::ifstream opfile;
-			std::string tmp = this->getRoot() + file;
-  			opfile.open(tmp.data());
+  			opfile.open(path.data());
 			if (!opfile.is_open())
 				return (0);
 			opfile.close();
@@ -137,13 +137,13 @@ class Execution
 		/***************************************************
 		*****************    OpenFiles    ******************
 		***************************************************/
-		int								text(void){
+		int											text(void){
 			if ((this->req->getExtension() == "css" || this->req->getExtension() == "html") && this->openFile(this->req->getUri(), this->req)) {
 				return (1);
 			}
 			return (0);
 		}
-		int								openBinary(std::string file){
+		int											openBinary(std::string file){
 			std::ifstream		opfile;
 			char 				*content = new char[4096];
 			std::string tmp = this->getRoot() + file;
@@ -159,12 +159,12 @@ class Execution
 			opfile.close();
 			return (1);
 		}
-		int								binaryFile(void){
+		int											binaryFile(void){
 			if (openBinary(this->req->getUri()))
 				return (1);
 			return (0);
 		}
-		int								openFile(std::string file, Request *req){
+		int											openFile(std::string file, Request *req){
 			std::ifstream opfile;
 			std::string content;
 			std::string tmp = this->getRoot() + file;
@@ -177,7 +177,8 @@ class Execution
 			opfile.close();
 			return (1);
 		}
-		std::vector<std::string>		listFilesInFolder(std::string repos){
+
+		std::vector<std::string>					listFilesInFolder(std::string repos){
 			struct dirent				*entry;
 			DIR							*folder;
 			std::vector<std::string>	ret;
@@ -190,6 +191,35 @@ class Execution
 			}
 			return (ret);
 		}
+ 		std::map<std::string, std::string>			setMetaCGI(std::string script_name) {
+			std::map<std::string, std::string> args;
+			args["SERVER_SOFTWARE"] = "";
+			args["SERVER_PROTOCOL"] = "HTTPT/1.1";
+			args["SERVER_NAME"] = this->req->get_host();
+			args["SERVER_PORT"] = this->req->get_port();
+			args["REQUEST_URI"] = this->req->getUri();
+			args["SCRIPT_NAME"] = script_name;
+			args["REMOTE_ADDR"] = this->req->get_IpClient();
+			args["REQUEST_METHOD"] = this->req->get_method();
+			//args["REMOTE_USER"] = req->get_urgentAgent();
+			//args["REQUEST_METHOD"] = POST GET OR PUT
+			// lol
+			return (args);
+			}
+		int											init_cgi(Request *req) {
+			std::vector<size_t> indexs = this->vserv->findLocation(this->req->getUri());
+			std::vector<std::map<std::string, std::vector<std::string>>> locations = this->vserv->get_locations();
+			if (!indexs.empty() && !locations[indexs[0]]["cgiextension"].empty() && !locations[indexs[0]]["cgi_path"].empty() && req->getExtension() == &locations[indexs[0]]["cgiextension"][0][1]) {
+				if (this->fileIsOpenable(locations[indexs[0]]["cgi_path"][0])) {
+					std::map<std::string, std::string> args = setMetaCGI(locations[indexs[0]]["cgi_path"][0]);
+					// excve of args with env and binary file 
+				}
+			}
+			return (1);
+		}
+
+
+
 	private:
 		ServerWeb *			serv;
 		VirtualServer *		vserv;

@@ -69,17 +69,17 @@ class VirtualServer
 		*****************    Operations    *****************
 		***************************************************/
 
-		
-
 		bool															folderIsOpenable(std::string repos){
 			DIR		*folder = opendir((repos).c_str());
 			bool	ret = false;
-            if(folder) {
+			if(folder) {
 				closedir(folder);
-                ret = true;
+				ret = true;
 			}
-            return (ret);
+			return (ret);
 		}
+	
+	
 		std::map<std::string, std::string>								errorByKeysInMap (std::vector<std::string>	&locations){
 			std::map<std::string, std::string> errorsMap;
 
@@ -93,6 +93,8 @@ class VirtualServer
 			}
 			return (errorsMap);
 		}
+
+
 		std::vector<size_t>												findLocation(std::string uri){
 			std::vector<size_t> index;
 
@@ -150,6 +152,9 @@ class VirtualServer
 		}
 		std::vector<std::string>										get_errorPages(void){
 			return (this->_errorPages);
+		}
+		std::vector<std::map<std::string, std::vector<std::string>>>	get_locations(void){
+			return (this->_locations);
 		}
 		size_t															get_indexSize(void){
 			return (this->_index.size());

@@ -107,10 +107,9 @@ class ServerWeb
 			return (ret);
 		}
 		void															fileToVectorAndClean(std::ifstream *ifs){
-			std::string  line;
+			 std::string  line;
 			while (std::getline(*ifs, line)){
-				line = (line.find_first_not_of("\t \n\v\r\f") != SIZE_MAX) ? line.substr(line.find_first_not_of("\t \n\v\r\f"), line.size()) : "";
-				line = (line.find_last_not_of("\t \n\v\r\f") != SIZE_MAX) ? line.substr(0, line.find_last_not_of("\t \n\v\r\f") + 1) : "";
+				line = cleanSpaces(line);
 				if (!line.empty())
 					this->_file.push_back(line);
 			}

@@ -44,11 +44,13 @@ int			main(int argc, char **argv)
 		{
 			if (serv->verifFdFDISSET(serv->getVS(i)->getFd())){
 				int addrlen = sizeof(serv->getVS(i)->getAddress());
-				Request *req = new Request(accept(serv->getVS(i)->getFd(), (struct sockaddr *)serv->getVS(i)->getAddress(), (socklen_t *)&addrlen));
+				struct sockaddr_in * IPClient = serv->getVS(i)->getAddress();
+				Request *req = new Request(accept(serv->getVS(i)->getFd(), (struct sockaddr *)IPClient, (socklen_t *)&addrlen));
+				req->setIPClient(inet_ntoa(*(in_addr *)IPClient));
 				HeaderRequest *header = new HeaderRequest();
 				Execution exec = Execution(serv, serv->getVS(i), req, header);
 				if (!exec.needRedirection()){
-					if (!exec.index() && !exec.text() && !exec.binaryFile())
+					if (exec.init_cgi(req) && !exec.index() && !exec.text() && !exec.binaryFile())
 						exec.error404();
 				}
 				delete req;
