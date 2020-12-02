@@ -10,12 +10,13 @@ class Execution
 {
 	public:
 		Execution(void){
-			this->serv = NULL;
+			this->vserv = NULL;
 			this->req = NULL;
 			this->header = NULL;
 		}
-		Execution(VirtualServer *serv, Request *req, HeaderRequest *header){
+		Execution(ServerWeb *serv, VirtualServer *vserv, Request *req, HeaderRequest *header){
 			this->serv = serv;
+			this->vserv = vserv;
 			this->req = req;
 			this->header = header;
 		}
@@ -25,9 +26,9 @@ class Execution
 		virtual ~Execution(void){
 
 		}
-		Execution &						operator=( Execution const & rhs){
+		Execution &						operator=(Execution const & rhs){
 			if (this != &rhs){
-				this->serv = rhs.serv;
+				this->vserv = rhs.vserv;
 				this->req = rhs.req;
 			}
 			return (*this);
@@ -37,102 +38,162 @@ class Execution
 		/***************************************************
 		******************    Redirect    ******************
 		***************************************************/
-		int								redirectToFolder(void){
-			if (this->serv->check_repo(get_root() + this->req->get_uri())) {
-				std::string uri = this->req->get_uri();
+		std::string						getRoot(void){
+			std::vector<std::string> redir;
+			redir = this->vserv->findOption("root",this->req->getUri(), 1, this->vserv->get_root());
+			if (redir.empty())
+				return (this->serv->get_root());
+			return (redir[0]);
+		}
+		bool							getAutoIndex(void){
+			std::vector<std::string> redir;
+			redir = this->vserv->findOption("autoindex",this->req->getUri(), 1, redir);
+			if (redir.empty())
+				return (this->vserv->get_autoIndex());
+			else if (redir[0] == "on")
+				return (1);
+			else
+				return (0);
+		}
+		int								needRedirection(void){
+			if (this->vserv->folderIsOpenable(getRoot() + this->req->getUri())) {
+				std::string uri = this->req->getUri();
 				if (uri.rfind('/') == uri.size() - 1){
-					return (1);
+					return (0);
 				}
 				else{
 					uri.push_back('/');
-					this->header->update_content("HTTP/1.1", "301 Moved Permanently");
-					this->header->update_content("Content-Type", "text/html");
-					this->header->update_content("Location", uri);
-					this->header->send_header(this->req);
-					return (0);
+					this->header->updateContent("HTTP/1.1", "301 Moved Permanently");
+					this->header->updateContent("Content-Type", "text/html");
+					this->header->updateContent("Location", uri);
+					this->header->sendHeader(this->req);
+					return (1);
 				}
 			}
-			return (1);
+			return (0);
 		}
 		int								index(void){
-			if (this->serv->check_repo(get_root() + this->req->get_uri())) {
-				std::vector<std::string> files;
-				this->header->update_content("Content-Type", "text/html");
-				std::string autoindex = "<h1>Index of " + std::string(this->req->get_uri()) + "</h1><hr><pre>";
-				files = this->serv->get_fileInFolder(this->req->get_uri()); // RECUPERATION DES FICHIERS DANS LE FOLDER
-				for (size_t i = 0; i < this->serv->get_index_size(); i++){
-					for (size_t j = 0; j < files.size(); j++){
-						if (!this->serv->get_index(i).compare(files[j].c_str())){
-							this->req->set_uri(std::string(this->req->get_uri()) + files[j]);
-							return (0);
-						}
+			//If it's a folder
+			if (this->vserv->folderIsOpenable(getRoot() + this->req->getUri())) {
+				std::string					autoindex;
+				std::vector<std::string>	files;
+				std::vector<std::string>	vec;
+				size_t						index;
+				
+				this->header->updateContent("Content-Type", "text/html");
+
+				vec = this->vserv->findOption("index", this->req->getUri(), 0, this->vserv->get_index());
+				files = this->listFilesInFolder(this->req->getUri());
+
+				for (size_t i = 0; i < vec.size(); i++){
+					if ((index = searchInVec(vec[i], files)) != -1){ //Compare index with files in Folder
+						this->req->setUri(this->req->getUri() + files[index]); //Return new URI with the index
+						return (0);
 					}
 				}
-				if (this->serv->get_AutoIndex(this->req->get_uri())){
-						autoindex += "<a href=\"../\"> ../</a><br/>";
+				autoindex = "<h1>Index of " + std::string(this->req->getUri()) + "</h1><hr><pre>";
+				//Search if AutoIndex is on
+				if (this->getAutoIndex()){
+					autoindex += "<a href=\"../\"> ../</a><br/>";
 					for (size_t j = 0; j < files.size(); j++){
-						autoindex += "<a href=\"" + std::string(this->req->get_uri()) + files[j] +"\">" + files[j] + "</a><br/>";
+						autoindex += "<a href=\"" + std::string(this->req->getUri()) + files[j] +"\">" + files[j] + "</a><br/>";
 					}
-						autoindex += "</pre><hr>";
-					this->header->send_header(this->req);
-					this->req->send_packet(autoindex.c_str());
+					autoindex += "</pre><hr>";
+					this->header->sendHeader(this->req);
+					this->req->sendPacket(autoindex.c_str());
 				}
 				else{
-					this->header->update_content("HTTP/1.1", "403");
-					this->header->send_header(this->req);
-					this->req->send_packet("Interaction interdite..."); // SI IL N'Y A PAS D'INDEX DE BASE ET QUE L'AUTOINDEX EST SUR OFF
+					this->header->updateContent("HTTP/1.1", "403");
+					this->header->sendHeader(this->req);
+					this->req->sendPacket("Interaction interdite..."); // SI IL N'Y A PAS D'INDEX DE BASE ET QUE L'AUTOINDEX EST SUR OFF
 				}
 				return (1);
 			}
 			return (0);
 		}
-		void							redir_404(std::string uri){
+		void							error404(void){
 			std::string redir;
-			if ((redir = this->serv->findRedirection("404", "error_page", uri)) == "error" || this->serv->try_open_file(redir) == 0){
-				this->header->update_content("HTTP/1.1", "404 Not Found");
-				this->header->update_content("Content-Type", "text/html");
-				this->header->send_header(this->req);
-				
-				req->send_packet("<html><head><title>404 Not Found</title></head><body bgcolor=\"white\"><center><h1>404 Not Found</h1></center><hr><center>Les Poldters Server Web</center></html>");
-			}
+			std::vector<std::string> vec = this->vserv->findOption("error_page", this->req->getUri(), 1, this->vserv->get_errorPages());
+		
+			this->header->updateContent("HTTP/1.1", "404 Not Found");
+			this->header->updateContent("Content-Type", "text/html");
+			this->header->sendHeader(this->req);
+			if (searchInVec("404", vec) || searchInVec("404", this->vserv->get_errorPages()))
+				req->sendPacket("<html><head><title>404 Not Found</title></head><body bgcolor=\"white\"><center><h1>404 Not Found</h1></center><hr><center>Les Poldters Server Web</center></html>");
 			else {
-					this->header->update_content("HTTP/1.1", "301 Moved Permanently");
-					this->header->update_content("Content-Type", "text/html");
-					this->header->update_content("Location", redir);
-					this->header->send_header(this->req);
+				redir = this->getRoot() + vec[vec.size()];
 			}
 		}
-
-		std::string				get_root(void){
-			std::string redir;
-			if ((redir = this->serv->findRedirection("", "root", this->req->get_uri())) != "error")
-				return (redir);
-			else
-				return (this->serv->get_repos());
+		int								fileIsOpenable(std::string file){
+			std::ifstream opfile;
+			std::string tmp = this->getRoot() + file;
+  			opfile.open(tmp.data());
+			if (!opfile.is_open())
+				return (0);
+			opfile.close();
+			return (1);
 		}
 
 		/***************************************************
 		*****************    OpenFiles    ******************
 		***************************************************/
-		int								text(std::string uri){
-			if ((this->req->get_extension() == "css" || this->req->get_extension() == "html") && this->serv->open_file(uri, this->req)) {
+		int								text(void){
+			if ((this->req->getExtension() == "css" || this->req->getExtension() == "html") && this->openFile(this->req->getUri(), this->req)) {
 				return (1);
 			}
 			return (0);
 		}
-		int								binary_file(std::string uri){
-			if (this->serv->open_Binary(uri, this->req)) {
-				return (1);
+		int								openBinary(std::string file){
+			std::ifstream		opfile;
+			char 				*content = new char[4096];
+			std::string tmp = this->getRoot() + file;
+			memset(content,0,4096);
+  			opfile.open(tmp.data());
+			  if (!opfile.is_open())
+			  	return (0);
+			req->sendPacket("HTTP/1.1 200\n\n");
+			while (!opfile.eof()) {
+				opfile.read(content, 4096); 
+				req->sendPacket(content, 4096);
 			}
+			opfile.close();
+			return (1);
+		}
+		int								binaryFile(void){
+			if (openBinary(this->req->getUri()))
+				return (1);
 			return (0);
 		}
+		int								openFile(std::string file, Request *req){
+			std::ifstream opfile;
+			std::string content;
+			std::string tmp = this->getRoot() + file;
+  			opfile.open(tmp.data());
+			if (!opfile.is_open())
+				return (0);
+			req->sendPacket("HTTP/1.1 200\n\n");
+			while (std::getline(opfile, content))
+				req->sendPacket(content.c_str());
+			opfile.close();
+			return (1);
+		}
+		std::vector<std::string>		listFilesInFolder(std::string repos){
+			struct dirent				*entry;
+			DIR							*folder;
+			std::vector<std::string>	ret;
 
-
-		
-
+			folder = opendir((this->getRoot() + repos).c_str());
+			while (folder && (entry = readdir(folder))) {
+				if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..")) {
+					ret.push_back(entry->d_name);
+				} 
+			}
+			return (ret);
+		}
 	private:
-		VirtualServer*		serv;
-		Request* 			req;
-		HeaderRequest*		header;
+		ServerWeb *			serv;
+		VirtualServer *		vserv;
+		Request * 			req;
+		HeaderRequest *		header;
 };
 #endif

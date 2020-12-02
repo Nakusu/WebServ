@@ -48,4 +48,7 @@
 #define FALSE  0  
 #define PORT 8080  
 
+std::vector<std::string>				split(std::string chaine, char delimiteur);
+int										searchInVec(std::string find, std::vector<std::string> entry);
+
 #endif

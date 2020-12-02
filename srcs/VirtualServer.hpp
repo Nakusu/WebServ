@@ -8,16 +8,16 @@ class VirtualServer
 {
 	public:
 		VirtualServer(void){
-			init_addr(AF_INET, INADDR_ANY, htons(PORT));
+			initAddr(AF_INET, INADDR_ANY, htons(PORT));
 		}
 		VirtualServer(std::vector<std::string> file, std::string repos){
 			this->_file = file;
-			this->_repos = repos;
+			this->_root.push_back(repos);
 			this->parsing();
-			init_addr(AF_INET, INADDR_ANY, htons(atoi(this->_listen[0].c_str())));
-			init_fd(AF_INET , SOCK_STREAM , 0);
-			init_link();
-			init_listen(4);
+			initAddr(AF_INET, INADDR_ANY, htons(atoi(this->_listen[0].c_str())));
+			initFd(AF_INET , SOCK_STREAM , 0);
+			initLink();
+			initListen(4);
 		}
 		VirtualServer(VirtualServer const &rhs){
 			operator=(rhs);
@@ -33,25 +33,25 @@ class VirtualServer
 		/***************************************************
 		*******************    Socket    *******************
 		***************************************************/
-		struct sockaddr_in												init_addr(int family, in_addr_t s_addr, in_port_t port){
+		struct sockaddr_in												initAddr(int family, in_addr_t s_addr, in_port_t port){
 			this->_address.sin_family = family;   
 			this->_address.sin_addr.s_addr = s_addr;   
    			this->_address.sin_port = port;
 			return (this->_address); 
 		}
-		void															init_link(void){
+		void															initLink(void){
 			if (this->_fd != 0 && bind(this->_fd, (struct sockaddr *)&this->_address, sizeof(this->_address)) < 0){   
 				perror("bind failed");   
 				exit(EXIT_FAILURE);   
 			}
 		}
-		void															init_listen(int number){
+		void															initListen(int number){
 			if (listen(this->_fd, number) < 0){
 				perror("listen");   
 				exit(EXIT_FAILURE);
 			}
 		}
-		int																init_fd(int domain, int type, int protocol){
+		int																initFd(int domain, int type, int protocol){
 			int opt = TRUE;
 
 			if( (this->_fd = socket(domain , type , protocol)) == 0){   
@@ -68,61 +68,10 @@ class VirtualServer
 		/***************************************************
 		*****************    Operations    *****************
 		***************************************************/
-		int																open_file(std::string file, Request *req) {
-			std::ifstream opfile;
-			std::string content;
-			std::string tmp = this->_repos + file;
-  			opfile.open(tmp.data());
-			if (!opfile.is_open())
-				return (0);
-			req->send_packet("HTTP/1.1 200\n\n");
-			while (std::getline(opfile, content))
-				req->send_packet(content.c_str());
-			opfile.close();
-			return (1);
-		}
-		int																try_open_file(std::string file) {
-			std::ifstream opfile;
-			std::string tmp = this->_repos + file;
-  			opfile.open(tmp.data());
-			if (!opfile.is_open())
-				return (0);
-			opfile.close();
-			return (1);
-		}
-		int																open_Binary(std::string file, Request *req) {
-			std::ifstream		opfile;
-			char 				*content = new char[4096];
-			std::string tmp = this->_repos + file;
-			memset(content,0,4096);
-  			opfile.open(tmp.data());
-			  if (!opfile.is_open())
-			  	return (0);
-			req->send_packet("HTTP/1.1 200\n\n");
-			while (!opfile.eof()) {
-				opfile.read(content, 4096); 
-				req->send_packet(content, 4096);
-			}
-			opfile.close();
-			return (1);
-		}
-		std::vector<std::string>										get_fileInFolder(std::string repos) {
-			struct dirent				*entry;
-			DIR							*folder;
-			std::vector<std::string>	ret;
 
-			folder = opendir((this->_repos + repos).c_str());
-			if (folder) {
-				while ((entry = readdir(folder))) {
-					if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..")) {
-						ret.push_back(entry->d_name);
-					} 
-				}
-			}
-			this->_repos = this->_repos.substr(this->_repos.find_first_not_of("\n "), this->_repos.size());
-			return (ret);
-		}
-		bool															check_repo(std::string repos) {
+		
+
+		bool															folderIsOpenable(std::string repos){
 			DIR		*folder = opendir((repos).c_str());
 			bool	ret = false;
             if(folder) {
@@ -131,117 +80,96 @@ class VirtualServer
 			}
             return (ret);
 		}
-		std::map<std::string, std::string>								recupErrorByKeyLocations (std::vector<std::string>	&locations){
+		std::map<std::string, std::string>								errorByKeysInMap (std::vector<std::string>	&locations){
 			std::map<std::string, std::string> errorsMap;
 
-			if (!locations.empty())
-			{
-				for (unsigned int i = 0; i < locations.size(); i++)
-				{
-					std::istringstream iss(locations[i]);
-					std::vector<std::string> results(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>());
-					for (unsigned int j = 0; j < results.size() - 1; j++)
-					{
-						if (atoi(results[j].c_str()) > 99 && atoi(results[j].c_str()) < 600 && errorsMap[results[j]].empty())
-							errorsMap[results[j]] = results[results.size() - 1];
-					}
+			for (unsigned int i = 0;!locations.empty() && i < locations.size(); i++){
+				std::istringstream iss(locations[i]);
+				std::vector<std::string> results(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>());
+				for (unsigned int j = 0; j < results.size() - 1; j++){
+					if (atoi(results[j].c_str()) > 99 && atoi(results[j].c_str()) < 600 && errorsMap[results[j]].empty())
+						errorsMap[results[j]] = results[results.size() - 1];
 				}
 			}
 			return (errorsMap);
 		}
-		std::vector<size_t>												findLocations(std::string uri){
+		std::vector<size_t>												findLocation(std::string uri){
 			std::vector<size_t> index;
+
+			for (size_t i = 0; i < this->_locations.size(); i++){
+				if (this->_locations[i]["key"][0] == uri)
+					index.push_back(i);
+			}
+			return (index);
+		}
+		std::vector<size_t>												findLocationsAndSublocations(std::string uri){
+			//Search the locations and sublocations of the uri ex : index[0]:/var/toto/ index[1]:/var/ index[2]:/
+			std::vector<size_t> index;
+
 			while (uri.find('/') != SIZE_MAX){
 				for (size_t i = 0; i < this->_locations.size(); i++){
-					if (this->_locations[i]["key"][0] == uri){
+					if (this->_locations[i]["key"][0] == uri)
 						index.push_back(i);
-					}
 				}
 				uri.pop_back();
 				uri = (uri.rfind('/') != SIZE_MAX) ? uri.substr(0,uri.rfind('/') + 1) : uri ;
 			}
 			return (index);
 		}
-		std::string														findRedirection(std::string key , std::string option, std::string uri){
+		std::vector<std::string>										findOption(std::string option, std::string uri, int sub, std::vector<std::string> global){
 			std::vector<size_t> tab;
+			std::vector<std::string> result;
 
-			tab = findLocations(uri); //recherche des locations en rapport avec uri (du plus profond jusqu'a /) ex : index[0]:/var/toto/ index[1]:/var/ index[2]:/
-	        if (!tab.empty()){ // si pas de location pour cette uri on va recherche dans le global
+			if (sub)
+				tab = findLocationsAndSublocations(uri);
+			else
+				tab = findLocation(uri);
+			if (!tab.empty()){ // If there is a location
 				for (size_t i = 0; i < tab.size(); i++){
-					if (!this->_locations[tab[i]][option].empty()){ //Si on trouve l'option que l'on recherche ex : error_page ou rewrite
-						if (key.empty()){ //Si on ne connait pas la key que l'on recheche (exemple pour rewrite on recherche la correspondance d'un rewrite avec notre uri)
-							for (size_t j = 0; j < this->_locations[tab[i]][option].size(); j++){
-								//On split notre string pour rechercher si l'uri est egale a notre split[0] et si oui on redirige vers split[1]
-								std::string uricut = uri;
-								std::istringstream iss(this->_locations[tab[i]][option][j]);
-								std::vector<std::string> results(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>());
-								//On decoupe l'uri pour rechercher des chemins de plus plus large jusqu'a /
-								while (uricut.find('/') != SIZE_MAX){
-									if (results[0] == uricut)
-										return (results[1]);
-									uricut = (uricut.rfind('/') != SIZE_MAX) ? uricut.substr(0,uricut.rfind('/')) : uricut ;
-								}
-							}
-						}
-						//Si on trouve une correspondance avec notre clé dans notre location
-						if (!recupErrorByKeyLocations(this->_locations[tab[i]][option])[key].empty())
-							return (recupErrorByKeyLocations(_locations[tab[i]][option])[key]);
-					}
+					if (!this->_locations[tab[i]][option].empty()) //If we find the option, we split in vector
+						result = split(this->_locations[tab[i]][option][0], ' ');
 				}
-			} // Sinon on recherche dans le global
-            if (option == "error_page"){
-				if (!recupErrorByKeyLocations(this->_errorPages)[key].empty())
-					return (recupErrorByKeyLocations(this->_errorPages)[key]);
 			}
-			else if (option == "rewrite"){
-				if (!recupErrorByKeyLocations(this->_rewrite)[key].empty())
-					return (recupErrorByKeyLocations(this->_rewrite)[key]);
-			}
-			return ("error");
-        }
-
+			if (result.empty())
+				for (size_t i = 0; i < global.size(); i++)
+					result.push_back(global[i]);
+			return (result);
+		}
 
 		/***************************************************
 		******************    GET/SET   ********************
 		***************************************************/
-		size_t															get_index_size(void){
+		std::vector<std::string>										get_index(void){
+			return (this->_index);
+		}
+		std::vector<std::string>										get_serverNames(void){
+			return (this->_serverNames);
+		}
+		std::vector<std::string>										get_listen(void){
+			return (this->_listen);
+		}
+		std::vector<std::string>										get_errorPages(void){
+			return (this->_errorPages);
+		}
+		size_t															get_indexSize(void){
 			return (this->_index.size());
 		}
-		std::string														get_index(size_t i){
+		std::string														getIndexByIndex(size_t i){
 			return(this->_index[i]);
 		}
-		int																get_AutoIndex(std::string uri){
-			// (void)uri;
-			for (size_t i = 0; i < this->_locations.size(); i++)
-			{
-				if(uri.compare(this->_locations[i]["key"][0]) == 0	&& !this->_locations[i]["autoindex"][0].empty()){
-					if (this->_locations[i]["autoindex"][0] == "on")
-						return (1);
-					else if (this->_locations[i]["autoindex"][0] == "off")
-						return (0);
-				}
-			}
+		bool															get_autoIndex(void){
 			return (this->_autoIndex);
 		}
-		std::string														get_repos(void){
-			return (this->_repos);
+		std::vector<std::string>										get_root(void){
+			return (this->_root);
 		}
-		struct sockaddr_in												*get_address(void){
+		struct sockaddr_in												*getAddress(void){
 			return (&this->_address);
 		}
-		int																get_fd(void){
+		int																getFd(void){
 			return (this->_fd);
 		}
-
-		void															set_repos(std::string repos){
-            std::ifstream	folder(repos.c_str());
-            if(folder.good() && this->check_repo(repos))
-                this->_repos = repos;
-            else
-                std::cout << "REPO NOT FOUND" << repos << std::endl;
-				// ERROR DE REPO BLOCK
-        }
-		void															set_file(std::vector<std::string> file){
+		void															setFile(std::vector<std::string> file){
 			this->_file = file;
 		}
 
@@ -253,7 +181,7 @@ class VirtualServer
 			this->parsingServerToVector();
 			this->parsingListen();
 			this->parsingServerNames();
-			this->parsingRepos();
+			this->parsingRoot();
 			this->parsingIndex();
 			this->parsingLocations();
 			this->parsingAutoIndex();
@@ -265,11 +193,11 @@ class VirtualServer
 					this->_listen.push_back(this->_virtualserver[i].substr(7, this->_virtualserver[i].size() - 8));
 				}
 		}
-		void															parsingRepos(void){
+		void															parsingRoot(void){
 			for (unsigned int i = 0; i < this->_virtualserver.size(); i++)
 			{
 				if (this->_virtualserver[i].find("root ") != SIZE_MAX){
-					this->_repos = this->_virtualserver[i].substr(5, this->_virtualserver[i].size() - 6);
+					this->_root.push_back(this->_virtualserver[i].substr(5, this->_virtualserver[i].size() - 6));
 					return ;
 				}
 
@@ -349,7 +277,6 @@ class VirtualServer
 				{
 					std::istringstream iss(this->_virtualserver[j]);
 					std::vector<std::string> results(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>());
-					//std::cout << "Value = " << &this->_virtualserver[j][results[0].size() + 1] << std::endl;
 					value[results[0]].push_back(&this->_virtualserver[j][results[0].size() + 1]);
 					value[results[0]][value[results[0]].size() - 1].pop_back();
 					j++;
@@ -369,8 +296,6 @@ class VirtualServer
 					cpt--;
 				if (this->_virtualserver[i].find("error_page") != SIZE_MAX && (cpt == 1))
 					this->_errorPages.push_back(this->_virtualserver[i].substr(10, this->_virtualserver[i].size() - 11));
-				if (this->_virtualserver[i].find("rewrite") != SIZE_MAX && (cpt == 1))
-                    this->_errorPages.push_back(this->_virtualserver[i].substr(7, this->_virtualserver[i].size() - 8));
 			}
 		}
 
@@ -383,11 +308,10 @@ class VirtualServer
 		std::vector<std::string>										_listen;
 		std::vector<std::string>										_serverNames;
 		std::vector<std::string>										_index;
-		std::vector<std::map<std::string, std::vector<std::string>>> 	_locations;
+		std::vector<std::map<std::string, std::vector<std::string>>>	_locations;
 		std::vector<std::string>										_errorPages;
-		std::vector<std::string> 										_rewrite;
 		std::vector<std::string> 										_file;
-		std::string 													_repos;
+		std::vector<std::string> 										_root;
 
 
 };

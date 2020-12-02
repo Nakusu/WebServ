@@ -1,35 +1,37 @@
-#ifndef PARSING_REQUEST_HPP
-#define PARSING_REQUEST_HPP
+#ifndef ParsingRequest_HPP
+#define ParsingRequest_HPP
 
-class Parsing_request {
+#include "Header.hpp"
+
+class ParsingRequest{
 	public:
-		Parsing_request() {
+		ParsingRequest(){
 			this->_extension = "";
 			this->_file = "";
 			this->_path = "";
 		}
-		virtual ~Parsing_request() {}
+		virtual ~ParsingRequest(){}
 
 		/***************************************************
 		********************    GET   **********************
 		***************************************************/
-		std::string											get_path(void) const{
+		std::string											getPath(void) const{
 			return (this->_path);
 		}
-		std::string											get_file(void) const{
+		std::string											getFile(void) const{
 			return (this->_file);
 		}
-		std::string											get_extension(void) const{
+		std::string											getExtension(void) const{
 			return (this->_extension);
 		}
-		std::map<std::string, std::string>					get_map(void) const{
+		std::map<std::string, std::string>					getMap(void) const{
 			return (this->_map);
 		}
 
 		/***************************************************
 		******************    PARSING   ********************
 		***************************************************/
-		void												parse_get(void){
+		void												parseGet(void){
 			this->_path = "";
 
 			this->_path = &this->_map["First"][this->_map["First"].find(" ") + 1];
@@ -38,7 +40,7 @@ class Parsing_request {
 			this->_file = (this->_path.rfind("/") != SIZE_MAX) ? &this->_path[this->_path.rfind("/") + 1] : this->_path;
 			this->_extension = (this->_file.rfind(".") != SIZE_MAX) ? &this->_file[this->_file.rfind(".") + 1] : "";
 		}
-		void												parsing_mime(void){
+		void												parsingMime(void){
 			std::ifstream			file("srcs/mime.types");
 			std::string				line;
 
@@ -55,9 +57,9 @@ class Parsing_request {
 			}
 			file.close();
 		}
-		void												parsing_map(char *_buffer){
+		void												parsingMap(char *_buffer){
 			std::string 			pars = _buffer;
-			std::istringstream 		buff(pars);
+			std::istringstream		buff(pars);
 
 			getline(buff, pars);
 			std::string key = "First";
