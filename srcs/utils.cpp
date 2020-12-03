@@ -64,3 +64,36 @@ std::string							cleanSpaces(std::string	&line)
 	}
 	return (lineCleaned);
 }
+
+int									fileIsOpenable(std::string path){
+	std::ifstream opfile;
+	opfile.open(path.data());
+	if (!opfile.is_open())
+		return (0);
+	opfile.close();
+	return (1);
+}
+
+bool								folderIsOpenable(std::string repos){
+	DIR		*folder = opendir((repos).c_str());
+	bool	ret = false;
+	if(folder) {
+		closedir(folder);
+		ret = true;
+	}
+	return (ret);
+}
+
+std::vector<std::string>			listFilesInFolder(std::string repos){
+	struct dirent				*entry;
+	DIR							*folder;
+	std::vector<std::string>	ret;
+
+	folder = opendir(repos.c_str());
+	while (folder && (entry = readdir(folder))) {
+		if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..")) {
+			ret.push_back(entry->d_name);
+		} 
+	}
+	return (ret);
+}

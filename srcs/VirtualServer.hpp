@@ -68,33 +68,6 @@ class VirtualServer
 		/***************************************************
 		*****************    Operations    *****************
 		***************************************************/
-
-		bool															folderIsOpenable(std::string repos){
-			DIR		*folder = opendir((repos).c_str());
-			bool	ret = false;
-			if(folder) {
-				closedir(folder);
-				ret = true;
-			}
-			return (ret);
-		}
-	
-	
-		std::map<std::string, std::string>								errorByKeysInMap (std::vector<std::string>	&locations){
-			std::map<std::string, std::string> errorsMap;
-
-			for (unsigned int i = 0;!locations.empty() && i < locations.size(); i++){
-				std::istringstream iss(locations[i]);
-				std::vector<std::string> results(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>());
-				for (unsigned int j = 0; j < results.size() - 1; j++){
-					if (atoi(results[j].c_str()) > 99 && atoi(results[j].c_str()) < 600 && errorsMap[results[j]].empty())
-						errorsMap[results[j]] = results[results.size() - 1];
-				}
-			}
-			return (errorsMap);
-		}
-
-
 		std::vector<size_t>												findLocation(std::string uri){
 			std::vector<size_t> index;
 
@@ -141,34 +114,34 @@ class VirtualServer
 		/***************************************************
 		******************    GET/SET   ********************
 		***************************************************/
-		std::vector<std::string>										get_index(void){
-			return (this->_index);
-		}
-		std::vector<std::string>										get_serverNames(void){
-			return (this->_serverNames);
-		}
-		std::vector<std::string>										get_listen(void){
-			return (this->_listen);
+		bool															get_autoIndex(void){
+			return (this->_autoIndex);
 		}
 		std::vector<std::string>										get_errorPages(void){
 			return (this->_errorPages);
 		}
-		std::vector<std::map<std::string, std::vector<std::string>>>	get_locations(void){
-			return (this->_locations);
+		std::vector<std::string>										get_index(void){
+			return (this->_index);
 		}
 		size_t															get_indexSize(void){
 			return (this->_index.size());
 		}
-		std::string														getIndexByIndex(size_t i){
-			return(this->_index[i]);
+		std::vector<std::string>										get_listen(void){
+			return (this->_listen);
 		}
-		bool															get_autoIndex(void){
-			return (this->_autoIndex);
+		std::vector<std::string>										get_serverNames(void){
+			return (this->_serverNames);
 		}
 		std::vector<std::string>										get_root(void){
 			return (this->_root);
 		}
-		struct sockaddr_in												*getAddress(void){
+		std::vector<std::map<std::string, std::vector<std::string>>>	get_locations(void){
+			return (this->_locations);
+		}
+		std::string														getIndexByIndex(size_t i){
+			return(this->_index[i]);
+		}
+		struct sockaddr_in *											getAddress(void){
 			return (&this->_address);
 		}
 		int																getFd(void){
@@ -177,7 +150,6 @@ class VirtualServer
 		void															setFile(std::vector<std::string> file){
 			this->_file = file;
 		}
-
 
 		/***************************************************
 		******************    Parsing    *******************
@@ -192,51 +164,16 @@ class VirtualServer
 			this->parsingAutoIndex();
 			this->parsingRedirGbl();
 		}
-		void															parsingListen(void){
-			for (unsigned int i = 0; i < this->_virtualserver.size(); i++)
-				if (this->_virtualserver[i].find("listen ") != SIZE_MAX){
-					this->_listen.push_back(this->_virtualserver[i].substr(7, this->_virtualserver[i].size() - 8));
-				}
-		}
-		void															parsingRoot(void){
+		void															parsingAutoIndex(void){
 			for (unsigned int i = 0; i < this->_virtualserver.size(); i++)
 			{
-				if (this->_virtualserver[i].find("root ") != SIZE_MAX){
-					this->_root.push_back(this->_virtualserver[i].substr(5, this->_virtualserver[i].size() - 6));
-					return ;
-				}
-
-			}
-		}
-		void															parsingServerToVector(void){
-			for (unsigned int i = 0; i < this->_file.size(); i++){
-				if (this->_file[i].find("server ") != SIZE_MAX || this->_file[i].find("server{") != SIZE_MAX){	
-					unsigned int j = i + 1;
-					unsigned int brackets = 1;
-					this->_virtualserver.push_back(this->_file[i]);
-					while (brackets != 0 && j < this->_file.size())
-					{
-						if (this->_file[j].find("{") != SIZE_MAX)
-							brackets++;
-						else if (this->_file[j].find("}") != SIZE_MAX)
-							brackets--;
-							this->_virtualserver.push_back(this->_file[j]);
-						j++;
-					}
-				}
-				return ;
-			}
-		}
-		void															parsingServerNames(void){
-			for (unsigned int i = 0; i < this->_virtualserver.size(); i++)
-			{
-				if (this->_virtualserver[i].find("server_name ") != SIZE_MAX)
+				if (this->_virtualserver[i].find("autoindex ") != SIZE_MAX)
 				{
-					std::istringstream iss(this->_virtualserver[i]);
-					std::vector<std::string> results(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>());
-					results.erase(results.begin());
-					this->_serverNames = results;
-					this->_serverNames.back().pop_back();
+					if (this->_virtualserver[i].find("off") != SIZE_MAX)
+						this->_autoIndex = false;
+					else
+						this->_autoIndex = true;
+					return ;
 				}
 			}
 		}
@@ -253,18 +190,11 @@ class VirtualServer
 				}
 			}
 		}
-		void															parsingAutoIndex(void){
+		void															parsingListen(void){
 			for (unsigned int i = 0; i < this->_virtualserver.size(); i++)
-			{
-				if (this->_virtualserver[i].find("autoindex ") != SIZE_MAX)
-				{
-					if (this->_virtualserver[i].find("off") != SIZE_MAX)
-						this->_autoIndex = false;
-					else
-						this->_autoIndex = true;
-					return ;
+				if (this->_virtualserver[i].find("listen ") != SIZE_MAX){
+					this->_listen.push_back(this->_virtualserver[i].substr(7, this->_virtualserver[i].size() - 8));
 				}
-			}
 		}
 		void															parsingLocations(void){
 		std::map<std::string, std::vector<std::string>> value;
@@ -303,22 +233,62 @@ class VirtualServer
 					this->_errorPages.push_back(this->_virtualserver[i].substr(10, this->_virtualserver[i].size() - 11));
 			}
 		}
+		void															parsingRoot(void){
+			for (unsigned int i = 0; i < this->_virtualserver.size(); i++)
+			{
+				if (this->_virtualserver[i].find("root ") != SIZE_MAX){
+					this->_root.push_back(this->_virtualserver[i].substr(5, this->_virtualserver[i].size() - 6));
+					return ;
+				}
+
+			}
+		}
+		void															parsingServerNames(void){
+			for (unsigned int i = 0; i < this->_virtualserver.size(); i++)
+			{
+				if (this->_virtualserver[i].find("server_name ") != SIZE_MAX)
+				{
+					std::istringstream iss(this->_virtualserver[i]);
+					std::vector<std::string> results(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>());
+					results.erase(results.begin());
+					this->_serverNames = results;
+					this->_serverNames.back().pop_back();
+				}
+			}
+		}
+		void															parsingServerToVector(void){
+			for (unsigned int i = 0; i < this->_file.size(); i++){
+				if (this->_file[i].find("server ") != SIZE_MAX || this->_file[i].find("server{") != SIZE_MAX){	
+					unsigned int j = i + 1;
+					unsigned int brackets = 1;
+					this->_virtualserver.push_back(this->_file[i]);
+					while (brackets != 0 && j < this->_file.size())
+					{
+						if (this->_file[j].find("{") != SIZE_MAX)
+							brackets++;
+						else if (this->_file[j].find("}") != SIZE_MAX)
+							brackets--;
+							this->_virtualserver.push_back(this->_file[j]);
+						j++;
+					}
+				}
+				return ;
+			}
+		}
 
 
 	private:
 		int 															_fd;
-		bool															_autoIndex;
-		std::vector<std::string>										_virtualserver;
 		struct sockaddr_in 												_address;
-		std::vector<std::string>										_listen;
-		std::vector<std::string>										_serverNames;
-		std::vector<std::string>										_index;
-		std::vector<std::map<std::string, std::vector<std::string>>>	_locations;
+		bool															_autoIndex;
 		std::vector<std::string>										_errorPages;
 		std::vector<std::string> 										_file;
+		std::vector<std::string>										_index;
+		std::vector<std::string>										_listen;
+		std::vector<std::string>										_serverNames;
 		std::vector<std::string> 										_root;
-
-
+		std::vector<std::string>										_virtualserver;
+		std::vector<std::map<std::string, std::vector<std::string>>>	_locations;
 };
 
 #endif

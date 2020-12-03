@@ -53,5 +53,8 @@ int										searchInVec(std::string find, std::vector<std::string> entry);
 std::string								fileToString(std::string file);
 std::string								convertInSpaces(std::string line);
 std::string								cleanSpaces(std::string	&line);
+int										fileIsOpenable(std::string path);
+bool									folderIsOpenable(std::string repos);
+std::vector<std::string>				listFilesInFolder(std::string repos);
 
 #endif

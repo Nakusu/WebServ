@@ -97,15 +97,6 @@ class ServerWeb
 		/***************************************************
 		******************    OTHERS   *********************
 		***************************************************/
-		bool															folderIsOpenable(std::string repos){
-			DIR		*folder = opendir((repos).c_str());
-			bool	ret = false;
-			if(folder) {
-				closedir(folder);
-				ret = true;
-			}
-			return (ret);
-		}
 		void															fileToVectorAndClean(std::ifstream *ifs){
 			 std::string  line;
 			while (std::getline(*ifs, line)){

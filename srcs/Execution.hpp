@@ -26,7 +26,7 @@ class Execution
 		virtual ~Execution(void){
 
 		}
-		Execution &						operator=(Execution const & rhs){
+		Execution &									operator=(Execution const & rhs){
 			if (this != &rhs){
 				this->vserv = rhs.vserv;
 				this->req = rhs.req;
@@ -36,7 +36,7 @@ class Execution
 		}
 
 		/***************************************************
-		******************    Redirect    ******************
+		*********************    GET    ********************
 		***************************************************/
 		std::string									getRoot(void){
 			std::vector<std::string> redir;
@@ -55,26 +55,13 @@ class Execution
 			else
 				return (0);
 		}
-		int											needRedirection(void){
-			if (this->vserv->folderIsOpenable(getRoot() + this->req->getUri())) {
-				std::string uri = this->req->getUri();
-				if (uri.rfind('/') == uri.size() - 1){
-					return (0);
-				}
-				else{
-					uri.push_back('/');
-					this->header->updateContent("HTTP/1.1", "301 Moved Permanently");
-					this->header->updateContent("Content-Type", "text/html");
-					this->header->updateContent("Location", uri);
-					this->header->sendHeader(this->req);
-					return (1);
-				}
-			}
-			return (0);
-		}
-		int											index(void){
+
+		/***************************************************
+		*******************    SEARCH    *******************
+		***************************************************/
+		int											searchIndex(void){
 			//If it's a folder
-			if (this->vserv->folderIsOpenable(getRoot() + this->req->getUri())) {
+			if (folderIsOpenable(getRoot() + this->req->getUri())) {
 				std::string					autoindex;
 				std::vector<std::string>	files;
 				std::vector<std::string>	vec;
@@ -83,7 +70,7 @@ class Execution
 				this->header->updateContent("Content-Type", "text/html");
 
 				vec = this->vserv->findOption("index", this->req->getUri(), 0, this->vserv->get_index());
-				files = this->listFilesInFolder(this->req->getUri());
+				files = listFilesInFolder(this->getRoot() + this->req->getUri());
 
 				for (size_t i = 0; i < vec.size(); i++){
 					if ((index = searchInVec(vec[i], files)) != -1){ //Compare index with files in Folder
@@ -111,7 +98,7 @@ class Execution
 			}
 			return (0);
 		}
-		void										error404(void){
+		void										searchError404(void){
 			std::string redir;
 			std::vector<std::string> vec = this->vserv->findOption("error_page", this->req->getUri(), 1, this->vserv->get_errorPages());
 		
@@ -125,19 +112,11 @@ class Execution
 			else 
 				req->sendPacket(fileToString(redir));
 		}
-		int											fileIsOpenable(std::string path){
-			std::ifstream opfile;
-  			opfile.open(path.data());
-			if (!opfile.is_open())
-				return (0);
-			opfile.close();
-			return (1);
-		}
 
 		/***************************************************
 		*****************    OpenFiles    ******************
 		***************************************************/
-		int											text(void){
+		int											openText(void){
 			if ((this->req->getExtension() == "css" || this->req->getExtension() == "html") && this->openFile(this->req->getUri(), this->req)) {
 				return (1);
 			}
@@ -178,19 +157,9 @@ class Execution
 			return (1);
 		}
 
-		std::vector<std::string>					listFilesInFolder(std::string repos){
-			struct dirent				*entry;
-			DIR							*folder;
-			std::vector<std::string>	ret;
-
-			folder = opendir((this->getRoot() + repos).c_str());
-			while (folder && (entry = readdir(folder))) {
-				if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..")) {
-					ret.push_back(entry->d_name);
-				} 
-			}
-			return (ret);
-		}
+		/***************************************************
+		********************    CGI    *********************
+		***************************************************/
  		std::map<std::string, std::string>			setMetaCGI(std::string script_name) {
 			std::map<std::string, std::string> args;
 			args["SERVER_SOFTWARE"] = "";
@@ -206,11 +175,11 @@ class Execution
 			// lol
 			return (args);
 			}
-		int											init_cgi(Request *req) {
+		int											initCGI(Request *req) {
 			std::vector<size_t> indexs = this->vserv->findLocation(this->req->getUri());
 			std::vector<std::map<std::string, std::vector<std::string>>> locations = this->vserv->get_locations();
 			if (!indexs.empty() && !locations[indexs[0]]["cgiextension"].empty() && !locations[indexs[0]]["cgi_path"].empty() && req->getExtension() == &locations[indexs[0]]["cgiextension"][0][1]) {
-				if (this->fileIsOpenable(locations[indexs[0]]["cgi_path"][0])) {
+				if (fileIsOpenable(locations[indexs[0]]["cgi_path"][0])) {
 					std::map<std::string, std::string> args = setMetaCGI(locations[indexs[0]]["cgi_path"][0]);
 					// excve of args with env and binary file 
 				}
@@ -218,6 +187,26 @@ class Execution
 			return (1);
 		}
 
+		/***************************************************
+		*****************    Operation    ******************
+		***************************************************/
+		int											needRedirection(void){
+			if (folderIsOpenable(getRoot() + this->req->getUri())) {
+				std::string uri = this->req->getUri();
+				if (uri.rfind('/') == uri.size() - 1){
+					return (0);
+				}
+				else{
+					uri.push_back('/');
+					this->header->updateContent("HTTP/1.1", "301 Moved Permanently");
+					this->header->updateContent("Content-Type", "text/html");
+					this->header->updateContent("Location", uri);
+					this->header->sendHeader(this->req);
+					return (1);
+				}
+			}
+			return (0);
+		}
 
 
 	private:
