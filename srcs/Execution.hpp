@@ -172,7 +172,12 @@ class Execution
 			args["AUTH_TYPE"] = req->get_authType();
 			args["SERVER_SOFTWARE"] = "";
 			args["SERVER_PROTOCOL"] = "HTTPT/1.1";
-			args["CONTENT_TYPE"] = req->getContentMimes();
+			if (req->getContentMimes() == "" && this->openText())
+				args["CONTENT_TYPE"] = "text/plain";
+			else if (req->getContentMimes() == "" && !this->openText())
+				args["CONTENT_TYPE"] = "application/octet-stream";
+			else
+				args["CONTENT_TYPE"] = req->getContentMimes();
 			args["SERVER_NAME"] = this->req->get_host();
 			args["SERVER_PORT"] = this->req->get_port();
 			args["REQUEST_URI"] = this->req->getUri();
