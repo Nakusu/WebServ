@@ -162,6 +162,7 @@ class Execution
 		***************************************************/
  		std::map<std::string, std::string>			setMetaCGI(std::string script_name) {
 			std::map<std::string, std::string> args;
+			args["AUTH_TYPE"] = req->get_authType();
 			args["SERVER_SOFTWARE"] = "";
 			args["SERVER_PROTOCOL"] = "HTTPT/1.1";
 			args["SERVER_NAME"] = this->req->get_host();
@@ -170,9 +171,9 @@ class Execution
 			args["SCRIPT_NAME"] = script_name;
 			args["REMOTE_ADDR"] = this->req->get_IpClient();
 			args["REQUEST_METHOD"] = this->req->get_method();
-			//args["REMOTE_USER"] = req->get_urgentAgent();
-			//args["REQUEST_METHOD"] = POST GET OR PUT
-			// lol
+			args["GATEWAY_INTERFACE"] = "CGI/1.1";
+			args["REMOTE_USER"] = req->get_authCredential();
+			args["REMOTE_IDENT"] = req->get_authCredential();
 			return (args);
 			}
 		int											initCGI(Request *req) {

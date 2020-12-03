@@ -10,6 +10,8 @@ class Request {
 			this->_socket = 0;
 			this->_uri = "";
 			this->_typeContent = "";
+			this->_authCredentials = "";
+			this->_authType = "";
 		}
 		Request(int socket){
 			this->_socket = socket;
@@ -21,6 +23,7 @@ class Request {
 			this->findUri();
 			this->findTypeContent();
 			this->parsingMetasVars();
+			this->parsingAuthorizations;
 		}
 
 		virtual ~Request(){
@@ -63,7 +66,12 @@ class Request {
 			this->_hostPort = &this->_parsing.getMap()["Host"][this->_parsing.getMap()["Host"].find_first_of(":") + 1];
 			this->_userAgent = this->_parsing.getMap()["User-Agent"];
 		}
- 
+		void                parsingAuthorizations(void){
+            std::istringstream iss(this->_parsing.getMap()["Authorization"]);
+            std::vector<std::string> results(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>());
+            this->_authType = results[0];
+            this->_authCredentials = results[1];
+        }
 		void					setIPClient(char * pIPClient){
 			this->_IPClient = (std::string)pIPClient;
 		}
@@ -89,7 +97,12 @@ class Request {
 			this->_typeContent = "";
 			this->_typeContent = this->_parsing.getMap()["Accept"];
 		}
-
+		std::string				get_authType(void) const {
+			return (this->_authType);
+		}
+		std::string				get_authCredential(void) const {
+			return (this->_authCredentials);
+		}
 		std::string				get_host(void) const {
 				return (this->_hostName);
 			}
@@ -122,6 +135,8 @@ class Request {
 		std::string											_hostPort;
 		std::string											_IPClient;
 		std::string											_userAgent;
+		std::string                                         _authType;
+        std::string                                         _authCredentials;
 };
 
 #endif
