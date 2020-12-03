@@ -31,7 +31,7 @@ class Request {
 		/***************************************************
 		********************    GET   **********************
 		***************************************************/
-		std::string			getUri(void) const{
+		std::string			get_uri(void) const{
 			return (this->_uri);
 		}
 		char				*getBuffer(void){
@@ -64,7 +64,7 @@ class Request {
 			this->_userAgent = this->_parsing.getMap()["User-Agent"];
 		}
  
-		void					setIPClient(char * pIPClient){
+		void				setIPClient(char * pIPClient){
 			this->_IPClient = (std::string)pIPClient;
 		}
 		/***************************************************
@@ -89,28 +89,28 @@ class Request {
 			this->_typeContent = "";
 			this->_typeContent = this->_parsing.getMap()["Accept"];
 		}
-
-		std::string				get_host(void) const {
-				return (this->_hostName);
-			}
-		std::string			get_port(void) const {
-				return (this->_hostPort);
-			}
-		std::string			get_userAgent(void) const {
-				return (this->_userAgent);
-			}
-		std::string			set_method() {
-				std::string rep = "";
-				for (int i = 0; this->_buffer[i] != ' '; i++)
-					rep += this->_buffer[i];
-				return (rep);
-			}
+		std::string			get_host(void) const{
+			return (this->_hostName);
+		}
+		std::string			get_port(void) const{
+			return (this->_hostPort);
+		}
+		std::string			get_userAgent(void) const{
+			return (this->_userAgent);
+		}
+		std::string			set_method(){
+			std::string rep = "";
+			for (int i = 0; this->_buffer[i] != ' '; i++)
+				rep += this->_buffer[i];
+			return (rep);
+		}
 		std::string			get_method(void) const{ 
-				return (this->_method);
-			}
-		std::string			get_IpClient(void) const {
-				return (this->_IPClient);
-			}
+			return (this->_method);
+		}
+		std::string			get_IPClient(void) const{
+			return (this->_IPClient);
+		}
+
 	private:
 		int													_socket;
 		char												_buffer[1025];
