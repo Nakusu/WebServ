@@ -164,8 +164,8 @@ class Request {
 		std::string											_hostPort;
 		std::string											_IPClient;
 		std::string											_userAgent;
-		std::string                                         _authType;
-        std::string                                         _authCredentials;
+		std::string											_authType;
+		std::string											_authCredentials;
 		std::string											_queryString;
 		std::string 										_pathInfo;
 };

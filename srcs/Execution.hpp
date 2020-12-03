@@ -24,7 +24,6 @@ class Execution
 			operator=(rhs);
 		}
 		virtual ~Execution(void){
-
 		}
 		Execution &									operator=(Execution const & rhs){
 			if (this != &rhs){
@@ -32,7 +31,6 @@ class Execution
 				this->req = rhs.req;
 			}
 			return (*this);
-
 		}
 
 		/***************************************************
@@ -184,7 +182,7 @@ class Execution
 			args["SERVER_PORT"] = this->req->get_port();
 			args["REQUEST_URI"] = this->req->get_uri();
 			args["SCRIPT_NAME"] = script_name;
-			args["REMOTE_ADDR"] = this->req->get_IPClient();
+			args["REMOTE_ADDR"] = this->req->get_IpClient();
 			args["REQUEST_METHOD"] = this->req->get_method();
 			args["GATEWAY_INTERFACE"] = "CGI/1.1";
 			args["REMOTE_USER"] = req->get_authCredential();
@@ -225,7 +223,6 @@ class Execution
 			}
 			return (0);
 		}
-
 
 	private:
 		ServerWeb *			serv;

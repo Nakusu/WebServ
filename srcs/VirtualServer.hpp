@@ -36,7 +36,7 @@ class VirtualServer
 		struct sockaddr_in												initAddr(int family, in_addr_t s_addr, in_port_t port){
 			this->_address.sin_family = family;   
 			this->_address.sin_addr.s_addr = s_addr;   
-   			this->_address.sin_port = port;
+			this->_address.sin_port = port;
 			return (this->_address); 
 		}
 		void															initLink(void){
@@ -275,7 +275,6 @@ class VirtualServer
 				return ;
 			}
 		}
-
 
 	private:
 		int 															_fd;
