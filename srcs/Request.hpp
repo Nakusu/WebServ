@@ -35,7 +35,7 @@ class Request {
 		/***************************************************
 		********************    GET   **********************
 		***************************************************/
-		std::string				getUri(void) const{
+		std::string				get_uri(void) const{
 			return (this->_uri);
 		}
 		std::string				getContentLength(void) const{
