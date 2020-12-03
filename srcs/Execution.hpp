@@ -47,7 +47,7 @@ class Execution
 		}
 		bool										getAutoIndex(void){
 			std::vector<std::string> redir;
-			redir = this->vserv->findOption("autoindex",this->req->get_uri(), 0, redir);
+			redir = this->vserv->findOption("autoindex",this->req->get_uri(), 1, redir);
 			if (redir.empty())
 				return (this->vserv->get_autoIndex());
 			else if (redir[0] == "on")
@@ -117,7 +117,14 @@ class Execution
 		*****************    OpenFiles    ******************
 		***************************************************/
 		int											openText(void){
-			if ((this->req->getExtension() == "css" || this->req->getExtension() == "html") && this->openFile(this->req->get_uri(), this->req)) {
+			 std::vector<std::string> typetxt{"appcache", "ics", "ifb", "css", "csv", "html", "htm", "n3", "txt", "text",
+			"conf", "def", "list", "log", "in", "dsc", "rtx", "sgml", "sgm", "tsv",
+			"t", "tr", "roff", "man", "me", "ms", "ttl", "uri", "uris", "urls",
+			"vcard", "curl", "dcurl", "scurl", "mcurl", "sub", "fly", "flx", "gv",
+			"3dml", "spot", "jad", "wml", "wmls", "s", "asm", "c", "cc", "cxx",
+			"cpp", "h", "hh", "hpp", "dic", "f", "for", "f77", "f90", "java",
+			"opml", "p", "pas", "nfo", "etx", "sfv", "uu", "vcs", "vcf"};
+			if (std::find(std::begin(typetxt), std::end(typetxt), (std::string)this->req->getExtension()) != end(typetxt) && this->openFile(this->req->get_uri(), this->req)) {
 				return (1);
 			}
 			return (0);
@@ -127,7 +134,7 @@ class Execution
 			char 				*content = new char[4096];
 			std::string tmp = this->getRoot() + file;
 			memset(content,0,4096);
-  			opfile.open(tmp.data());
+  			opfile.open(tmp.data(), std::ios::binary | std::ios::in);
 			  if (!opfile.is_open())
 			  	return (0);
 			req->sendPacket("HTTP/1.1 200\n\n");
@@ -162,17 +169,28 @@ class Execution
 		***************************************************/
  		std::map<std::string, std::string>			setMetaCGI(std::string script_name) {
 			std::map<std::string, std::string> args;
-			args["SERVER_SOFTWARE"] = "";
+			args["AUTH_TYPE"] = req->get_authType();
+			args["SERVER_SOFTWARE"] = "POLDERSERV/HTTP1.1";
 			args["SERVER_PROTOCOL"] = "HTTPT/1.1";
+			if (req->getContentMimes() == "" && this->openText())
+				args["CONTENT_TYPE"] = "text/plain";
+			else if (req->getContentMimes() == "" && !this->openText())
+				args["CONTENT_TYPE"] = "application/octet-stream";
+			else
+				args["CONTENT_TYPE"] = req->getContentMimes();
+			args["CONTENT_LENGTH"] = req->getContentLength();
+			args["QUERY_STRING"] = req->getQueryString();
 			args["SERVER_NAME"] = this->req->get_host();
 			args["SERVER_PORT"] = this->req->get_port();
 			args["REQUEST_URI"] = this->req->get_uri();
 			args["SCRIPT_NAME"] = script_name;
 			args["REMOTE_ADDR"] = this->req->get_IPClient();
 			args["REQUEST_METHOD"] = this->req->get_method();
-			//args["REMOTE_USER"] = req->get_urgentAgent();
-			//args["REQUEST_METHOD"] = POST GET OR PUT
-			// lol
+			args["GATEWAY_INTERFACE"] = "CGI/1.1";
+			args["REMOTE_USER"] = req->get_authCredential();
+			args["REMOTE_IDENT"] = req->get_authCredential();
+			args["PATH_INFO"] = req->get_PathInfo();
+			args["PATH_TRANSLATED"] = (this->getRoot() + this->req->get_uri());
 			return (args);
 			}
 		int											initCGI(Request *req) {
