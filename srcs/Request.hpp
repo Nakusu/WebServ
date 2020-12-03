@@ -23,7 +23,7 @@ class Request {
 			this->findUri();
 			this->findTypeContent();
 			this->parsingMetasVars();
-			this->parsingAuthorizations;
+			this->parsingAuthorizations();
 		}
 
 		virtual ~Request(){
@@ -49,7 +49,9 @@ class Request {
 		int					getSocket(void) const{
 			return (this->_socket);
 		}
-
+		std::string         getContentMimes(void) const{
+            return (this->_parsing.getMap().find("Content-Type") != this->_parsing.getMap().end() ? this->_parsing.getMap()["Content-Type"] : "");
+        }
 
 		/***************************************************
 		********************    SET   **********************
@@ -68,9 +70,11 @@ class Request {
 		}
 		void                parsingAuthorizations(void){
             std::istringstream iss(this->_parsing.getMap()["Authorization"]);
-            std::vector<std::string> results(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>());
-            this->_authType = results[0];
-            this->_authCredentials = results[1];
+           	std::vector<std::string> results(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>());
+			if (!results.empty()) {
+            	this->_authType = results[0];
+            	this->_authCredentials = results[1];
+			}
         }
 		void					setIPClient(char * pIPClient){
 			this->_IPClient = (std::string)pIPClient;
