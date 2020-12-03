@@ -189,6 +189,8 @@ class Execution
 			args["GATEWAY_INTERFACE"] = "CGI/1.1";
 			args["REMOTE_USER"] = req->get_authCredential();
 			args["REMOTE_IDENT"] = req->get_authCredential();
+			args["PATH_INFO"] = req->get_PathInfo();
+			args["PATH_TRANSLATED"] = "";
 			return (args);
 			}
 		int											initCGI(Request *req) {

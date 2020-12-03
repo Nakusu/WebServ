@@ -24,6 +24,7 @@ class Request {
 			this->findTypeContent();
 			this->parsingMetasVars();
 			this->parsingAuthorizations();
+			this->setPathInfo();
 		}
 
 		virtual ~Request(){
@@ -149,7 +150,7 @@ class Request {
 		std::string			get_IpClient(void) const {
 				return (this->_IPClient);
 			}
-		std::string			getPathInfo(void) const{
+		std::string			get_PathInfo(void) const{
 			return (this->_pathInfo);
 		}
 	private:
