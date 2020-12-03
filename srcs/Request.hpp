@@ -39,11 +39,11 @@ class Request {
 			return (this->_uri);
 		}
 		std::string				getContentLength(void) const{
-            std::string notFounded = "0";
-            if (this->_parsing.getMap()["Content-Length"].empty())
-                return (notFounded);
-            return (this->_parsing.getMap()["Content-Length"]);
-        }
+			std::string notFounded = "0";
+			if (this->_parsing.getMap()["Content-Length"].empty())
+				return (notFounded);
+			return (this->_parsing.getMap()["Content-Length"]);
+		}
 		char					*getBuffer(void){
 			return (this->_buffer);
 		}
@@ -57,18 +57,18 @@ class Request {
 			return (this->_socket);
 		}
 		std::string				getContentMimes(void) const{
-            return (this->_parsing.getMap().find("Content-Type") != this->_parsing.getMap().end() ? this->_parsing.getMap()["Content-Type"] : "");
-        }
+			return (this->_parsing.getMap().find("Content-Type") != this->_parsing.getMap().end() ? this->_parsing.getMap()["Content-Type"] : "");
+		}
 		std::string				getQueryString(void) const{
-            return (this->_queryString);
-        }
+			return (this->_queryString);
+		}
 
 		/***************************************************
 		********************    SET   **********************
 		***************************************************/
-		void                setQueryString(void){
-            this->_queryString = (this->_uri.find("?") != SIZE_MAX) ? &this->_uri[this->_uri.find("?") + 1] : "";
-        }
+		void				setQueryString(void){
+			this->_queryString = (this->_uri.find("?") != SIZE_MAX) ? &this->_uri[this->_uri.find("?") + 1] : "";
+		}
 		void				setSocket(int socket){
 			this->_socket = socket;
 		}
@@ -82,14 +82,16 @@ class Request {
 			this->_userAgent = this->_parsing.getMap()["User-Agent"];
 		}
 
-		void                parsingAuthorizations(void){
-            std::istringstream iss(this->_parsing.getMap()["Authorization"]);
-           	std::vector<std::string> results(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>());
+		void				parsingAuthorizations(void){
+			std::string iss = this->_parsing.getMap()["Authorization"];
+			iss = convertInSpaces(iss);
+			iss = cleanSpaces(iss);
+			std::vector<std::string> results = split(iss, ' ');
 			if (!results.empty()) {
-            	this->_authType = results[0];
-            	this->_authCredentials = results[1];
+				this->_authType = results[0];
+				this->_authCredentials = results[1];
 			}
-        }
+		}
 		void					setIPClient(char * pIPClient){
 			this->_IPClient = (std::string)pIPClient;
 		}
@@ -102,7 +104,7 @@ class Request {
 				this->_pathInfo = (extension.find("/") != SIZE_MAX) ? &extension[extension.find("/") + 1] : "";
 		}
 		/***************************************************
-		*******************    SEND   **********************
+		*******************	SEND   **********************
 		***************************************************/
 		void				sendPacket(std::string content){
 			send(this->_socket, content.c_str(), strlen(content.c_str()), 0);
@@ -112,7 +114,7 @@ class Request {
 		}
 
 		/***************************************************
-		*******************    FIND   **********************
+		*******************	FIND   **********************
 		***************************************************/
 		void				findUri(void){
 			this->_uri = "";

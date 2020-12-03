@@ -193,7 +193,7 @@ class Execution
 			}
 		int											initCGI(Request *req) {
 			std::vector<size_t> indexs = this->vserv->findLocation(this->req->get_uri());
-			std::vector<std::map<std::string, std::vector<std::string>>> locations = this->vserv->get_locations();
+			std::vector<std::map<std::string, std::vector<std::string> > > locations = this->vserv->get_locations();
 			if (!indexs.empty() && !locations[indexs[0]]["cgiextension"].empty() && !locations[indexs[0]]["cgi_path"].empty() && req->getExtension() == &locations[indexs[0]]["cgiextension"][0][1]) {
 				if (fileIsOpenable(locations[indexs[0]]["cgi_path"][0])) {
 					std::map<std::string, std::string> args = setMetaCGI(locations[indexs[0]]["cgi_path"][0]);

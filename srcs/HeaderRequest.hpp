@@ -35,8 +35,8 @@ class HeaderRequest {
 					rep += "\r\n";
 				}
 			}
-			rep.pop_back();
-			rep.pop_back();
+			rep.erase(rep.size() - 1);
+			rep.erase(rep.size() - 1);
 			rep += "\n\n";
 			req->sendPacket(rep.c_str());
 		}
