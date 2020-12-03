@@ -178,6 +178,8 @@ class Execution
 				args["CONTENT_TYPE"] = "application/octet-stream";
 			else
 				args["CONTENT_TYPE"] = req->getContentMimes();
+			args["CONTENT_LENGTH"] = req->getContentLength();
+			args["QUERY_STRING"] = req->getQueryString();
 			args["SERVER_NAME"] = this->req->get_host();
 			args["SERVER_PORT"] = this->req->get_port();
 			args["REQUEST_URI"] = this->req->getUri();

@@ -34,28 +34,40 @@ class Request {
 		/***************************************************
 		********************    GET   **********************
 		***************************************************/
-		std::string			getUri(void) const{
+		std::string				getUri(void) const{
 			return (this->_uri);
 		}
-		char				*getBuffer(void){
+		std::string				getContentLength(void) const{
+            std::string notFounded = "0";
+            if (this->_parsing.getMap()["Content-Length"].empty());
+                return (notFounded);
+            return (this->_parsing.getMap()["Content-Length"]);
+        }
+		char					*getBuffer(void){
 			return (this->_buffer);
 		}
-		std::string			getTypeContent(void) const{ 
+		std::string				getTypeContent(void) const{ 
 			return (this->_typeContent);
 		}
-		std::string			getExtension(void) const{
+		std::string				getExtension(void) const{
 			return (this->_parsing.getExtension());
 		}
-		int					getSocket(void) const{
+		int						getSocket(void) const{
 			return (this->_socket);
 		}
-		std::string         getContentMimes(void) const{
+		std::string				getContentMimes(void) const{
             return (this->_parsing.getMap().find("Content-Type") != this->_parsing.getMap().end() ? this->_parsing.getMap()["Content-Type"] : "");
+        }
+		std::string				getQueryString(void) const{
+            return (this->_queryString);
         }
 
 		/***************************************************
 		********************    SET   **********************
 		***************************************************/
+		void                setQueryString(void){
+            this->_queryString = (this->_uri.find("?") != SIZE_MAX) ? &this->_uri[this->_uri.find("?") + 1] : "";
+        }
 		void				setSocket(int socket){
 			this->_socket = socket;
 		}
@@ -141,6 +153,7 @@ class Request {
 		std::string											_userAgent;
 		std::string                                         _authType;
         std::string                                         _authCredentials;
+		std::string											_queryString;
 };
 
 #endif
