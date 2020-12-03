@@ -170,7 +170,7 @@ class Execution
  		std::map<std::string, std::string>			setMetaCGI(std::string script_name) {
 			std::map<std::string, std::string> args;
 			args["AUTH_TYPE"] = req->get_authType();
-			args["SERVER_SOFTWARE"] = "";
+			args["SERVER_SOFTWARE"] = "POLDERSERV/HTTP1.1";
 			args["SERVER_PROTOCOL"] = "HTTPT/1.1";
 			if (req->getContentMimes() == "" && this->openText())
 				args["CONTENT_TYPE"] = "text/plain";
