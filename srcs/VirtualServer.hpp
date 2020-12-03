@@ -36,31 +36,31 @@ class VirtualServer
 		struct sockaddr_in												initAddr(int family, in_addr_t s_addr, in_port_t port){
 			this->_address.sin_family = family;   
 			this->_address.sin_addr.s_addr = s_addr;   
-   			this->_address.sin_port = port;
+			this->_address.sin_port = port;
 			return (this->_address); 
 		}
 		void															initLink(void){
-			if (this->_fd != 0 && bind(this->_fd, (struct sockaddr *)&this->_address, sizeof(this->_address)) < 0){   
-				perror("bind failed");   
-				exit(EXIT_FAILURE);   
+			if (this->_fd != 0 && bind(this->_fd, (struct sockaddr *)&this->_address, sizeof(this->_address)) < 0){
+				perror("bind failed");
+				exit(EXIT_FAILURE);
 			}
 		}
 		void															initListen(int number){
 			if (listen(this->_fd, number) < 0){
-				perror("listen");   
+				perror("listen");
 				exit(EXIT_FAILURE);
 			}
 		}
 		int																initFd(int domain, int type, int protocol){
 			int opt = TRUE;
 
-			if( (this->_fd = socket(domain , type , protocol)) == 0){   
-				perror("socket failed");   
-				exit(EXIT_FAILURE);   
+			if( (this->_fd = socket(domain , type , protocol)) == 0){
+				perror("socket failed");
+				exit(EXIT_FAILURE);
 			}
-			if( setsockopt(this->_fd, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0 ){   
-				perror("setsockopt");   
-				exit(EXIT_FAILURE);   
+			if( setsockopt(this->_fd, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0 ){
+				perror("setsockopt");
+				exit(EXIT_FAILURE);
 			}
 			return (this->_fd);
 		}
@@ -86,7 +86,7 @@ class VirtualServer
 					if (this->_locations[i]["key"][0] == uri)
 						index.push_back(i);
 				}
-				uri.pop_back();
+				uri = uri.erase(uri.size() - 1);
 				uri = (uri.rfind('/') != SIZE_MAX) ? uri.substr(0,uri.rfind('/') + 1) : uri ;
 			}
 			return (index);
@@ -135,7 +135,7 @@ class VirtualServer
 		std::vector<std::string>										get_root(void){
 			return (this->_root);
 		}
-		std::vector<std::map<std::string, std::vector<std::string>>>	get_locations(void){
+		std::vector<std::map<std::string, std::vector<std::string> > >	get_locations(void){
 			return (this->_locations);
 		}
 		std::string														getIndexByIndex(size_t i){
@@ -182,11 +182,13 @@ class VirtualServer
 			{
 				if (this->_virtualserver[i].find("index ") == 0)
 				{
-					std::istringstream iss(this->_virtualserver[i]);
-					std::vector<std::string> results(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>());
+					std::string iss = this->_virtualserver[i];
+					iss = convertInSpaces(iss);
+					iss = cleanSpaces(iss);
+					std::vector<std::string> results = split(iss, ' ');
 					results.erase(results.begin());
 					this->_index = results;
-					this->_index.back().pop_back();
+					this->_index.back().erase(this->_index.back().size() - 1);
 				}
 			}
 		}
@@ -197,23 +199,27 @@ class VirtualServer
 				}
 		}
 		void															parsingLocations(void){
-		std::map<std::string, std::vector<std::string>> value;
+		std::map<std::string, std::vector<std::string> > value;
 		for (unsigned int i = 0; i < this->_virtualserver.size(); i++)
 		{
 			if (this->_virtualserver[i].find("location") != SIZE_MAX)
 			{
-				std::istringstream qss(this->_virtualserver[i]);
-				std::vector<std::string> res(std::istream_iterator<std::string>{qss}, std::istream_iterator<std::string>());
+				std::string qss = this->_virtualserver[i];
+				qss = convertInSpaces(qss);
+				qss = cleanSpaces(qss);
+				std::vector<std::string> res = split(qss, ' ');
 				value["key"].push_back(res[1]);
 				unsigned int j = (this->_virtualserver[i].find("{") != SIZE_MAX) ? i + 1 : i + 2;
 				while (value["key"][0].find_last_not_of(" \t") != value["key"][0].size() -1 && value["key"][0].find_first_not_of(" \t") != SIZE_MAX)
-						value["key"][0].pop_back();
+						value["key"][0].erase(value["key"][0].size() - 1);
 				while (this->_virtualserver[j].find("}") == SIZE_MAX && j < this->_virtualserver.size())
 				{
-					std::istringstream iss(this->_virtualserver[j]);
-					std::vector<std::string> results(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>());
+					std::string iss = this->_virtualserver[i];
+					iss = convertInSpaces(iss);
+					iss = cleanSpaces(iss);
+					std::vector<std::string> results = split(iss, ' ');
 					value[results[0]].push_back(&this->_virtualserver[j][results[0].size() + 1]);
-					value[results[0]][value[results[0]].size() - 1].pop_back();
+					value[results[0]][value[results[0]].size() - 1].erase(value[results[0]][value[results[0]].size() - 1].size() - 1);;
 					j++;
 				}
 				this->_locations.push_back(value);
@@ -240,19 +246,19 @@ class VirtualServer
 					this->_root.push_back(this->_virtualserver[i].substr(5, this->_virtualserver[i].size() - 6));
 					return ;
 				}
-
 			}
 		}
 		void															parsingServerNames(void){
 			for (unsigned int i = 0; i < this->_virtualserver.size(); i++)
 			{
-				if (this->_virtualserver[i].find("server_name ") != SIZE_MAX)
-				{
-					std::istringstream iss(this->_virtualserver[i]);
-					std::vector<std::string> results(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>());
+				if (this->_virtualserver[i].find("server_name ") != SIZE_MAX){
+					std::string iss = this->_virtualserver[i];
+					iss = convertInSpaces(iss);
+					iss = cleanSpaces(iss);
+					std::vector<std::string> results = split(iss, ' ');
 					results.erase(results.begin());
 					this->_serverNames = results;
-					this->_serverNames.back().pop_back();
+					this->_serverNames.back().erase(this->_serverNames.back().size() - 1);
 				}
 			}
 		}
@@ -276,7 +282,6 @@ class VirtualServer
 			}
 		}
 
-
 	private:
 		int 															_fd;
 		struct sockaddr_in 												_address;
@@ -288,7 +293,7 @@ class VirtualServer
 		std::vector<std::string>										_serverNames;
 		std::vector<std::string> 										_root;
 		std::vector<std::string>										_virtualserver;
-		std::vector<std::map<std::string, std::vector<std::string>>>	_locations;
+		std::vector<std::map<std::string, std::vector<std::string> > >	_locations;
 };
 
 #endif
