@@ -15,18 +15,18 @@ class HeaderRequest {
 		/***************************************************
 		*****************    Operations    *****************
 		***************************************************/
-		void											add_content(std::string key, std::string content){
+		void											addContent(std::string key, std::string content){
 			this->_content.insert(std::pair<std::string, std::string>(key, content));
 			this->_size += 1;
 		}
-		void											update_content(std::string key, std::string content){
+		void											updateContent(std::string key, std::string content){
 			if (this->_content.find(key) == this->_content.end()) {
-				this->add_content(key, content);
+				this->addContent(key, content);
 				return ;
 			}
 			this->_content[key] = content;
 		}
-		void											send_header(Request *req){
+		void											sendHeader(Request *req){
 			std::string										rep;
 			rep = "HTTP/1.1 " + this->_content["HTTP/1.1"] + "\r\n";
 			for (std::map<std::string, std::string>::iterator i = this->_content.begin(); i != this->_content.end(); i++) {
@@ -38,20 +38,19 @@ class HeaderRequest {
 			rep.pop_back();
 			rep.pop_back();
 			rep += "\n\n";
-			req->send_packet(rep.c_str());
+			req->sendPacket(rep.c_str());
 		}
-
 
 		/***************************************************
 		*********************    GET   *********************
 		***************************************************/
-		size_t											get_size(void) const{
+		size_t											getSize(void) const{
 			return (this->_content.size());
 		}
-		std::map<std::string, std::string>				get_content(void) const{
+		std::map<std::string, std::string>				getContent(void) const{
 			return (this->_content);
 		}
-		std::string										get_content(std::string key){
+		std::string										getContent(std::string key){
 			return (this->_content[key]);
 		}
 

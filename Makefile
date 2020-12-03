@@ -6,14 +6,14 @@
 #    By: cbertola <cbertola@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/09/21 15:12:58 by cbertola          #+#    #+#              #
-#    Updated: 2020/11/24 17:45:51 by cbertola         ###   ########.fr        #
+#    Updated: 2020/12/02 17:40:44 by cbertola         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME		= webserv
 SRCS_PATH	= ./
 OBJS_PATH	= ./srcs/
-SRCSC		= webserv.cpp
+SRCSC		= webserv.cpp utils.cpp
 
 SRCSH		=
 SRCS		= $(addprefix $(SRCS_PATH),$(SRCSC))

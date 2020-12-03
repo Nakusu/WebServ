@@ -16,7 +16,7 @@ int			checkArgs(int argc, char **argv, std::string *defaultConf, ServerWeb *serv
 		std::cerr << "Reading Error" << std::endl;
 		return (0);
 	}
-	serv->OpenDefault(&ifs);
+	serv->fileToVectorAndClean(&ifs);
 	return (1);
 }
 
@@ -30,26 +30,28 @@ int			main(int argc, char **argv)
 	puts("Waiting for connections ...");
 
 	defaultConf = checkArgs(argc, argv, &defaultConf, serv);
-	serv->parsingVrServ();
-	serv->CreateVServs();
+	serv->splitConfsVServ();
+	serv->createVServs();
 	
 	while(TRUE)
 	{
-		serv->clear_fd();
-		serv->set_fd();
+		serv->clearFd();
+		serv->setAllFDSET_fdmax();
 		//Le server attends un nouvelle activité (une requete)
-	  	nb_activity = serv->wait_select();
-		//Si une requete est envoyé au serv->get_fd()
+	  	nb_activity = serv->waitForSelect();
+		//Si une requete est envoyé au serv->getFd()
 		for (size_t i = 0; i < serv->getVSsize() && nb_activity; i++)
 		{
-			if (serv->wait_request(serv->getVS(i)->get_fd())){
-				int addrlen = sizeof(serv->getVS(i)->get_address());
-				Request *req = new Request(accept(serv->getVS(i)->get_fd(), (struct sockaddr *)serv->getVS(i)->get_address(), (socklen_t *)&addrlen));
+			if (serv->verifFdFDISSET(serv->getVS(i)->getFd())){
+				int addrlen = sizeof(serv->getVS(i)->getAddress());
+				struct sockaddr_in * IPClient = serv->getVS(i)->getAddress();
+				Request *req = new Request(accept(serv->getVS(i)->getFd(), (struct sockaddr *)IPClient, (socklen_t *)&addrlen));
+				req->setIPClient(inet_ntoa(*(in_addr *)IPClient));
 				HeaderRequest *header = new HeaderRequest();
-				Execution exec = Execution(serv->getVS(i), req, header);
-				if (exec.redirectToFolder()){
-					if (!exec.index() && !exec.text(req->get_uri()) && !exec.binary_file(req->get_uri()))
-						exec.redir_404(req->get_uri());
+				Execution exec = Execution(serv, serv->getVS(i), req, header);
+				if (!exec.needRedirection()){
+					if (exec.initCGI(req) && !exec.searchIndex() && !exec.openText() && !exec.binaryFile())
+						exec.searchError404();
 				}
 				delete req;
 				delete header;
