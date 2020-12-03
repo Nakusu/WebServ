@@ -39,7 +39,7 @@ class Request {
 		}
 		std::string				getContentLength(void) const{
             std::string notFounded = "0";
-            if (this->_parsing.getMap()["Content-Length"].empty());
+            if (this->_parsing.getMap()["Content-Length"].empty())
                 return (notFounded);
             return (this->_parsing.getMap()["Content-Length"]);
         }
@@ -80,6 +80,7 @@ class Request {
 			this->_hostPort = &this->_parsing.getMap()["Host"][this->_parsing.getMap()["Host"].find_first_of(":") + 1];
 			this->_userAgent = this->_parsing.getMap()["User-Agent"];
 		}
+
 		void                parsingAuthorizations(void){
             std::istringstream iss(this->_parsing.getMap()["Authorization"]);
            	std::vector<std::string> results(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>());
@@ -90,6 +91,14 @@ class Request {
         }
 		void					setIPClient(char * pIPClient){
 			this->_IPClient = (std::string)pIPClient;
+		}
+
+		void					setPathInfo(void) {
+			std::string extension =  (this->_uri.find(".") != SIZE_MAX) ? &this->_uri[this->_uri.find(".")] : "";
+			if (extension.empty())
+				this->_pathInfo = "";
+			else
+				this->_pathInfo = (extension.find("/") != SIZE_MAX) ? &extension[extension.find("/") + 1] : "";
 		}
 		/***************************************************
 		*******************    SEND   **********************
@@ -140,6 +149,9 @@ class Request {
 		std::string			get_IpClient(void) const {
 				return (this->_IPClient);
 			}
+		std::string			getPathInfo(void) const{
+			return (this->_pathInfo);
+		}
 	private:
 		int													_socket;
 		char												_buffer[1025];
@@ -154,6 +166,7 @@ class Request {
 		std::string                                         _authType;
         std::string                                         _authCredentials;
 		std::string											_queryString;
+		std::string 										_pathInfo;
 };
 
 #endif
