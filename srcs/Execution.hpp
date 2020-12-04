@@ -168,6 +168,8 @@ class Execution
 		***************************************************/
  		std::map<std::string, std::string>			setMetaCGI(std::string script_name) {
 			std::map<std::string, std::string> args;
+			args = this->req->get_Parsing().getMap();
+		
 			args["AUTH_TYPE"] = req->get_authType();
 			args["SERVER_SOFTWARE"] = "POLDERSERV/HTTP1.1";
 			args["SERVER_PROTOCOL"] = "HTTPT/1.1";
@@ -208,7 +210,7 @@ class Execution
 				if (fileIsOpenable(locations[indexs[0]]["cgi_path"][0])) {
 					std::map<std::string, std::string> args = setMetaCGI(locations[indexs[0]]["cgi_path"][0]);
 					char **tmpargs = swapMaptoChar(args);
-					 execve(locations[indexs[0]]["cgi_path"][0].c_str(), tmpargs, this->_envs);  
+					execve(locations[indexs[0]]["cgi_path"][0].c_str(), tmpargs, this->_envs);  
 				}
 			}
 			return (1);
