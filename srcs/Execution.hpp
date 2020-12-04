@@ -14,11 +14,12 @@ class Execution
 			this->req = NULL;
 			this->header = NULL;
 		}
-		Execution(ServerWeb *serv, VirtualServer *vserv, Request *req, HeaderRequest *header){
+		Execution(ServerWeb *serv, VirtualServer *vserv, Request *req, HeaderRequest *header, char **envs){
 			this->serv = serv;
 			this->vserv = vserv;
 			this->req = req;
 			this->header = header;
+			this->_envs = envs;
 		}
 		Execution(Execution const & rhs){
 			operator=(rhs);
@@ -190,14 +191,24 @@ class Execution
 			args["PATH_INFO"] = req->get_PathInfo();
 			args["PATH_TRANSLATED"] = (this->getRoot() + this->req->get_uri());
 			return (args);
-			}
+		}
+		char										**swapMaptoChar(std::map<std::string, std::string> args){
+			char	**tmpargs = (char**)malloc(sizeof(char*) * args.size() + 1);
+			size_t	i = 0;
+			tmpargs[args.size()] = 0;
+
+			for (std::map<std::string, std::string>::iterator it = args.begin(); it != args.end(); it++)
+				tmpargs[i++] = strdup((it->first + "=" + it->second).c_str());
+			return (tmpargs);
+		}
 		int											initCGI(Request *req) {
 			std::vector<size_t> indexs = this->vserv->findLocation(this->req->get_uri());
 			std::vector<std::map<std::string, std::vector<std::string> > > locations = this->vserv->get_locations();
 			if (!indexs.empty() && !locations[indexs[0]]["cgiextension"].empty() && !locations[indexs[0]]["cgi_path"].empty() && req->getExtension() == &locations[indexs[0]]["cgiextension"][0][1]) {
 				if (fileIsOpenable(locations[indexs[0]]["cgi_path"][0])) {
 					std::map<std::string, std::string> args = setMetaCGI(locations[indexs[0]]["cgi_path"][0]);
-					// excve of args with env and binary file 
+					char **tmpargs = swapMaptoChar(args);
+					 execve(locations[indexs[0]]["cgi_path"][0].c_str(), tmpargs, this->_envs);  
 				}
 			}
 			return (1);
@@ -229,5 +240,6 @@ class Execution
 		VirtualServer *		vserv;
 		Request * 			req;
 		HeaderRequest *		header;
+		char		  **	_envs;
 };
 #endif

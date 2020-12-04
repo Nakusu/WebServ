@@ -1,14 +1,24 @@
 #include "Header.hpp"
 
-std::vector<std::string>				split(std::string chaine, char delimiteur)
+std::vector<std::string>    split(std::string str, std::string separator)
 {
-	std::vector<std::string> elements;
-	std::stringstream ss(chaine);
-	std::string sousChaine;
-	while (getline(ss, sousChaine, delimiteur)){
-		elements.push_back(sousChaine);
-	}
-	return (elements);
+    std::vector<std::string> tab;
+    std::string temp;
+
+    for (unsigned int i = 0; i < str.size(); i++)
+    {
+        if (separator.find(str[i]) == SIZE_MAX)
+            temp.push_back(str[i]);
+        else
+        {
+            if (!temp.empty())
+            {
+                tab.push_back(temp);
+                temp.clear();
+            }
+        }
+    }
+    return (tab);
 }
 
 int					searchInVec(std::string find, std::vector<std::string> entry){
@@ -53,9 +63,8 @@ std::string							convertInSpaces(std::string line)
 std::string							cleanSpaces(std::string	&line)
 {
 	std::string lineCleaned = convertInSpaces(line);
+	std::vector<std::string> res = split(lineCleaned, " ");
 
-	std::istringstream iss(lineCleaned);
-	std::vector<std::string> res(std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>());
 	lineCleaned.clear();
 	for (unsigned int i = 0; i < res.size(); i++){
 		lineCleaned.append(res[i]);
