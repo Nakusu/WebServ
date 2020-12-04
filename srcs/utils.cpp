@@ -18,6 +18,8 @@ std::vector<std::string>    split(std::string str, std::string separator)
             }
         }
     }
+	if (!temp.empty())
+		tab.push_back(temp);
     return (tab);
 }
 
@@ -70,7 +72,6 @@ std::string							cleanSpaces(std::string	&line)
 		lineCleaned.append(res[i]);
 		if (i < res.size() - 1)
 			lineCleaned.append(" ");
-		std::cout << "VERIF LINECLEANED AFTER [" << lineCleaned << "]" << std::endl;
 	}
 	return (lineCleaned);
 }
