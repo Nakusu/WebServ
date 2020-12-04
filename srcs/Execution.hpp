@@ -207,6 +207,8 @@ class Execution
 			int  pfd[2];
 			int  pid;
 
+			pfd[0] = 0;
+			pfd[1] = this->vserv->getFd();
    			if (pipe(pfd) == -1)
        			return ; // error gestion
    			if ((pid = fork()) < 0)
