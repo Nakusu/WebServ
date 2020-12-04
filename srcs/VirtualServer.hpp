@@ -193,10 +193,13 @@ class VirtualServer
 			}
 		}
 		void															parsingListen(void){
-			for (unsigned int i = 0; i < this->_virtualserver.size(); i++)
+			std::cout << "CHECK SIZE " << this->_virtualserver.size() << std::endl;
+			for (unsigned int i = 0; i < this->_virtualserver.size(); i++) {
+				std::cout << "CHECK " << std::endl;
 				if (this->_virtualserver[i].find("listen ") != SIZE_MAX){
 					this->_listen.push_back(this->_virtualserver[i].substr(7, this->_virtualserver[i].size() - 8));
 				}
+			}
 		}
 		void															parsingLocations(void){
 		std::map<std::string, std::vector<std::string> > value;

@@ -101,6 +101,7 @@ class ServerWeb
 			 std::string  line;
 			while (std::getline(*ifs, line)){
 				line = cleanSpaces(line);
+				std::cout << "CHECK LINE [" << line << "]" << std::endl;
 				if (!line.empty())
 					this->_file.push_back(line);
 			}

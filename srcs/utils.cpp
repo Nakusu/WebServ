@@ -70,6 +70,7 @@ std::string							cleanSpaces(std::string	&line)
 		lineCleaned.append(res[i]);
 		if (i < res.size() - 1)
 			lineCleaned.append(" ");
+		std::cout << "VERIF LINECLEANED AFTER [" << lineCleaned << "]" << std::endl;
 	}
 	return (lineCleaned);
 }
