@@ -122,9 +122,9 @@ class Execution
 			"3dml", "spot", "jad", "wml", "wmls", "s", "asm", "c", "cc", "cxx",
 			"cpp", "h", "hh", "hpp", "dic", "f", "for", "f77", "f90", "java",
 			"opml", "p", "pas", "nfo", "etx", "sfv", "uu", "vcs", "vcf"};
-			if (std::find(textExtensions->begin(), textExtensions->end(), (std::string)this->req->getExtension()) != textExtensions->end() && this->openFile(this->req->get_uri(), this->req)) {
-				return (1);
-			}
+			for (size_t i = 0; i < 68; i++)
+				if (textExtensions[i] == (std::string)this->req->getExtension() && this->openFile(this->req->get_uri(), this->req))
+					return (1);
 			return (0);
 		}
 		int											openBinary(std::string file){
