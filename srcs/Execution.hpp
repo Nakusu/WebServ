@@ -203,6 +203,19 @@ class Execution
 				tmpargs[i++] = strdup((it->first + "=" + it->second).c_str());
 			return (tmpargs);
 		}
+		void										processCGI(std::string cgi_path, char **args) {
+			int  pfd[2];
+			int  pid;
+
+   			if (pipe(pfd) == -1)
+       			return ; // error gestion
+   			if ((pid = fork()) < 0)
+				return ; // error gestion
+			if (pid == 0) {
+				if (execve(cgi_path.c_str(), args, this->_envs) == -1)
+					return ;
+			}
+		}
 		int											initCGI(Request *req) {
 			std::vector<size_t> indexs = this->vserv->findLocation(this->req->get_uri());
 			std::vector<std::map<std::string, std::vector<std::string> > > locations = this->vserv->get_locations();
@@ -210,7 +223,7 @@ class Execution
 				if (fileIsOpenable(locations[indexs[0]]["cgi_path"][0])) {
 					std::map<std::string, std::string> args = setMetaCGI(locations[indexs[0]]["cgi_path"][0]);
 					char **tmpargs = swapMaptoChar(args);
-					execve(locations[indexs[0]]["cgi_path"][0].c_str(), tmpargs, this->_envs);  
+					processCGI(locations[indexs[0]]["cgi_path"][0], tmpargs);
 				}
 			}
 			return (1);
