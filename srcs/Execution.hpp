@@ -24,7 +24,6 @@ class Execution
 			operator=(rhs);
 		}
 		virtual ~Execution(void){
-
 		}
 		Execution &									operator=(Execution const & rhs){
 			if (this != &rhs){
@@ -32,7 +31,6 @@ class Execution
 				this->req = rhs.req;
 			}
 			return (*this);
-
 		}
 
 		/***************************************************
@@ -117,14 +115,14 @@ class Execution
 		*****************    OpenFiles    ******************
 		***************************************************/
 		int											openText(void){
-			 std::vector<std::string> typetxt{"appcache", "ics", "ifb", "css", "csv", "html", "htm", "n3", "txt", "text",
+			std::string textExtensions[68] = {"appcache", "ics", "ifb", "css", "csv", "html", "htm", "n3", "txt", "text",
 			"conf", "def", "list", "log", "in", "dsc", "rtx", "sgml", "sgm", "tsv",
 			"t", "tr", "roff", "man", "me", "ms", "ttl", "uri", "uris", "urls",
 			"vcard", "curl", "dcurl", "scurl", "mcurl", "sub", "fly", "flx", "gv",
 			"3dml", "spot", "jad", "wml", "wmls", "s", "asm", "c", "cc", "cxx",
 			"cpp", "h", "hh", "hpp", "dic", "f", "for", "f77", "f90", "java",
 			"opml", "p", "pas", "nfo", "etx", "sfv", "uu", "vcs", "vcf"};
-			if (std::find(std::begin(typetxt), std::end(typetxt), (std::string)this->req->getExtension()) != end(typetxt) && this->openFile(this->req->get_uri(), this->req)) {
+			if (std::find(textExtensions->begin(), textExtensions->end(), (std::string)this->req->getExtension()) != textExtensions->end() && this->openFile(this->req->get_uri(), this->req)) {
 				return (1);
 			}
 			return (0);
@@ -195,7 +193,7 @@ class Execution
 			}
 		int											initCGI(Request *req) {
 			std::vector<size_t> indexs = this->vserv->findLocation(this->req->get_uri());
-			std::vector<std::map<std::string, std::vector<std::string>>> locations = this->vserv->get_locations();
+			std::vector<std::map<std::string, std::vector<std::string> > > locations = this->vserv->get_locations();
 			if (!indexs.empty() && !locations[indexs[0]]["cgiextension"].empty() && !locations[indexs[0]]["cgi_path"].empty() && req->getExtension() == &locations[indexs[0]]["cgiextension"][0][1]) {
 				if (fileIsOpenable(locations[indexs[0]]["cgi_path"][0])) {
 					std::map<std::string, std::string> args = setMetaCGI(locations[indexs[0]]["cgi_path"][0]);
@@ -225,7 +223,6 @@ class Execution
 			}
 			return (0);
 		}
-
 
 	private:
 		ServerWeb *			serv;

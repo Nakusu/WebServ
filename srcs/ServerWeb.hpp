@@ -122,7 +122,7 @@ class ServerWeb
 		int																_fdmax;
 		std::map<std::string, std::string>								_conf;
 		std::vector<std::string> 										_file;
-		std::vector<std::vector<std::string>>							_VServ_confs;
+		std::vector<std::vector<std::string> >							_VServ_confs;
 		fd_set		 													_readfds;
 };
 

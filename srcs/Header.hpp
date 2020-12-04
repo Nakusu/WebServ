@@ -5,11 +5,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <string>
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <sys/types.h>
-#include <sstream>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/time.h>
@@ -23,7 +21,6 @@
 #include <vector>
 #include <list>
 #include <iterator>
-#include <tuple>
 #include <utility>
 #include <algorithm>
 
