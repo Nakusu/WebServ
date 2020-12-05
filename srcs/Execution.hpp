@@ -168,7 +168,7 @@ class Execution
 		***************************************************/
  		std::map<std::string, std::string>			setMetaCGI(std::string script_name) {
 			std::map<std::string, std::string> args;
-			args = this->req->get_Parsing().getMap();
+			//args = this->req->get_Parsing().getMap();
 		
 			args["AUTH_TYPE"] = req->get_authType();
 			args["SERVER_SOFTWARE"] = "POLDERSERV/HTTP1.1";
@@ -216,11 +216,10 @@ class Execution
 			std::cout << "GET FD IS OK" << std::endl;
 			dup2(pfd[0], 1);
 			dup2(pfd[1], 0);
-			std::cout << "JUST BEFORE THE FORK ;)" << std::endl;
    			if ((pid = fork()) < 0)
 				return ; // error gestion
 			if (pid == 0) {
-				std::cout << "PREPARE JOB WAS DO " << std::endl;
+				std::cout << "PREPARE JOB WAS DO PATH " << cgi_path << std::endl;
 				if (execve(cgi_path.c_str(), args, this->_envs) == -1)
 					return ;
 				std::cout << "JOB WAS DO " << std::endl;
