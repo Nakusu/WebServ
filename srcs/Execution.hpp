@@ -206,7 +206,7 @@ class Execution
 			args["REMOTE_USER"] = req->get_authCredential();
 			args["REMOTE_IDENT"] = req->get_authCredential();
 			args["PATH_INFO"] = req->get_PathInfo();
-			args["PATH_TRANSLATED"] = (this->getRoot() + this->req->get_uri());
+			args["PATH_TRANSLATED"] = "/home/user42/Bureau/webserv/public/php/test.php";
 
 			for (std::map<std::string, std::string>::iterator it = args.begin(); it != args.end(); it++)
 				std::cout << "KEY [" << it->first << "] VALUE [" << it->second << std::endl;

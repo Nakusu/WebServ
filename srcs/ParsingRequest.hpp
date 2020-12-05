@@ -64,13 +64,8 @@ class ParsingRequest{
 			std::string value = pars[0];
 			this->_map[key] = value;
 
-			for (size_t i = 1; i < pars.size(); i++){
-				if (pars[i].find(":") != SIZE_MAX){
-					int start = 0;
-					int endkey = pars[i].find_first_of(":",0);
-					this->_map[pars[i].substr(start, endkey - start)] = pars[i].substr(endkey + 1, pars[i].size());
-				}
-			}
+			for (size_t i = 1; i < pars.size(); i++)
+                this->_map[pars[i].substr(0, pars[i].find_first_of(" ") - 1)] = &pars[i][pars[i].find_first_of(" ") + 1];
 		}
 
 	private:
