@@ -207,17 +207,23 @@ class Execution
 			int  pfd[2];
 			int  pid;
 
+			std::cout << "START OF PIPE" << std::endl;
    			if (pipe(pfd) == -1)
        			return ; // error gestion
+			std::cout << "PIPE CREATION IS OK" << std::endl;
 			pfd[0] = 1;
 			pfd[1] = this->vserv->getFd();
-			dup2(pfd[0], 0);
-			dup2(pfd[1], 1);
+			std::cout << "GET FD IS OK" << std::endl;
+			dup2(pfd[0], 1);
+			dup2(pfd[1], 0);
+			std::cout << "JUST BEFORE THE FORK ;)" << std::endl;
    			if ((pid = fork()) < 0)
 				return ; // error gestion
 			if (pid == 0) {
+				std::cout << "PREPARE JOB WAS DO " << std::endl;
 				if (execve(cgi_path.c_str(), args, this->_envs) == -1)
 					return ;
+				std::cout << "JOB WAS DO " << std::endl;
 			} else {
 				close(pfd[0]);
 				close(pfd[1]);
@@ -230,7 +236,9 @@ class Execution
 				std::cout << "READY FOR DO WORK !" << std::endl;
 				if (fileIsOpenable(locations[indexs[0]]["cgi_path"][0])) {
 					std::map<std::string, std::string> args = setMetaCGI(locations[indexs[0]]["cgi_path"][0]);
+					std::cout << "METAS WAS ALL SET" << std::endl;
 					char **tmpargs = swapMaptoChar(args);
+					std::cout << "CONVERTION TO CHAR** OK" << std::endl;
 					processCGI(locations[indexs[0]]["cgi_path"][0], tmpargs);
 				}
 			}

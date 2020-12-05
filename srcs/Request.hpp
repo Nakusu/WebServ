@@ -145,7 +145,7 @@ class Request {
 			}
 		std::string			set_method() {
 				std::string rep = "";
-				for (int i = 0; this->_buffer[i] != ' '; i++)
+				for (int i = 0; (this->_buffer[i] && this->_buffer[i] != ' ') ; i++)
 					rep += this->_buffer[i];
 				return (rep);
 			}
