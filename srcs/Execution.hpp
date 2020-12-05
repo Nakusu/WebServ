@@ -226,13 +226,10 @@ class Execution
 		int											initCGI(Request *req) {
 			std::vector<size_t> indexs = this->vserv->findLocation(this->req->get_uri());
 			std::vector<std::map<std::string, std::vector<std::string> > > locations = this->vserv->get_locations();
-			std::cout << "YES" << std::endl;
 			if (!indexs.empty() && !locations[indexs[0]]["cgiextension"].empty() && !locations[indexs[0]]["cgi_path"].empty() && req->getExtension() == &locations[indexs[0]]["cgiextension"][0][1]) {
-				std::cout << "CGIEXT " << locations[indexs[0]]["cgiextension"][0] << " CGI PATH " << locations[indexs[0]]["cgi_path"][0] << std::endl;
 				if (fileIsOpenable(locations[indexs[0]]["cgi_path"][0])) {
 					std::map<std::string, std::string> args = setMetaCGI(locations[indexs[0]]["cgi_path"][0]);
 					char **tmpargs = swapMaptoChar(args);
-					std::cout << "READY TO WORK !" << std::endl;
 					processCGI(locations[indexs[0]]["cgi_path"][0], tmpargs);
 				}
 			}
