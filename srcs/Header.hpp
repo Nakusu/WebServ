@@ -46,7 +46,7 @@
 #define FALSE  0  
 #define PORT 8080  
 
-std::vector<std::string>				split(std::string chaine, char delimiteur);
+std::vector<std::string>				split(std::string str, std::string separator);
 int										searchInVec(std::string find, std::vector<std::string> entry);
 std::string								fileToString(std::string file);
 std::string								convertInSpaces(std::string line);
