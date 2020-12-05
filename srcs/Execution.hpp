@@ -168,7 +168,15 @@ class Execution
 		***************************************************/
  		std::map<std::string, std::string>			setMetaCGI(std::string script_name) {
 			std::map<std::string, std::string> args;
-			//args = this->req->get_Parsing().getMap();
+			if (this->req->get_Parsing().getMap().size() > 0) {
+			std::map<std::string, std::string> tmpmap = this->req->get_Parsing().getMap();
+			std::map<std::string, std::string>::iterator it = tmpmap.begin();
+
+			for (; it != tmpmap.end(); it++) {
+				std::cout << "VALUE [" << it->first << "] SECOND VALUE [" << it->second << "]" << std::endl;
+				args.insert(std::make_pair(("HTTP_" + it->first), it->second));
+			}
+			}
 		
 			args["AUTH_TYPE"] = req->get_authType();
 			args["SERVER_SOFTWARE"] = "POLDERSERV/HTTP1.1";
@@ -207,22 +215,19 @@ class Execution
 			int  pfd[2];
 			int  pid;
 
-			std::cout << "START OF PIPE" << std::endl;
    			if (pipe(pfd) == -1)
        			return ; // error gestion
-			std::cout << "PIPE CREATION IS OK" << std::endl;
 			pfd[0] = 1;
 			pfd[1] = this->vserv->getFd();
-			std::cout << "GET FD IS OK" << std::endl;
-			dup2(pfd[0], 1);
+			dup2(pfd[0], 2);
 			dup2(pfd[1], 0);
    			if ((pid = fork()) < 0)
 				return ; // error gestion
 			if (pid == 0) {
-				std::cout << "PREPARE JOB WAS DO PATH " << cgi_path << std::endl;
+				std::cout << "JUST BEFORE THE WORK" << std::endl;
 				if (execve(cgi_path.c_str(), args, this->_envs) == -1)
 					return ;
-				std::cout << "JOB WAS DO " << std::endl;
+				std::cout << "WORK IS OK !" << std::endl;
 			} else {
 				close(pfd[0]);
 				close(pfd[1]);
