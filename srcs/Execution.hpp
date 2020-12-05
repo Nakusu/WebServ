@@ -167,16 +167,23 @@ class Execution
 		********************    CGI    *********************
 		***************************************************/
  		std::map<std::string, std::string>			setMetaCGI(std::string script_name) {
+			
 			std::map<std::string, std::string> args;
 			if (this->req->get_Parsing().getMap().size() > 0) {
 			std::map<std::string, std::string> tmpmap = this->req->get_Parsing().getMap();
 			std::map<std::string, std::string>::iterator it = tmpmap.begin();
 
 			for (; it != tmpmap.end(); it++) {
-				std::cout << "VALUE [" << it->first << "] SECOND VALUE [" << it->second << "]" << std::endl;
-				args.insert(std::make_pair(("HTTP_" + it->first), it->second));
+				if (it->first != "First")
+					args.insert(std::make_pair(("HTTP_" + it->first), it->second));
 			}
 			}
+			/*args = this->req->get_Parsing().getMap();
+			for (std::map<std::string, std::string>::iterator it = args.begin(); it != args.end(); it++)
+			{
+				std::cout <<  it->first << std::endl;
+			}*/
+
 		
 			args["AUTH_TYPE"] = req->get_authType();
 			args["SERVER_SOFTWARE"] = "POLDERSERV/HTTP1.1";
@@ -239,6 +246,7 @@ class Execution
 			if (!indexs.empty() && !locations[indexs[0]]["cgiextension"].empty() && !locations[indexs[0]]["cgi_path"].empty() && req->getExtension() == &locations[indexs[0]]["cgiextension"][0][1]) {
 				std::cout << "READY FOR DO WORK !" << std::endl;
 				if (fileIsOpenable(locations[indexs[0]]["cgi_path"][0])) {
+					std::cout << "BEFORE SET META CGI" << std::endl;
 					std::map<std::string, std::string> args = setMetaCGI(locations[indexs[0]]["cgi_path"][0]);
 					std::cout << "METAS WAS ALL SET" << std::endl;
 					char **tmpargs = swapMaptoChar(args);
