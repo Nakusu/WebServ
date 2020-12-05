@@ -168,7 +168,7 @@ class Execution
 		***************************************************/
  		std::map<std::string, std::string>			setMetaCGI(std::string script_name) {
 			std::map<std::string, std::string> args;
-			args = this->req->get_Parsing().getMap();
+			//args = this->req->get_Parsing().getMap();
 		
 			args["AUTH_TYPE"] = req->get_authType();
 			args["SERVER_SOFTWARE"] = "POLDERSERV/HTTP1.1";
@@ -195,7 +195,7 @@ class Execution
 			return (args);
 		}
 		char										**swapMaptoChar(std::map<std::string, std::string> args){
-			char	**tmpargs = (char**)malloc(sizeof(char*) * args.size() + 1);
+			char	**tmpargs = (char**)malloc(sizeof(char*) * (args.size() + 1));
 			size_t	i = 0;
 			tmpargs[args.size()] = 0;
 
@@ -207,29 +207,37 @@ class Execution
 			int  pfd[2];
 			int  pid;
 
+			std::cout << "START OF PIPE" << std::endl;
    			if (pipe(pfd) == -1)
        			return ; // error gestion
+			std::cout << "PIPE CREATION IS OK" << std::endl;
 			pfd[0] = 1;
 			pfd[1] = this->vserv->getFd();
-			dup2(pfd[0], 0);
-			dup2(pfd[1], 1);
+			std::cout << "GET FD IS OK" << std::endl;
+			dup2(pfd[0], 1);
+			dup2(pfd[1], 0);
    			if ((pid = fork()) < 0)
 				return ; // error gestion
 			if (pid == 0) {
+				std::cout << "PREPARE JOB WAS DO PATH " << cgi_path << std::endl;
 				if (execve(cgi_path.c_str(), args, this->_envs) == -1)
 					return ;
+				std::cout << "JOB WAS DO " << std::endl;
 			} else {
 				close(pfd[0]);
 				close(pfd[1]);
 			}
 		}
 		int											initCGI(Request *req) {
-			std::vector<size_t> indexs = this->vserv->findLocation(this->req->get_uri());
+			std::vector<size_t> indexs = this->vserv->findLocationsAndSublocations(this->req->get_uri());
 			std::vector<std::map<std::string, std::vector<std::string> > > locations = this->vserv->get_locations();
 			if (!indexs.empty() && !locations[indexs[0]]["cgiextension"].empty() && !locations[indexs[0]]["cgi_path"].empty() && req->getExtension() == &locations[indexs[0]]["cgiextension"][0][1]) {
+				std::cout << "READY FOR DO WORK !" << std::endl;
 				if (fileIsOpenable(locations[indexs[0]]["cgi_path"][0])) {
 					std::map<std::string, std::string> args = setMetaCGI(locations[indexs[0]]["cgi_path"][0]);
+					std::cout << "METAS WAS ALL SET" << std::endl;
 					char **tmpargs = swapMaptoChar(args);
+					std::cout << "CONVERTION TO CHAR** OK" << std::endl;
 					processCGI(locations[indexs[0]]["cgi_path"][0], tmpargs);
 				}
 			}
