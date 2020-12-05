@@ -22,7 +22,6 @@ int			checkArgs(int argc, char **argv, std::string *defaultConf, ServerWeb *serv
 
 int			main(int argc, char **argv, char **env)
 {   
-	std::cout << "bonjour" << std::endl;
 	ServerWeb *serv = new ServerWeb;
 	std::string message; 
 	std::string defaultConf;

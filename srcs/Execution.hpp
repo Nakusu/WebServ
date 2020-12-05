@@ -207,6 +207,9 @@ class Execution
 			args["REMOTE_IDENT"] = req->get_authCredential();
 			args["PATH_INFO"] = req->get_PathInfo();
 			args["PATH_TRANSLATED"] = (this->getRoot() + this->req->get_uri());
+
+			for (std::map<std::string, std::string>::iterator it = args.begin(); it != args.end(); it++)
+				std::cout << "KEY [" << it->first << "] VALUE [" << it->second << std::endl;
 			return (args);
 		}
 		char										**swapMaptoChar(std::map<std::string, std::string> args){
