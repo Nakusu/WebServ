@@ -14,11 +14,12 @@ class Execution
 			this->req = NULL;
 			this->header = NULL;
 		}
-		Execution(ServerWeb *serv, VirtualServer *vserv, Request *req, HeaderRequest *header){
+		Execution(ServerWeb *serv, VirtualServer *vserv, Request *req, HeaderRequest *header, char **envs){
 			this->serv = serv;
 			this->vserv = vserv;
 			this->req = req;
 			this->header = header;
+			this->_envs = envs;
 		}
 		Execution(Execution const & rhs){
 			operator=(rhs);
@@ -122,9 +123,9 @@ class Execution
 			"3dml", "spot", "jad", "wml", "wmls", "s", "asm", "c", "cc", "cxx",
 			"cpp", "h", "hh", "hpp", "dic", "f", "for", "f77", "f90", "java",
 			"opml", "p", "pas", "nfo", "etx", "sfv", "uu", "vcs", "vcf"};
-			if (std::find(textExtensions->begin(), textExtensions->end(), (std::string)this->req->getExtension()) != textExtensions->end() && this->openFile(this->req->get_uri(), this->req)) {
-				return (1);
-			}
+			for (size_t i = 0; i < 68; i++)
+				if (textExtensions[i] == (std::string)this->req->getExtension() && this->openFile(this->req->get_uri(), this->req))
+					return (1);
 			return (0);
 		}
 		int											openBinary(std::string file){
@@ -167,6 +168,8 @@ class Execution
 		***************************************************/
  		std::map<std::string, std::string>			setMetaCGI(std::string script_name) {
 			std::map<std::string, std::string> args;
+			//args = this->req->get_Parsing().getMap();
+		
 			args["AUTH_TYPE"] = req->get_authType();
 			args["SERVER_SOFTWARE"] = "POLDERSERV/HTTP1.1";
 			args["SERVER_PROTOCOL"] = "HTTPT/1.1";
@@ -190,14 +193,52 @@ class Execution
 			args["PATH_INFO"] = req->get_PathInfo();
 			args["PATH_TRANSLATED"] = (this->getRoot() + this->req->get_uri());
 			return (args);
+		}
+		char										**swapMaptoChar(std::map<std::string, std::string> args){
+			char	**tmpargs = (char**)malloc(sizeof(char*) * (args.size() + 1));
+			size_t	i = 0;
+			tmpargs[args.size()] = 0;
+
+			for (std::map<std::string, std::string>::iterator it = args.begin(); it != args.end(); it++)
+				tmpargs[i++] = strdup((it->first + "=" + it->second).c_str());
+			return (tmpargs);
+		}
+		void										processCGI(std::string cgi_path, char **args) {
+			int  pfd[2];
+			int  pid;
+
+			std::cout << "START OF PIPE" << std::endl;
+   			if (pipe(pfd) == -1)
+       			return ; // error gestion
+			std::cout << "PIPE CREATION IS OK" << std::endl;
+			pfd[0] = 1;
+			pfd[1] = this->vserv->getFd();
+			std::cout << "GET FD IS OK" << std::endl;
+			dup2(pfd[0], 1);
+			dup2(pfd[1], 0);
+   			if ((pid = fork()) < 0)
+				return ; // error gestion
+			if (pid == 0) {
+				std::cout << "PREPARE JOB WAS DO PATH " << cgi_path << std::endl;
+				if (execve(cgi_path.c_str(), args, this->_envs) == -1)
+					return ;
+				std::cout << "JOB WAS DO " << std::endl;
+			} else {
+				close(pfd[0]);
+				close(pfd[1]);
 			}
+		}
 		int											initCGI(Request *req) {
-			std::vector<size_t> indexs = this->vserv->findLocation(this->req->get_uri());
+			std::vector<size_t> indexs = this->vserv->findLocationsAndSublocations(this->req->get_uri());
 			std::vector<std::map<std::string, std::vector<std::string> > > locations = this->vserv->get_locations();
 			if (!indexs.empty() && !locations[indexs[0]]["cgiextension"].empty() && !locations[indexs[0]]["cgi_path"].empty() && req->getExtension() == &locations[indexs[0]]["cgiextension"][0][1]) {
+				std::cout << "READY FOR DO WORK !" << std::endl;
 				if (fileIsOpenable(locations[indexs[0]]["cgi_path"][0])) {
 					std::map<std::string, std::string> args = setMetaCGI(locations[indexs[0]]["cgi_path"][0]);
-					// excve of args with env and binary file 
+					std::cout << "METAS WAS ALL SET" << std::endl;
+					char **tmpargs = swapMaptoChar(args);
+					std::cout << "CONVERTION TO CHAR** OK" << std::endl;
+					processCGI(locations[indexs[0]]["cgi_path"][0], tmpargs);
 				}
 			}
 			return (1);
@@ -229,5 +270,6 @@ class Execution
 		VirtualServer *		vserv;
 		Request * 			req;
 		HeaderRequest *		header;
+		char		  **	_envs;
 };
 #endif

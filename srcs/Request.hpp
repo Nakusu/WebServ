@@ -35,32 +35,35 @@ class Request {
 		/***************************************************
 		********************    GET   **********************
 		***************************************************/
-		std::string				get_uri(void) const{
+		std::string								get_uri(void) const{
 			return (this->_uri);
 		}
-		std::string				getContentLength(void) const{
+		std::string								getContentLength(void) const{
 			std::string notFounded = "0";
 			if (this->_parsing.getMap()["Content-Length"].empty())
 				return (notFounded);
 			return (this->_parsing.getMap()["Content-Length"]);
 		}
-		char					*getBuffer(void){
+		char									*getBuffer(void){
 			return (this->_buffer);
 		}
-		std::string				getTypeContent(void) const{ 
+		std::string								getTypeContent(void) const{ 
 			return (this->_typeContent);
 		}
-		std::string				getExtension(void) const{
+		std::string								getExtension(void) const{
 			return (this->_parsing.getExtension());
 		}
-		int						getSocket(void) const{
+		int										getSocket(void) const{
 			return (this->_socket);
 		}
-		std::string				getContentMimes(void) const{
+		std::string								getContentMimes(void) const{
 			return (this->_parsing.getMap().find("Content-Type") != this->_parsing.getMap().end() ? this->_parsing.getMap()["Content-Type"] : "");
 		}
-		std::string				getQueryString(void) const{
+		std::string								getQueryString(void) const{
 			return (this->_queryString);
+		}
+		ParsingRequest							get_Parsing(void) const {
+			return (this->_parsing);
 		}
 
 		/***************************************************
@@ -86,7 +89,7 @@ class Request {
 			std::string iss = this->_parsing.getMap()["Authorization"];
 			iss = convertInSpaces(iss);
 			iss = cleanSpaces(iss);
-			std::vector<std::string> results = split(iss, ' ');
+			std::vector<std::string> results = split(iss, " ");
 			if (!results.empty()) {
 				this->_authType = results[0];
 				this->_authCredentials = results[1];
@@ -142,7 +145,7 @@ class Request {
 			}
 		std::string			set_method() {
 				std::string rep = "";
-				for (int i = 0; this->_buffer[i] != ' '; i++)
+				for (int i = 0; (this->_buffer[i] && this->_buffer[i] != ' ') ; i++)
 					rep += this->_buffer[i];
 				return (rep);
 			}

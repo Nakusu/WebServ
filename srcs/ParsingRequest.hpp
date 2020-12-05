@@ -58,15 +58,16 @@ class ParsingRequest{
 			file.close();
 		}
 		void												parsingMap(char *_buffer){
-			std::string 			pars = _buffer;
-			std::istringstream		buff(pars);
+			std::string 		pars = _buffer;
+			std::ifstream		opfile;
 
-			getline(buff, pars);
+			opfile.open(pars.data());
+			getline(opfile, pars);
 			std::string key = "First";
 			std::string value = pars;
 			this->_map[key] = value;
 
-			while (getline(buff, pars)){
+			while (getline(opfile, pars)){
 				if (pars.find(":") != SIZE_MAX){
 					int start = 0;
 					int endkey = pars.find_first_of(":",0);
@@ -75,6 +76,7 @@ class ParsingRequest{
 					this->_map[key] = value;
 				}
 			}
+			opfile.close();
 		}
 
 	private:

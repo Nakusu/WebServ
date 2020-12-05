@@ -102,7 +102,7 @@ class VirtualServer
 			if (!tab.empty()){ // If there is a location
 				for (size_t i = 0; i < tab.size(); i++){
 					if (!this->_locations[tab[i]][option].empty()) //If we find the option, we split in vector
-						result = split(this->_locations[tab[i]][option][0], ' ');
+						result = split(this->_locations[tab[i]][option][0], " ");
 				}
 			}
 			if (result.empty())
@@ -167,7 +167,7 @@ class VirtualServer
 		void															parsingAutoIndex(void){
 			for (unsigned int i = 0; i < this->_virtualserver.size(); i++)
 			{
-				if (this->_virtualserver[i].find("autoindex ") != SIZE_MAX)
+				if (this->_virtualserver[i].find("autoindex") != SIZE_MAX)
 				{
 					if (this->_virtualserver[i].find("off") != SIZE_MAX)
 						this->_autoIndex = false;
@@ -180,12 +180,12 @@ class VirtualServer
 		void															parsingIndex(void){
 			for (unsigned int i = 0; i < this->_virtualserver.size(); i++)
 			{
-				if (this->_virtualserver[i].find("index ") == 0)
+				if (this->_virtualserver[i].find("index") == 0)
 				{
 					std::string iss = this->_virtualserver[i];
 					iss = convertInSpaces(iss);
 					iss = cleanSpaces(iss);
-					std::vector<std::string> results = split(iss, ' ');
+					std::vector<std::string> results = split(iss, " ");
 					results.erase(results.begin());
 					this->_index = results;
 					this->_index.back().erase(this->_index.back().size() - 1);
@@ -193,10 +193,11 @@ class VirtualServer
 			}
 		}
 		void															parsingListen(void){
-			for (unsigned int i = 0; i < this->_virtualserver.size(); i++)
-				if (this->_virtualserver[i].find("listen ") != SIZE_MAX){
+			for (unsigned int i = 0; i < this->_virtualserver.size(); i++) {
+				if (this->_virtualserver[i].find("listen") != SIZE_MAX){
 					this->_listen.push_back(this->_virtualserver[i].substr(7, this->_virtualserver[i].size() - 8));
 				}
+			}
 		}
 		void															parsingLocations(void){
 		std::map<std::string, std::vector<std::string> > value;
@@ -207,19 +208,19 @@ class VirtualServer
 				std::string qss = this->_virtualserver[i];
 				qss = convertInSpaces(qss);
 				qss = cleanSpaces(qss);
-				std::vector<std::string> res = split(qss, ' ');
+				std::vector<std::string> res = split(qss, " ");
 				value["key"].push_back(res[1]);
 				unsigned int j = (this->_virtualserver[i].find("{") != SIZE_MAX) ? i + 1 : i + 2;
 				while (value["key"][0].find_last_not_of(" \t") != value["key"][0].size() -1 && value["key"][0].find_first_not_of(" \t") != SIZE_MAX)
 						value["key"][0].erase(value["key"][0].size() - 1);
 				while (this->_virtualserver[j].find("}") == SIZE_MAX && j < this->_virtualserver.size())
 				{
-					std::string iss = this->_virtualserver[i];
+					std::string iss = this->_virtualserver[j];
 					iss = convertInSpaces(iss);
 					iss = cleanSpaces(iss);
-					std::vector<std::string> results = split(iss, ' ');
+					std::vector<std::string> results = split(iss, " ");
 					value[results[0]].push_back(&this->_virtualserver[j][results[0].size() + 1]);
-					value[results[0]][value[results[0]].size() - 1].erase(value[results[0]][value[results[0]].size() - 1].size() - 1);;
+					value[results[0]][value[results[0]].size() - 1].erase(value[results[0]][value[results[0]].size() - 1].size() - 1);
 					j++;
 				}
 				this->_locations.push_back(value);
@@ -242,7 +243,7 @@ class VirtualServer
 		void															parsingRoot(void){
 			for (unsigned int i = 0; i < this->_virtualserver.size(); i++)
 			{
-				if (this->_virtualserver[i].find("root ") != SIZE_MAX){
+				if (this->_virtualserver[i].find("root") != SIZE_MAX){
 					this->_root.push_back(this->_virtualserver[i].substr(5, this->_virtualserver[i].size() - 6));
 					return ;
 				}
@@ -251,11 +252,11 @@ class VirtualServer
 		void															parsingServerNames(void){
 			for (unsigned int i = 0; i < this->_virtualserver.size(); i++)
 			{
-				if (this->_virtualserver[i].find("server_name ") != SIZE_MAX){
+				if (this->_virtualserver[i].find("server_name") != SIZE_MAX){
 					std::string iss = this->_virtualserver[i];
 					iss = convertInSpaces(iss);
 					iss = cleanSpaces(iss);
-					std::vector<std::string> results = split(iss, ' ');
+					std::vector<std::string> results = split(iss, " ");
 					results.erase(results.begin());
 					this->_serverNames = results;
 					this->_serverNames.back().erase(this->_serverNames.back().size() - 1);
@@ -264,12 +265,11 @@ class VirtualServer
 		}
 		void															parsingServerToVector(void){
 			for (unsigned int i = 0; i < this->_file.size(); i++){
-				if (this->_file[i].find("server ") != SIZE_MAX || this->_file[i].find("server{") != SIZE_MAX){	
+				if (this->_file[i].find("server") != SIZE_MAX || this->_file[i].find("server{") != SIZE_MAX){
 					unsigned int j = i + 1;
 					unsigned int brackets = 1;
 					this->_virtualserver.push_back(this->_file[i]);
-					while (brackets != 0 && j < this->_file.size())
-					{
+					while (brackets != 0 && j < this->_file.size()){
 						if (this->_file[j].find("{") != SIZE_MAX)
 							brackets++;
 						else if (this->_file[j].find("}") != SIZE_MAX)
