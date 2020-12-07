@@ -166,8 +166,7 @@ class Execution
 		/***************************************************
 		********************    CGI    *********************
 		***************************************************/
- 		std::map<std::string, std::string>			setMetaCGI(std::string script_name) {
-			
+ 		std::map<std::string, std::string>			setMetaCGI(std::string script_name) {			
 			std::map<std::string, std::string> args;
 			if (this->req->get_Parsing().getMap().size() > 0) {
 			std::map<std::string, std::string> tmpmap = this->req->get_Parsing().getMap();
@@ -186,8 +185,8 @@ class Execution
 
 		
 			args["AUTH_TYPE"] = req->get_authType();
-			args["SERVER_SOFTWARE"] = "POLDERSERV/HTTP1.1";
-			args["SERVER_PROTOCOL"] = "HTTPT/1.1";
+			args["SERVER_SOFTWARE"] = "webserv";
+			args["SERVER_PROTOCOL"] = "HTTP/1.1";
 			if (req->getContentMimes() == "" && this->openText())
 				args["CONTENT_TYPE"] = "text/plain";
 			else if (req->getContentMimes() == "" && !this->openText())
@@ -195,7 +194,10 @@ class Execution
 			else
 				args["CONTENT_TYPE"] = req->getContentMimes();
 			args["CONTENT_LENGTH"] = req->getContentLength();
-			args["QUERY_STRING"] = req->getQueryString();
+			if (req->getQueryString() != "")
+				args["QUERY_STRING"] = req->getQueryString();
+			else
+				args["QUERY_STRING"];
 			args["SERVER_NAME"] = this->req->get_host();
 			args["SERVER_PORT"] = this->req->get_port();
 			args["REQUEST_URI"] = this->req->get_uri();
@@ -205,11 +207,11 @@ class Execution
 			args["GATEWAY_INTERFACE"] = "CGI/1.1";
 			args["REMOTE_USER"] = req->get_authCredential();
 			args["REMOTE_IDENT"] = req->get_authCredential();
-			args["PATH_INFO"] = req->get_PathInfo();
+			args["PATH_INFO"] = this->req->get_uri();
 			args["PATH_TRANSLATED"] = "/home/user42/Bureau/webserv/public/php/test.php";
 
 			for (std::map<std::string, std::string>::iterator it = args.begin(); it != args.end(); it++)
-				std::cout << "KEY [" << it->first << "] VALUE [" << it->second << std::endl;
+				std::cout << "KEY [" << it->first << "] VALUE [" << it->second << "]" << std::endl;
 			return (args);
 		}
 		char										**swapMaptoChar(std::map<std::string, std::string> args){
@@ -222,26 +224,34 @@ class Execution
 			return (tmpargs);
 		}
 		void										processCGI(std::string cgi_path, char **args) {
-			int  pfd[2];
-			int  pid;
+			// int  pfd[2];
+			// int  pid;
 
-   			if (pipe(pfd) == -1)
-       			return ; // error gestion
-			pfd[0] = 1;
-			pfd[1] = this->vserv->getFd();
-			dup2(pfd[0], 2);
-			dup2(pfd[1], 0);
-   			if ((pid = fork()) < 0)
-				return ; // error gestion
-			if (pid == 0) {
-				std::cout << "JUST BEFORE THE WORK" << std::endl;
-				if (execve(cgi_path.c_str(), args, this->_envs) == -1)
-					return ;
-				std::cout << "WORK IS OK !" << std::endl;
-			} else {
-				close(pfd[0]);
-				close(pfd[1]);
-			}
+   			// if (pipe(pfd) == -1)
+       		// 	return ; // error gestion
+			// pfd[0] = 1;
+			// pfd[1] = this->vserv->getFd();
+			// dup2(pfd[0], 2);
+			// dup2(pfd[1], 0);
+			char **tmp = (char**)malloc(sizeof(char*) * 3);
+			tmp[0] = strdup(cgi_path.c_str());
+			tmp[1] = strdup(std::string("/php/test.php").c_str());
+			tmp[2] = NULL;
+			std::cout << "JUST BEFORE JOB" << std::endl;
+			std::cout<< "RESULT OF EXECVE : " << execve(cgi_path.c_str(), tmp, args) << std::endl;
+			std::cout << "JOB IS OK" << std::endl;
+   			// if ((pid = fork()) < 0)
+			// 	return ; // error gestion
+			// if (pid == 0) {
+			// 	std::cout << "JUST BEFORE THE WORK" << std::endl;
+			// 	if (execve(cgi_path.c_str(), args, this->_envs) == -1) {
+			// 		kill(pi)
+			// 		return ;
+			// 	std::cout << "WORK IS OK !" << std::endl;
+			// } else {
+				// close(pfd[0]);
+				// close(pfd[1]);
+			// }
 		}
 		int											initCGI(Request *req) {
 			std::vector<size_t> indexs = this->vserv->findLocationsAndSublocations(this->req->get_uri());
