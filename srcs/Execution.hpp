@@ -173,7 +173,7 @@ class Execution
 			std::map<std::string, std::string>::iterator it = tmpmap.begin();
 
 			for (; it != tmpmap.end(); it++) {
-				if (it->first != "First")
+				if (it->first != "First" && !it->first.empty())
 					args.insert(std::make_pair(("HTTP_" + it->first), it->second));
 			}
 			}
@@ -221,6 +221,7 @@ class Execution
 
 			for (std::map<std::string, std::string>::iterator it = args.begin(); it != args.end(); it++)
 				tmpargs[i++] = strdup((it->first + "=" + it->second).c_str());
+			tmpargs[i] = NULL;
 			return (tmpargs);
 		}
 		void										processCGI(std::string cgi_path, char **args) {
