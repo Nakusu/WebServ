@@ -239,6 +239,11 @@ class VirtualServer
 				if (this->_virtualserver[i].find("error_page") != SIZE_MAX && (cpt == 1))
 					this->_errorPages.push_back(this->_virtualserver[i].substr(10, this->_virtualserver[i].size() - 11));
 			}
+			for (size_t i = 0; i < this->_virtualserver.size(); i++)
+			{
+				std::cout << YELLOW << this->_virtualserver[i] << RESET << std::endl;
+			}
+			
 		}
 		void															parsingRoot(void){
 			for (unsigned int i = 0; i < this->_virtualserver.size(); i++)
