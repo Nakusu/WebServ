@@ -23,6 +23,7 @@
 #include <iterator>
 #include <utility>
 #include <algorithm>
+#include <exception>
 #include <fcntl.h>
 
 # define RESET   		"\033[0m"
@@ -55,5 +56,6 @@ std::string								cleanSpaces(std::string	&line);
 int										fileIsOpenable(std::string path);
 bool									folderIsOpenable(std::string repos);
 std::vector<std::string>				listFilesInFolder(std::string repos);
+bool 									inArray(std::string arr[], std::string needle);
 
 #endif
