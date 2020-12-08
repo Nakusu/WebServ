@@ -108,3 +108,31 @@ std::vector<std::string>			listFilesInFolder(std::string repos){
 	}
 	return (ret);
 }
+
+char 								**mergeArrays(char **tab1, char **tab2, int freeOption)
+{
+    int length = 0;
+    char **newTab;
+    for (unsigned int i = 0; tab1 && tab1[i]; i++)
+        length++;
+    for (unsigned int j = 0; tab2 && tab2[j]; j++)
+        length++;
+    if (!(newTab = (char**)malloc(sizeof(char*) * (length + 1))) || length == 0)
+        return (NULL);
+    length = 0;
+    for (unsigned int i = 0; tab1 && tab1[i]; i++)
+        newTab[length++] = tab1[i];
+    for (unsigned int j = 0; tab2 && tab2[j]; j++)
+        newTab[length++] = tab2[j];
+    newTab[length] = NULL;
+    if (freeOption == 1)
+        free(tab1);
+    else if (freeOption == 2)
+        free(tab2);
+    else if (freeOption == 3)
+    {
+        free(tab1);
+        free(tab2);
+    }
+    return (newTab);
+}
