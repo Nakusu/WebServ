@@ -180,16 +180,17 @@ class Execution
 		/***************************************************
 		********************    CGI    *********************
 		***************************************************/
+
  		std::map<std::string, std::string>			setMetaCGI(std::string script_name) {			
 			std::map<std::string, std::string> args;
 			if (this->req->get_Parsing().getMap().size() > 0) {
-			std::map<std::string, std::string> tmpmap = this->req->get_Parsing().getMap();
-			std::map<std::string, std::string>::iterator it = tmpmap.begin();
+				std::map<std::string, std::string> tmpmap = this->req->get_Parsing().getMap();
+				std::map<std::string, std::string>::iterator it = tmpmap.begin();
 
-			for (; it != tmpmap.end(); it++) {
-				if (it->first != "First" && !it->first.empty())
-					args.insert(std::make_pair(("HTTP_" + it->first), it->second));
-			}
+				for (; it != tmpmap.end(); it++) {
+					if (it->first != "First" && !it->first.empty())
+						args.insert(std::make_pair(("HTTP_" + it->first), it->second));
+				}
 			}
 			/*args = this->req->get_Parsing().getMap();
 			for (std::map<std::string, std::string>::iterator it = args.begin(); it != args.end(); it++)
@@ -222,12 +223,13 @@ class Execution
 			args["REMOTE_USER"] = req->get_authCredential();
 			args["REMOTE_IDENT"] = req->get_authCredential();
 			args["PATH_INFO"] = this->req->get_uri();
-			args["PATH_TRANSLATED"] = "/home/user42/Bureau/webserv/public/php/test.php";
+			args["PATH_TRANSLATED"] = "./public/php/test.php";
 
 			for (std::map<std::string, std::string>::iterator it = args.begin(); it != args.end(); it++)
 				std::cout << "KEY [" << it->first << "] VALUE [" << it->second << "]" << std::endl;
 			return (args);
 		}
+
 		char										**swapMaptoChar(std::map<std::string, std::string> args){
 			char	**tmpargs = (char**)malloc(sizeof(char*) * (args.size() + 1));
 			size_t	i = 0;
@@ -239,34 +241,36 @@ class Execution
 			return (tmpargs);
 		}
 		void										processCGI(std::string cgi_path, char **args) {
-			// int  pfd[2];
-			// int  pid;
+			int  pfd[2];
+			int  pid;
 
-   			// if (pipe(pfd) == -1)
-       		// 	return ; // error gestion
-			// pfd[0] = 1;
+			if (pipe(pfd) == -1)
+				return ; // error gestion
+			pfd[0] = 1;
 			// pfd[1] = this->vserv->getFd();
-			// dup2(pfd[0], 2);
-			// dup2(pfd[1], 0);
 			char **tmp = (char**)malloc(sizeof(char*) * 3);
 			tmp[0] = strdup(cgi_path.c_str());
 			tmp[1] = strdup(std::string("/php/test.php").c_str());
 			tmp[2] = NULL;
 			std::cout << "JUST BEFORE JOB" << std::endl;
-			std::cout<< "RESULT OF EXECVE : " << execve(cgi_path.c_str(), tmp, args) << std::endl;
-			std::cout << "JOB IS OK" << std::endl;
-   			// if ((pid = fork()) < 0)
-			// 	return ; // error gestion
-			// if (pid == 0) {
-			// 	std::cout << "JUST BEFORE THE WORK" << std::endl;
-			// 	if (execve(cgi_path.c_str(), args, this->_envs) == -1) {
-			// 		kill(pi)
-			// 		return ;
-			// 	std::cout << "WORK IS OK !" << std::endl;
-			// } else {
-				// close(pfd[0]);
-				// close(pfd[1]);
-			// }
+
+			if ((pid = fork()) < 0)
+				return ; // error gestion
+			if (pid == 0) {
+				int fd = open("./public/php/test.php", O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+				dup2(fd, 0); // ici en entrée mettre le body
+				dup2(pfd[0], 1);
+				std::cout << "JUST BEFORE THE WORK" << std::endl;
+				if (execve(cgi_path.c_str(), args, this->_envs) == -1)
+					return ;
+				std::cout << "WORK IS OK !" << std::endl;
+				exit(0);
+				close(pfd[0]);
+				close(pfd[1]);
+			} else {
+				close(pfd[0]);
+				close(pfd[1]);
+			}
 		}
 		int											initCGI(Request *req) {
 			std::vector<size_t> indexs = this->vserv->findLocationsAndSublocations(this->req->get_uri());
