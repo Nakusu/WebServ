@@ -136,3 +136,10 @@ char 								**mergeArrays(char **tab1, char **tab2, int freeOption)
     }
     return (newTab);
 }
+
+bool inArray(std::string arr[], std::string needle){ 
+	for (size_t i = 0; i < arr->size(); i++)
+		if (arr[i] == needle)
+			return (true);
+	return (false);
+}

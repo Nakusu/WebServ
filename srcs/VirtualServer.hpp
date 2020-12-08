@@ -29,6 +29,16 @@ class VirtualServer
 			return (*this);
 		}
 
+		class IncorrectMethodUsed : public std::exception
+		{
+
+		public:
+			IncorrectMethodUsed( void ) {}
+			IncorrectMethodUsed( IncorrectMethodUsed const & src ) {this->operator=(src); }
+			virtual ~IncorrectMethodUsed( void ) throw() {}
+			IncorrectMethodUsed &	operator=( IncorrectMethodUsed const & rhs ) {(void)rhs; return (*this); }
+			virtual const char* what() const throw() {return ("Error : Incorrect Method Used."); }
+		};
 
 		/***************************************************
 		*******************    Socket    *******************
@@ -150,6 +160,10 @@ class VirtualServer
 		void															setFile(std::vector<std::string> file){
 			this->_file = file;
 		}
+		std::vector<std::string>										get_method(void){
+			return (this->_methods);
+		}
+
 
 		/***************************************************
 		******************    Parsing    *******************
@@ -163,6 +177,7 @@ class VirtualServer
 			this->parsingLocations();
 			this->parsingAutoIndex();
 			this->parsingRedirGbl();
+			this->parsingMethods();
 		}
 		void															parsingAutoIndex(void){
 			for (unsigned int i = 0; i < this->_virtualserver.size(); i++)
@@ -282,6 +297,44 @@ class VirtualServer
 			}
 		}
 
+		/*std::vector<std::string>															parsingMethodsLocation(size_t index){
+			
+			std::vector<std::string> methods;
+			
+			if (this->_locations.size() > index && !this->_locations[index].empty())
+			{
+				if (!this->_locations[index]["method"].empty())
+				{
+					methods = split(this->_locations[index]["method"][0], " ");
+					for (size_t j = 0; j < methods.size(); j++)
+						verifMethod(methods[j]);
+				}
+			}
+			return (methods);
+		}*/
+
+		void																				verifMethod(std::string method)
+		{
+			std::string validMethods[8] = {"GET", "HEAD", "POST", "PUT", "DELETE", "CONNECT", "OPTIONS", "TRACE"};
+			for (size_t i = 0; i < 8; i++)
+				if (method == validMethods[i])
+					return;
+			throw VirtualServer::IncorrectMethodUsed();
+		}
+
+		void															parsingMethods(void){
+			
+			for (unsigned int i = 0; i < this->_virtualserver.size(); i++)
+			{
+				if (this->_virtualserver[i].find("method") != SIZE_MAX){
+					this->_methods = split(this->_virtualserver[i], " ");
+					for (size_t j = 0; j < this->_methods.size(); j++)
+						verifMethod(this->_methods[j]);
+				}
+			}
+		}
+
+
 	private:
 		int 															_fd;
 		struct sockaddr_in 												_address;
@@ -294,6 +347,8 @@ class VirtualServer
 		std::vector<std::string> 										_root;
 		std::vector<std::string>										_virtualserver;
 		std::vector<std::map<std::string, std::vector<std::string> > >	_locations;
+		std::vector<std::string>										_methods;
+
 };
 
 #endif
