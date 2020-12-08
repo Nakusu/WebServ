@@ -50,8 +50,11 @@ int			main(int argc, char **argv, char **env)
 				HeaderRequest *header = new HeaderRequest();
 				Execution exec = Execution(serv, serv->getVS(i), req, header, env);
 				if (!exec.needRedirection()){
+					if (!exec.checkMethod())
+						exec.searchError405();
 					if (!exec.searchIndex() && exec.initCGI(req) && !exec.openText() && !exec.binaryFile())
 						exec.searchError404();
+					
 				}
 				delete req;
 				delete header;
