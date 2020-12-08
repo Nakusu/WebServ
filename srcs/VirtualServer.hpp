@@ -32,12 +32,12 @@ class VirtualServer
 		class IncorrectMethodUsed : public std::exception
 		{
 
-		public:
-			IncorrectMethodUsed( void ) {}
-			IncorrectMethodUsed( IncorrectMethodUsed const & src ) {this->operator=(src); }
-			virtual ~IncorrectMethodUsed( void ) throw() {}
-			IncorrectMethodUsed &	operator=( IncorrectMethodUsed const & rhs ) {(void)rhs; return (*this); }
-			virtual const char* what() const throw() {return ("Error : Incorrect Method Used."); }
+			public:
+				IncorrectMethodUsed( void ) {}
+				IncorrectMethodUsed( IncorrectMethodUsed const & src ) { this->operator=(src); }
+				virtual ~IncorrectMethodUsed( void ) throw() {}
+				IncorrectMethodUsed &	operator=( IncorrectMethodUsed const & rhs ) { (void)rhs; return (*this); }
+				virtual const char* what() const throw() { return ("Error : Incorrect Method Used."); }
 		};
 
 		/***************************************************
@@ -313,25 +313,32 @@ class VirtualServer
 			return (methods);
 		}*/
 
-		void																				verifMethod(std::string method)
+		bool																		verifMethod(std::string method)
 		{
 			std::string validMethods[8] = {"GET", "HEAD", "POST", "PUT", "DELETE", "CONNECT", "OPTIONS", "TRACE"};
 			for (size_t i = 0; i < 8; i++)
 				if (method == validMethods[i])
-					return;
-			throw VirtualServer::IncorrectMethodUsed();
+					return (true);
+			return (false);
 		}
 
 		void															parsingMethods(void){
-			
+			size_t cpt = 0;
+
 			for (unsigned int i = 0; i < this->_virtualserver.size(); i++)
 			{
-				if (this->_virtualserver[i].find("method") != SIZE_MAX){
+				if (this->_virtualserver[i].find("{") != SIZE_MAX)
+					cpt++;
+				else if (this->_virtualserver[i].find("}") != SIZE_MAX)
+					cpt--;
+				if (this->_virtualserver[i].find("method") != SIZE_MAX && (cpt == 1)){
 					this->_methods = split(this->_virtualserver[i], " ");
-					for (size_t j = 0; j < this->_methods.size(); j++)
-						verifMethod(this->_methods[j]);
 				}
 			}
+			this->_methods[this->_methods.size() - 1].erase(this->_methods[this->_methods.size() - 1].size() - 1);
+			this->_methods.erase(this->_methods.begin());
+			for (size_t i = 0; i < this->_methods.size(); i++)
+				std::cout << "CHECK PARSING METHOD VALUE OF VSRV " << this->_methods[i] << std::endl; 
 		}
 
 

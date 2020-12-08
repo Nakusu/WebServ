@@ -120,8 +120,7 @@ class Execution
 			this->header->updateContent("Content-Type", "text/html");
 			this->header->sendHeader(this->req);
 			redir = vec.empty() ? this->getRoot() : this->getRoot() + "/" + vec[vec.size() - 1];
-			if ((searchInVec("405", vec) == -1 && searchInVec("405", this->vserv->get_errorPages()) == -1) ||
-			!fileIsOpenable(redir))
+			if ((searchInVec("405", vec) == -1 && searchInVec("405", this->vserv->get_errorPages()) == -1) || !fileIsOpenable(redir))
 				req->sendPacket("<html><head><title>405 Method Not Allowed</title></head><body bgcolor=\"white\"><center><h1>405 Method Not Allowed</h1></center><hr><center>Les Poldters Server Web</center></html>");
 			else 
 				req->sendPacket(fileToString(redir));
@@ -314,17 +313,20 @@ class Execution
 			{
 				if (locations[indexs[0]]["method"].empty())
 					return (true);
-				for (size_t j = 0; j < locations[indexs[0]]["method"].size(); j++)
+				for (size_t j = 0; j < locations[indexs[0]]["method"].size(); j++) {
+					std::cout << "REQUEST METHOD " << this->req->get_method() << " LOCATION METHOD : " << locations[indexs[0]]["method"][j] << std::endl;
 					if (this->req->get_method() == locations[indexs[0]]["method"][j])
 						return (true);
+				}
 			}
 			else
 			{
 				if (this->vserv->get_method().empty())
 					return (true);
-				for (size_t k = 0; k < this->vserv->get_method().size(); k++)
+				for (size_t k = 0; k < this->vserv->get_method().size(); k++) {
 					if (this->vserv->get_method()[k] == this->req->get_method())
 						return (true);
+				}
 			}
 			return (false);
 		}
