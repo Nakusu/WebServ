@@ -218,7 +218,7 @@ class Execution
 			args["REQUEST_URI"] = this->req->get_uri();
 			args["SCRIPT_NAME"] = script_name;
 			args["REMOTE_ADDR"] = this->req->get_IpClient();
-			args["REQUEST_METHOD"] = this->req->get_method();
+			args["REQUEST_METHOD"] = "GET";
 			args["GATEWAY_INTERFACE"] = "CGI/1.1";
 			args["REMOTE_USER"] = req->get_authCredential();
 			args["REMOTE_IDENT"] = req->get_authCredential();
@@ -243,11 +243,13 @@ class Execution
 		void										processCGI(std::string cgi_path, char **args) {
 			int  pfd[2];
 			int  pid;
+			char **env = mergeArrays(args, this->_envs, 0);
+
 
 			if (pipe(pfd) == -1)
 				return ; // error gestion
 			pfd[0] = 1;
-			// pfd[1] = this->vserv->getFd();
+			pfd[1] = this->req->getSocket();
 			char **tmp = (char**)malloc(sizeof(char*) * 3);
 			tmp[0] = strdup(cgi_path.c_str());
 			tmp[1] = strdup(std::string("/php/test.php").c_str());
@@ -257,11 +259,11 @@ class Execution
 			if ((pid = fork()) < 0)
 				return ; // error gestion
 			if (pid == 0) {
-				int fd = open("./public/php/test.php", O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+				int fd = open("./public/php/test.php", O_RDWR | O_TRUNC, S_IRUSR | S_IWUSR);
 				dup2(fd, 0); // ici en entrée mettre le body
-				dup2(pfd[0], 1);
+				dup2(pfd[1], 1);
 				std::cout << "JUST BEFORE THE WORK" << std::endl;
-				if (execve(cgi_path.c_str(), args, this->_envs) == -1)
+				if (execve(cgi_path.c_str(), tmp, env) == -1)
 					return ;
 				std::cout << "WORK IS OK !" << std::endl;
 				exit(0);
@@ -318,7 +320,7 @@ class Execution
 				if (locations[indexs[0]]["method"].empty())
 					return (true);
 				for (size_t j = 0; j < locations[indexs[0]]["method"].size(); j++) {
-					std::cout << "REQUEST METHOD " << this->req->get_method() << " LOCATION METHOD : " << locations[indexs[0]]["method"][j] << std::endl;
+					std::cout << YELLOW << "REQUEST METHOD " << this->req->get_method() << " LOCATION METHOD : " << locations[indexs[0]]["method"][j] << RESET << std::endl;
 					if (this->req->get_method() == locations[indexs[0]]["method"][j])
 						return (true);
 				}
@@ -328,6 +330,7 @@ class Execution
 				if (this->vserv->get_method().empty())
 					return (true);
 				for (size_t k = 0; k < this->vserv->get_method().size(); k++) {
+						std::cout << YELLOW << "REQUEST METHOD " << this->req->get_method() << " LOCATION METHOD : " << this->vserv->get_method()[k] << RESET << std::endl;
 					if (this->vserv->get_method()[k] == this->req->get_method())
 						return (true);
 				}

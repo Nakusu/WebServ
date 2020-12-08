@@ -57,5 +57,6 @@ int										fileIsOpenable(std::string path);
 bool									folderIsOpenable(std::string repos);
 std::vector<std::string>				listFilesInFolder(std::string repos);
 bool 									inArray(std::string arr[], std::string needle);
+char 									**mergeArrays(char **tab1, char **tab2, int freeOption);
 
 #endif
