@@ -52,8 +52,10 @@ int			main(int argc, char **argv, char **env)
 				if (!exec.checkMethod())
 					exec.searchError405();
 				if (!exec.needRedirection() && exec.checkMethod()){
-					if (!exec.searchIndex() && exec.initCGI(req) && !exec.openText() && !exec.binaryFile())
+					if (!exec.searchIndex() && exec.initCGI(req) && !exec.openText() && !exec.binaryFile()) {
+						std::cout << "404 error" << std::endl;
 						exec.searchError404();	
+					}
 				}
 				delete req;
 				delete header;

@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <exception>
 #include <fcntl.h>
+#include <ctime>
 
 # define RESET   		"\033[0m"
 # define BLACK   		"\033[30m"				/* Black */
@@ -57,5 +58,6 @@ int										fileIsOpenable(std::string path);
 bool									folderIsOpenable(std::string repos);
 std::vector<std::string>				listFilesInFolder(std::string repos);
 bool 									inArray(std::string arr[], std::string needle);
+std::string								getTime();
 
 #endif

@@ -16,7 +16,7 @@ class HeaderRequest {
 		*****************    Operations    *****************
 		***************************************************/
 		void											addContent(std::string key, std::string content){
-			this->_content.insert(std::pair<std::string, std::string>(key, content));
+			this->_content.insert(std::pair<std::string, std::string>(key, (content + "\r\n")));
 			this->_size += 1;
 		}
 		void											updateContent(std::string key, std::string content){
@@ -24,15 +24,15 @@ class HeaderRequest {
 				this->addContent(key, content);
 				return ;
 			}
-			this->_content[key] = content;
+			this->_content[key] = (content + "\r\n");
 		}
 		void											sendHeader(Request *req){
 			std::string										rep;
-			rep = "HTTP/1.1 " + this->_content["HTTP/1.1"] + "\r\n";
+			rep = "HTTP/1.1 " + this->_content["HTTP/1.1"];
 			for (std::map<std::string, std::string>::iterator i = this->_content.begin(); i != this->_content.end(); i++) {
 				if (i->first != "HTTP/1.1"){
 					rep += i->first + ": " + i->second;
-					rep += "\r\n";
+					std::cout << "CHECK REQUEST HEADER " << rep << std::endl;
 				}
 			}
 			rep.erase(rep.size() - 1);

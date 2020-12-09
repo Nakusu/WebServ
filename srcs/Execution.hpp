@@ -70,6 +70,7 @@ class Execution
 
 				vec = this->vserv->findOption("index", this->req->get_uri(), 0, this->vserv->get_index());
 				files = listFilesInFolder(this->getRoot() + this->req->get_uri());
+				std::cout << "CHECK" << std::endl;
 
 				for (size_t i = 0; i < vec.size(); i++){
 					if ((index = searchInVec(vec[i], files)) != -1){ //Compare index with files in Folder
@@ -152,8 +153,10 @@ class Execution
 			  	return (0);
 			req->sendPacket("HTTP/1.1 200\n\n");
 			while (!opfile.eof()) {
-				opfile.read(content, 4096); 
-				req->sendPacket(content, 4096);
+				if (this->req->get_method() != "HEAD") {
+					opfile.read(content, 4096); 
+					req->sendPacket(content, 4096);
+				}
 			}
 			opfile.close();
 			return (1);
@@ -166,13 +169,17 @@ class Execution
 		int											openFile(std::string file, Request *req){
 			std::ifstream opfile;
 			std::string content;
-			std::string tmp = this->getRoot() + file;
+			std::string tmp = (this->getRoot() + file);
   			opfile.open(tmp.data());
-			if (!opfile.is_open())
+			if (opfile.is_open() == false)
 				return (0);
-			req->sendPacket("HTTP/1.1 200\n\n");
+			//this->header->updateContent("HTTP/1.1", "200");
+			this->header->addContent("Server", "webserv");
+			this->header->addContent("Date", getTime());
+			this->header->sendHeader(this->req);
 			while (std::getline(opfile, content))
-				req->sendPacket(content.c_str());
+				if (this->req->get_method() != "HEAD")
+					req->sendPacket(content.c_str());
 			opfile.close();
 			return (1);
 		}
