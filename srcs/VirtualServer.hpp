@@ -154,6 +154,9 @@ class VirtualServer
 		struct sockaddr_in *											getAddress(void){
 			return (&this->_address);
 		}
+		std::string														getRoot(void){
+			return (this->_root[0]);
+		}
 		int																getFd(void){
 			return (this->_fd);
 		}
@@ -163,7 +166,9 @@ class VirtualServer
 		std::vector<std::string>										get_method(void){
 			return (this->_methods);
 		}
-
+		// std::vector<std::string>										get_cgi(void){
+		// 	return (this->_cgi);
+		// }
 
 		/***************************************************
 		******************    Parsing    *******************
@@ -237,6 +242,10 @@ class VirtualServer
 					std::vector<std::string> results = split(iss, " ");
 					std::string key = results[0];
 					results.erase(results.begin());
+					if (key == "CGI"){
+						key = results[0];
+						results.erase(results.begin());
+					}
 					value[key] = results;
 					//Delete the ';' at the end of the last
 					value[key][value[key].size() - 1].erase(value[key][value[key].size() - 1].size() - 1);
@@ -336,6 +345,30 @@ class VirtualServer
 				this->_maxBody.erase(this->_maxBody.begin());
 			}
 		}
+		void																		parsingCGI(void){
+			size_t cpt = 0;
+			std::vector<std::string> result;
+			std::string key;
+
+			for (unsigned int i = 0; i < this->_virtualserver.size(); i++)
+			{
+				if (this->_virtualserver[i].find("{") != SIZE_MAX)
+					cpt++;
+				else if (this->_virtualserver[i].find("}") != SIZE_MAX)
+					cpt--;
+				if (this->_virtualserver[i].find("CGI") != SIZE_MAX && (cpt == 1)){
+					result = split(this->_virtualserver[i], " ");
+					result.erase(result.begin());
+					key = result[0];
+					result.erase(result.begin());
+
+				}
+			}
+			if (!this->_maxBody.empty()){
+				this->_maxBody[1].erase(this->_maxBody[1].size() - 1);
+				this->_maxBody.erase(this->_maxBody.begin());
+			}
+		}
 
 		/***************************************************
 		*******************    Verif    ********************
@@ -366,6 +399,7 @@ class VirtualServer
 		std::vector<std::map<std::string, std::vector<std::string> > >	_locations;
 		std::vector<std::string>										_methods;
 		std::vector<std::string>										_maxBody;
+		std::map<std::string, std::vector<std::string> >				_CGI;
 
 };
 

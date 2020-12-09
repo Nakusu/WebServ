@@ -70,7 +70,7 @@ class ParsingRequest{
 				if (!pars[i].empty())
 				{
                 	this->_map[pars[i].substr(0, pars[i].find_first_of(" ") - 1)] = &pars[i][pars[i].find_first_of(" ") + 1];
-				std::cout << "[" << pars[i] << "]" << std::endl;
+				// std::cout << "[" << pars[i] << "]" << std::endl;
 				}
 			}
 		}
