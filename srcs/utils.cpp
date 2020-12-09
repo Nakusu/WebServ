@@ -62,7 +62,7 @@ std::string							convertInSpaces(std::string line)
 	return (line);
 }
 
-std::string							cleanSpaces(std::string	&line)
+std::string							cleanLine(std::string    &line)
 {
 	std::string lineCleaned = convertInSpaces(line);
 	std::vector<std::string> res = split(lineCleaned, " ");
@@ -73,6 +73,8 @@ std::string							cleanSpaces(std::string	&line)
 		if (i < res.size() - 1)
 			lineCleaned.append(" ");
 	}
+	if (lineCleaned[lineCleaned.size() -1] == ';')
+		lineCleaned.resize(lineCleaned.size() - 1);
 	return (lineCleaned);
 }
 

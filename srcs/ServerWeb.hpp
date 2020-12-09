@@ -100,7 +100,7 @@ class ServerWeb
 		void															fileToVectorAndClean(std::ifstream *ifs){
 			 std::string  line;
 			while (std::getline(*ifs, line)){
-				line = cleanSpaces(line);
+				line = cleanLine(line);
 				if (!line.empty())
 					this->_file.push_back(line);
 			}

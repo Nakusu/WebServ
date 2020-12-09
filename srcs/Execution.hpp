@@ -187,18 +187,12 @@ class Execution
 				std::map<std::string, std::string> tmpmap = this->req->get_Parsing().getMap();
 				std::map<std::string, std::string>::iterator it = tmpmap.begin();
 
-				for (; it != tmpmap.end(); it++) {
+				while (it != tmpmap.end()) {
 					if (it->first != "First" && !it->first.empty())
 						args.insert(std::make_pair(("HTTP_" + it->first), it->second));
+					it++;
 				}
 			}
-			/*args = this->req->get_Parsing().getMap();
-			for (std::map<std::string, std::string>::iterator it = args.begin(); it != args.end(); it++)
-			{
-				std::cout <<  it->first << std::endl;
-			}*/
-
-		
 			args["AUTH_TYPE"] = req->get_authType();
 			args["SERVER_SOFTWARE"] = "webserv";
 			args["SERVER_PROTOCOL"] = "HTTP/1.1";
@@ -218,10 +212,10 @@ class Execution
 			args["REQUEST_URI"] = this->req->get_uri();
 			args["SCRIPT_NAME"] = script_name;
 			args["REMOTE_ADDR"] = this->req->get_IpClient();
-			args["REQUEST_METHOD"] = "GET";
+			args["REQUEST_METHOD"] = this->req->get_method();
 			args["GATEWAY_INTERFACE"] = "CGI/1.1";
-			args["REMOTE_USER"] = req->get_authCredential();
-			args["REMOTE_IDENT"] = req->get_authCredential();
+			args["REMOTE_USER"] = this->req->get_authCredential();
+			args["REMOTE_IDENT"] = this->req->get_authCredential();
 			args["PATH_INFO"] = this->req->get_uri();
 			args["PATH_TRANSLATED"] = "./" + this->vserv->getRoot() + this->req->get_uri();
 
@@ -254,7 +248,6 @@ class Execution
 			tmp[0] = strdup(cgi_path.c_str());
 			tmp[1] = strdup(std::string("./" + this->vserv->getRoot() + this->req->get_uri()).c_str());
 			tmp[2] = 0;
-			// tmp[2] = NULL;
 
 			for (size_t i = 0; env[i]; i++)
 			{
@@ -283,15 +276,11 @@ class Execution
 		int											initCGI(Request *req) {
 			std::vector<size_t> indexs = this->vserv->findLocationsAndSublocations(this->req->get_uri());
 			std::vector<std::map<std::string, std::vector<std::string> > > locations = this->vserv->get_locations();
-			if (!indexs.empty() && !locations[indexs[0]]["cgiextension"].empty() && !locations[indexs[0]]["cgi_path"].empty() && req->getExtension() == &locations[indexs[0]]["cgiextension"][0][1]) {
-				// std::cout << "READY FOR DO WORK !" << std::endl;
-				if (fileIsOpenable(locations[indexs[0]]["cgi_path"][0])) {
-					// std::cout << "BEFORE SET META CGI" << std::endl;
-					std::map<std::string, std::string> args = setMetaCGI(locations[indexs[0]]["cgi_path"][0]);
-					// std::cout << "METAS WAS ALL SET" << std::endl;
+			if (!indexs.empty() && locations[indexs[0]][req->getExtension()].size() != 0) {
+				if (fileIsOpenable(locations[indexs[0]][req->getExtension()][0])) {
+					std::map<std::string, std::string> args = setMetaCGI(locations[indexs[0]][req->getExtension()][0]);
 					char **tmpargs = swapMaptoChar(args);
-					// std::cout << "CONVERTION TO CHAR** OK" << std::endl;
-					processCGI(locations[indexs[0]]["cgi_path"][0], tmpargs);
+					processCGI(locations[indexs[0]][req->getExtension()][0], tmpargs);
 					return (1);
 				}
 			}
@@ -322,26 +311,32 @@ class Execution
 		bool										checkMethod(void){
 			std::vector<size_t> indexs = this->vserv->findLocationsAndSublocations(this->req->get_uri());
 			std::vector<std::map<std::string, std::vector<std::string> > > locations = this->vserv->get_locations();
-			if (!indexs.empty())
-			{
+			if (!indexs.empty() && locations[indexs[0]][this->req->getExtension()].size() != 0) {
+				int ret = 0;
+				for (size_t i = 1; i < locations[indexs[0]][this->req->getExtension()].size(); i++){
+					if (locations[indexs[0]][this->req->getExtension()][i] == this->req->get_method())
+						ret = 1;
+				}
+				if (!ret && locations[indexs[0]][this->req->getExtension()].size() > 1)
+					return (false);
+			}
+			if (!indexs.empty()){
 				if (locations[indexs[0]]["method"].empty())
 					return (true);
 				for (size_t j = 0; j < locations[indexs[0]]["method"].size(); j++) {
-					// std::cout << YELLOW << "REQUEST METHOD " << this->req->get_method() << " LOCATION METHOD : " << locations[indexs[0]]["method"][j] << RESET << std::endl;
 					if (this->req->get_method() == locations[indexs[0]]["method"][j])
 						return (true);
 				}
 			}
-			else
-			{
+			else{
 				if (this->vserv->get_method().empty())
 					return (true);
 				for (size_t k = 0; k < this->vserv->get_method().size(); k++) {
-						// std::cout << YELLOW << "REQUEST METHOD " << this->req->get_method() << " LOCATION METHOD : " << this->vserv->get_method()[k] << RESET << std::endl;
 					if (this->vserv->get_method()[k] == this->req->get_method())
 						return (true);
 				}
 			}
+			
 			return (false);
 		}
 
@@ -350,6 +345,6 @@ class Execution
 		VirtualServer *		vserv;
 		Request * 			req;
 		HeaderRequest *		header;
-		char		  **	_envs;
+		char **				_envs;
 };
 #endif

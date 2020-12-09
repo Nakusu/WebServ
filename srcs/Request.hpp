@@ -88,7 +88,7 @@ class Request {
 		void				parsingAuthorizations(void){
 			std::string iss = this->_parsing.getMap()["Authorization"];
 			iss = convertInSpaces(iss);
-			iss = cleanSpaces(iss);
+			iss = cleanLine(iss);
 			std::vector<std::string> results = split(iss, " ");
 			if (!results.empty()) {
 				this->_authType = results[0];
