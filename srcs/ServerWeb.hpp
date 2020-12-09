@@ -71,11 +71,9 @@ class ServerWeb
 			//Transform the file in Vectors<VirtualServer> who contain is own conf in a Vector<String>
 			std::vector<std::string> Conf;
 
-			for (unsigned int i = 0; i < this->_file.size(); i++)
-			{
+			for (unsigned int i = 0; i < this->_file.size(); i++){
 				unsigned int cpt = 0;
-				if ((this->_file[i].find("server") != SIZE_MAX))
-				{
+				if ((this->_file[i].find("server") != SIZE_MAX)){
 					Conf.push_back(this->_file[i]);
 					i = (this->_file[i].find("{") != SIZE_MAX) ? i + 1 : i + 2;
 					cpt++;
@@ -113,7 +111,7 @@ class ServerWeb
 			}
 		}
 		void															clearFd(void){
-			FD_ZERO(&this->_readfds);   
+			FD_ZERO(&this->_readfds);
 		}
 
 	private:

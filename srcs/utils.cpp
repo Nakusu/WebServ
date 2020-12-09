@@ -73,8 +73,9 @@ std::string							cleanLine(std::string    &line)
 		if (i < res.size() - 1)
 			lineCleaned.append(" ");
 	}
-	if (lineCleaned[lineCleaned.size() -1] == ';')
+	if (lineCleaned[lineCleaned.size() -1] == ';'){
 		lineCleaned.resize(lineCleaned.size() - 1);
+	}
 	return (lineCleaned);
 }
 

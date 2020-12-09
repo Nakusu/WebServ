@@ -50,7 +50,6 @@ class VirtualServer
 			return (this->_address); 
 		}
 		void																initLink(void){
-			std::cout << "TOTO" << std::endl;
 			if (this->_fd != 0 && bind(this->_fd, (struct sockaddr *)&this->_address, sizeof(this->_address)) < 0){
 				perror("bind failed");
 				exit(EXIT_FAILURE);
@@ -64,7 +63,9 @@ class VirtualServer
 		}
 		int																	initFd(int domain, int type, int protocol){
 			int opt = TRUE;
-
+			std::cout << domain << std::endl;
+			std::cout << type << std::endl;
+			std::cout << protocol << std::endl;
 			if( (this->_fd = socket(domain , type , protocol)) == 0){
 				perror("socket failed");
 				exit(EXIT_FAILURE);
@@ -154,7 +155,8 @@ class VirtualServer
 		}
 		std::map<std::string, std::vector<std::string> >					get_CGI(void){
 			return (this->_CGI);
-		}		std::string															getIndexByIndex(size_t i){
+		}
+		std::string															getIndexByIndex(size_t i){
 			return(this->_index[i]);
 		}
 		struct sockaddr_in *												getAddress(void){
@@ -214,8 +216,11 @@ class VirtualServer
 		}
 		void																parsingListen(void){
 			for (unsigned int i = 0; i < this->_virtualserver.size(); i++) {
-				if (this->_virtualserver[i].find("listen") != SIZE_MAX)
-					this->_listen.push_back(this->_virtualserver[i].substr(7, this->_virtualserver[i].size() - 8));
+				if (this->_virtualserver[i].find("listen") != SIZE_MAX){
+					std::vector<std::string> results = split(_virtualserver[i], " ");
+					results.erase(results.begin());
+					this->_listen = results;
+				}
 			}
 		}
 		void																parsingLocations(void){
@@ -256,14 +261,19 @@ class VirtualServer
 					cpt++;
 				else if (this->_virtualserver[i].find("}") != SIZE_MAX)
 					cpt--;
-				if (this->_virtualserver[i].find("error_page") != SIZE_MAX && (cpt == 1))
-					this->_errorPages.push_back(this->_virtualserver[i].substr(10, this->_virtualserver[i].size() - 11));
+				if (this->_virtualserver[i].find("error_page") != SIZE_MAX && (cpt == 1)){
+					std::vector<std::string> results = split(_virtualserver[i], " ");
+					results.erase(results.begin());
+					this->_errorPages = results;
+				}
 			}
 		}
 		void																parsingRoot(void){
 			for (unsigned int i = 0; i < this->_virtualserver.size(); i++){
 				if (this->_virtualserver[i].find("root") != SIZE_MAX){
-					this->_root.push_back(this->_virtualserver[i].substr(5, this->_virtualserver[i].size() - 6));
+					std::vector<std::string> results = split(_virtualserver[i], " ");
+					results.erase(results.begin());
+					this->_root = results;
 					return ;
 				}
 			}
