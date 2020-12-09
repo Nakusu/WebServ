@@ -112,7 +112,7 @@ class VirtualServer
 			if (!tab.empty()){ // If there is a location
 				for (size_t i = 0; i < tab.size(); i++){
 					if (!this->_locations[tab[i]][option].empty()) //If we find the option, we split in vector
-						result = split(this->_locations[tab[i]][option][0], " ");
+						result = this->_locations[tab[i]][option];
 				}
 			}
 			if (result.empty())
@@ -154,6 +154,9 @@ class VirtualServer
 		struct sockaddr_in *											getAddress(void){
 			return (&this->_address);
 		}
+		std::string														getRoot(void){
+			return (this->_root[0]);
+		}
 		int																getFd(void){
 			return (this->_fd);
 		}
@@ -163,7 +166,9 @@ class VirtualServer
 		std::vector<std::string>										get_method(void){
 			return (this->_methods);
 		}
-
+		// std::vector<std::string>										get_cgi(void){
+		// 	return (this->_cgi);
+		// }
 
 		/***************************************************
 		******************    Parsing    *******************
@@ -178,6 +183,7 @@ class VirtualServer
 			this->parsingAutoIndex();
 			this->parsingRedirGbl();
 			this->parsingMethods();
+			this->parsingMaxBody();
 		}
 		void															parsingAutoIndex(void){
 			for (unsigned int i = 0; i < this->_virtualserver.size(); i++)
@@ -234,14 +240,21 @@ class VirtualServer
 					iss = convertInSpaces(iss);
 					iss = cleanSpaces(iss);
 					std::vector<std::string> results = split(iss, " ");
-					value[results[0]].push_back(&this->_virtualserver[j][results[0].size() + 1]);
-					value[results[0]][value[results[0]].size() - 1].erase(value[results[0]][value[results[0]].size() - 1].size() - 1);
+					std::string key = results[0];
+					results.erase(results.begin());
+					if (key == "CGI"){
+						key = results[0];
+						results.erase(results.begin());
+					}
+					value[key] = results;
+					//Delete the ';' at the end of the last
+					value[key][value[key].size() - 1].erase(value[key][value[key].size() - 1].size() - 1);
 					j++;
 				}
 				this->_locations.push_back(value);
 				value.clear();
 			}
-	}
+		}
 		}
 		void 															parsingRedirGbl(void){
 			unsigned int cpt = 0;
@@ -254,11 +267,6 @@ class VirtualServer
 				if (this->_virtualserver[i].find("error_page") != SIZE_MAX && (cpt == 1))
 					this->_errorPages.push_back(this->_virtualserver[i].substr(10, this->_virtualserver[i].size() - 11));
 			}
-			for (size_t i = 0; i < this->_virtualserver.size(); i++)
-			{
-				std::cout << YELLOW << this->_virtualserver[i] << RESET << std::endl;
-			}
-			
 		}
 		void															parsingRoot(void){
 			for (unsigned int i = 0; i < this->_virtualserver.size(); i++)
@@ -301,33 +309,7 @@ class VirtualServer
 				return ;
 			}
 		}
-
-		/*std::vector<std::string>															parsingMethodsLocation(size_t index){
-			
-			std::vector<std::string> methods;
-			
-			if (this->_locations.size() > index && !this->_locations[index].empty())
-			{
-				if (!this->_locations[index]["method"].empty())
-				{
-					methods = split(this->_locations[index]["method"][0], " ");
-					for (size_t j = 0; j < methods.size(); j++)
-						verifMethod(methods[j]);
-				}
-			}
-			return (methods);
-		}*/
-
-		bool																		verifMethod(std::string method)
-		{
-			std::string validMethods[8] = {"GET", "HEAD", "POST", "PUT", "DELETE", "CONNECT", "OPTIONS", "TRACE"};
-			for (size_t i = 0; i < 8; i++)
-				if (method == validMethods[i])
-					return (true);
-			return (false);
-		}
-
-		void															parsingMethods(void){
+		void																		parsingMethods(void){
 			size_t cpt = 0;
 
 			for (unsigned int i = 0; i < this->_virtualserver.size(); i++)
@@ -340,11 +322,67 @@ class VirtualServer
 					this->_methods = split(this->_virtualserver[i], " ");
 				}
 			}
-			this->_methods[this->_methods.size() - 1].erase(this->_methods[this->_methods.size() - 1].size() - 1);
-			this->_methods.erase(this->_methods.begin());
-			for (size_t i = 0; i < this->_methods.size(); i++)
-				std::cout << "CHECK PARSING METHOD VALUE OF VSRV " << this->_methods[i] << std::endl; 
+			if (!this->_methods.empty()){
+				this->_methods[this->_methods.size() - 1].erase(this->_methods[this->_methods.size() - 1].size() - 1);
+				this->_methods.erase(this->_methods.begin());
+			}
 		}
+		void																		parsingMaxBody(void){
+			size_t cpt = 0;
+
+			for (unsigned int i = 0; i < this->_virtualserver.size(); i++)
+			{
+				if (this->_virtualserver[i].find("{") != SIZE_MAX)
+					cpt++;
+				else if (this->_virtualserver[i].find("}") != SIZE_MAX)
+					cpt--;
+				if (this->_virtualserver[i].find("maxBody") != SIZE_MAX && (cpt == 1)){
+					this->_maxBody = split(this->_virtualserver[i], " ");
+				}
+			}
+			if (!this->_maxBody.empty()){
+				this->_maxBody[1].erase(this->_maxBody[1].size() - 1);
+				this->_maxBody.erase(this->_maxBody.begin());
+			}
+		}
+		void																		parsingCGI(void){
+			size_t cpt = 0;
+			std::vector<std::string> result;
+			std::string key;
+
+			for (unsigned int i = 0; i < this->_virtualserver.size(); i++)
+			{
+				if (this->_virtualserver[i].find("{") != SIZE_MAX)
+					cpt++;
+				else if (this->_virtualserver[i].find("}") != SIZE_MAX)
+					cpt--;
+				if (this->_virtualserver[i].find("CGI") != SIZE_MAX && (cpt == 1)){
+					result = split(this->_virtualserver[i], " ");
+					result.erase(result.begin());
+					key = result[0];
+					result.erase(result.begin());
+
+				}
+			}
+			if (!this->_maxBody.empty()){
+				this->_maxBody[1].erase(this->_maxBody[1].size() - 1);
+				this->_maxBody.erase(this->_maxBody.begin());
+			}
+		}
+
+		/***************************************************
+		*******************    Verif    ********************
+		***************************************************/
+		bool																		verifMethod(std::string method)
+		{
+			std::string validMethods[8] = {"GET", "HEAD", "POST", "PUT", "DELETE", "CONNECT", "OPTIONS", "TRACE"};
+			for (size_t i = 0; i < 8; i++)
+				if (method == validMethods[i])
+					return (true);
+			return (false);
+		}
+
+
 
 
 	private:
@@ -360,6 +398,8 @@ class VirtualServer
 		std::vector<std::string>										_virtualserver;
 		std::vector<std::map<std::string, std::vector<std::string> > >	_locations;
 		std::vector<std::string>										_methods;
+		std::vector<std::string>										_maxBody;
+		std::map<std::string, std::vector<std::string> >				_CGI;
 
 };
 
