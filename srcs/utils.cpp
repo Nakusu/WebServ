@@ -2,25 +2,23 @@
 
 std::vector<std::string>    split(std::string str, std::string separator)
 {
-    std::vector<std::string> tab;
-    std::string temp;
+	std::vector<std::string> tab;
+	std::string temp;
 
-    for (unsigned int i = 0; i < str.size(); i++)
-    {
-        if (separator.find(str[i]) == SIZE_MAX)
-            temp.push_back(str[i]);
-        else
-        {
-            if (!temp.empty())
-            {
-                tab.push_back(temp);
-                temp.clear();
-            }
-        }
-    }
+	for (unsigned int i = 0; i < str.size(); i++)
+	{
+		if (separator.find(str[i]) == SIZE_MAX)
+			temp.push_back(str[i]);
+		else{
+			if (!temp.empty()){
+				tab.push_back(temp);
+				temp.clear();
+			}
+		}
+	}
 	if (!temp.empty())
 		tab.push_back(temp);
-    return (tab);
+	return (tab);
 }
 
 int					searchInVec(std::string find, std::vector<std::string> entry){
@@ -31,8 +29,7 @@ int					searchInVec(std::string find, std::vector<std::string> entry){
 	return (-1);
 }
 
-std::string							fileToString(std::string file)
-{
+std::string							fileToString(std::string file){
 	std::string fileToString;
 	std::string line;
 std::ifstream	ifs(file.c_str());
@@ -48,13 +45,10 @@ std::ifstream	ifs(file.c_str());
 	return (fileToString);
 }
 
-std::string							convertInSpaces(std::string line)
-{
+std::string							convertInSpaces(std::string line){
 	std::string symbols = "\t\n\v\r\f";
-	for (unsigned int i = 0; i < line.size(); i++)
-	{
-		for (unsigned int j = 0; j < symbols.size(); j++)
-		{
+	for (unsigned int i = 0; i < line.size(); i++){
+		for (unsigned int j = 0; j < symbols.size(); j++){
 			if (line[i] == symbols[j])
 				line[i] = ' ';
 		}
@@ -62,8 +56,7 @@ std::string							convertInSpaces(std::string line)
 	return (line);
 }
 
-std::string							cleanLine(std::string    &line)
-{
+std::string							cleanLine(std::string    &line){
 	std::string lineCleaned = convertInSpaces(line);
 	std::vector<std::string> res = split(lineCleaned, " ");
 
@@ -81,6 +74,7 @@ std::string							cleanLine(std::string    &line)
 
 int									fileIsOpenable(std::string path){
 	std::ifstream opfile;
+
 	opfile.open(path.data());
 	if (!opfile.is_open())
 		return (0);
@@ -112,32 +106,30 @@ std::vector<std::string>			listFilesInFolder(std::string repos){
 	return (ret);
 }
 
-char 								**mergeArrays(char **tab1, char **tab2, int freeOption)
-{
-    int length = 0;
-    char **newTab;
-    for (unsigned int i = 0; tab1 && tab1[i]; i++)
-        length++;
-    for (unsigned int j = 0; tab2 && tab2[j]; j++)
-        length++;
-    if (!(newTab = (char**)malloc(sizeof(char*) * (length + 1))) || length == 0)
-        return (NULL);
-    length = 0;
-    for (unsigned int i = 0; tab1 && tab1[i]; i++)
-        newTab[length++] = tab1[i];
-    for (unsigned int j = 0; tab2 && tab2[j]; j++)
-        newTab[length++] = tab2[j];
-    newTab[length] = NULL;
-    if (freeOption == 1)
-        free(tab1);
-    else if (freeOption == 2)
-        free(tab2);
-    else if (freeOption == 3)
-    {
-        free(tab1);
-        free(tab2);
-    }
-    return (newTab);
+char 								**mergeArrays(char **tab1, char **tab2, int freeOption){
+	int length = 0;
+	char **newTab;
+	for (unsigned int i = 0; tab1 && tab1[i]; i++)
+		length++;
+	for (unsigned int j = 0; tab2 && tab2[j]; j++)
+		length++;
+	if (!(newTab = (char**)malloc(sizeof(char*) * (length + 1))) || length == 0)
+		return (NULL);
+	length = 0;
+	for (unsigned int i = 0; tab1 && tab1[i]; i++)
+		newTab[length++] = tab1[i];
+	for (unsigned int j = 0; tab2 && tab2[j]; j++)
+		newTab[length++] = tab2[j];
+	newTab[length] = NULL;
+	if (freeOption == 1)
+		free(tab1);
+	else if (freeOption == 2)
+		free(tab2);
+	else if (freeOption == 3){
+		free(tab1);
+		free(tab2);
+	}
+	return (newTab);
 }
 
 bool inArray(std::string arr[], std::string needle){ 

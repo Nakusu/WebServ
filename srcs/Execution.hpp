@@ -104,7 +104,8 @@ class Execution
 			this->header->updateContent("HTTP/1.1", "404 Not Found");
 			this->header->updateContent("Content-Type", "text/html");
 			this->header->sendHeader(this->req);
-			redir = vec.empty() ? this->getRoot() : this->getRoot() + "/" + vec[vec.size() - 1];
+			redir = vec.empty() ? this->getRoot() : this->getRoot() + vec[vec.size() - 1];
+			std::cout << redir << std::endl;
 			if ((searchInVec("404", vec) == -1 && searchInVec("404", this->vserv->get_errorPages()) == -1) ||
 			!fileIsOpenable(redir))
 				req->sendPacket("<html><head><title>404 Not Found</title></head><body bgcolor=\"white\"><center><h1>404 Not Found</h1></center><hr><center>Les Poldters Server Web</center></html>");
@@ -249,11 +250,6 @@ class Execution
 			tmp[1] = strdup(std::string("./" + this->vserv->getRoot() + this->req->get_uri()).c_str());
 			tmp[2] = 0;
 
-			for (size_t i = 0; env[i]; i++)
-			{
-				std::cout << GREEN << env[i] << RESET << std::endl;
-			}
-			
 			if ((pid = fork()) < 0)
 				return ; // error gestion
 			if (pid == 0) {

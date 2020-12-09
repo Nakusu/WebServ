@@ -63,9 +63,6 @@ class VirtualServer
 		}
 		int																	initFd(int domain, int type, int protocol){
 			int opt = TRUE;
-			std::cout << domain << std::endl;
-			std::cout << type << std::endl;
-			std::cout << protocol << std::endl;
 			if( (this->_fd = socket(domain , type , protocol)) == 0){
 				perror("socket failed");
 				exit(EXIT_FAILURE);
