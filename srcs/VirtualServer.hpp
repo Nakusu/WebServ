@@ -378,12 +378,206 @@ class VirtualServer
 		/***************************************************
 		*******************    Verif    ********************
 		***************************************************/
-		bool																verifMethod(std::string method){
+
+
+		void 																		verifications(void){
+			//verifAllPathsInLocations();
+			//verifAllMethods();
+			//verifListen();
+			//verifGblErrorPages();
+			//verifLocationsErrorPages();
+			//verifGblIndex();
+			//verifLocationIndex();
+			//verifGblRoot();
+			//verifLocationRoot();
+			//verifServerName();
+			//verifLocationsPaths();
+		}
+
+		bool																		verifMethod(std::string method) {
 			std::string validMethods[8] = {"GET", "HEAD", "POST", "PUT", "DELETE", "CONNECT", "OPTIONS", "TRACE"};
 			for (size_t i = 0; i < 8; i++)
 				if (method == validMethods[i])
 					return (true);
 			return (false);
+		}
+
+		bool																		verifAllMethods(void) {
+			for (size_t i = 0; i < this->_methods.size() - 1; i++) {
+				if (!verifMethod(this->_methods[i])) {
+					std::cerr << RED << "Error: Bad configuration of the global methods" << RESET << std::endl;
+					return (false);
+				}
+			}
+			for (size_t i = 0; i < this->_locations.size() - 1; i++) {
+				if (!this->_locations[i]["method"].empty()) {
+					if (!verifMethod(this->_locations[i]["method"][0])) { // A verifier
+						std::cerr << RED << "Error: Bad configuration of method parameter in the location " << i + 1 << RESET << std::endl;
+						return (false);
+					}
+				}
+			}
+			return (true);
+		}
+
+		bool																		verifListen(void){
+			for (size_t i = 0; i < this->_listen.size(); i++) {	
+				if (atoi(this->_listen[i].c_str()) < 0 || atoi(this->_listen[i].c_str()) > 65535) {
+					std::cerr << RED << "Error: Bad configuration in listen parameter" << RESET << std::endl;
+					return (false);
+				}
+			}
+			return (true);
+		}
+		
+		bool																		verifGblErrorPages(void){
+			std::ifstream opfile;
+			for (size_t i = 0; i < this->_errorPages.size() - 1; i++) {
+				if (atoi(this->_errorPages[i].c_str()) < 100 || atoi(this->_errorPages[i].c_str()) > 599) {
+					std::cerr << RED << "Error: Bad configuration of ports in global errorPages parameter" << RESET << std::endl;
+					return (false);
+				}
+			}
+			opfile.open(this->_errorPages[this->_errorPages.size() - 1].c_str());
+			if (!opfile.is_open()) {
+				std::cerr << RED << "Error: Bad configuration of path in global errorPages parameter" << RESET << std::endl;
+				return (false);
+			}
+			opfile.close();
+			return (true);
+		}
+
+		bool																		verifLocationsErrorPages(void){
+			std::ifstream opfile;
+			for (size_t i = 0; i < this->_locations.size() - 1; i++) {
+				if (!this->_locations[i]["error_page"].empty()) {
+					for (size_t j = 0; j < this->_locations[i]["error_page"].size() - 1; j++) {
+						if (atoi(this->_locations[i]["error_page"][j].c_str()) < 100 || atoi(this->_locations[i]["error_page"][j].c_str()) > 599) {
+							std::cerr << RED << "Error: Bad configuration of ports of errorPages parameter in the location" << i + 1 << RESET << std::endl;
+							return (false);
+						}
+					}
+					opfile.open((this->_locations[i]["error_page"][this->_locations[i]["error_page"].size() - 1] + this->_locations[i]["key"][0]).c_str());
+					if (!opfile.is_open()) {
+						std::cerr << RED << "Error: Bad configuration of path of errorPages parameter in the location" << i + 1 << RESET << std::endl;
+						return (false);
+					}
+					opfile.close();
+				}
+			}
+			return (true);
+		}
+
+
+
+		bool																		verifGblIndex(void) {
+			std::ifstream opfile;
+			for (size_t i = 0; i < this->_index.size(); i++) {
+				opfile.open(this->_index[i].c_str());
+				if (!opfile.is_open()) {
+					std::cerr << RED << "Error: Bad configuration of path in global index parameter" << RESET << std::endl;
+					return (false);	
+				}
+				opfile.close();
+			}
+			return (true);
+		}
+
+		bool																		verifLocationIndex(void) {
+			std::ifstream opfile;
+			for (size_t i = 0; i < this->_locations.size() - 1; i++) {
+				if (!this->_locations[i]["index"].empty()) {
+					for (size_t j = 0; j < this->_index.size(); j++) {
+						opfile.open((this->_locations[i]["index"][j] + this->_locations[i]["key"][0]).c_str());
+						if (!opfile.is_open()) {
+							std::cerr << RED << "Error: Bad configuration of path in index parameter of location" << i + 1 << RESET << std::endl;
+							return (false);	
+						}
+					opfile.close();
+					}
+				}
+			}
+			return (true);
+		}
+
+		bool																		verifGblRoot(void) {
+			std::ifstream opfile;
+			for (size_t i = 0; i < this->_root.size(); i++) {
+				opfile.open(this->_root[i].c_str());
+				if (!opfile.is_open()) {
+					std::cerr << RED << "Error: Bad configuration of path in global root parameter" << RESET << std::endl;
+					return (false);	
+				}
+				opfile.close();
+			}
+			return (true);
+		}
+		
+		std::string                                                            getRootLocation(std::string path){
+            std::vector<std::string> redir;
+            redir = this->findOption("root", path, 0, this->get_root());
+            if (redir.empty())
+                return (this->getRoot());
+            return (redir[0]);
+        }
+
+		bool																		verifLocationRoot(void) {
+			std::ifstream opfile;
+			for (size_t i = 0; i < this->_locations.size() - 1; i++) {
+				if (!this->_locations[i]["root"].empty()) {
+					for (size_t j = 0; j < this->_root.size(); j++) {
+						opfile.open((getRootLocation(this->_locations[i]["key"][0]) + this->_locations[i]["key"][0]).c_str());
+						if (!opfile.is_open()) {
+							std::cerr << RED << "Error: Bad configuration of path in root parameter of location" << i + 1 << RESET << std::endl;
+							return (false);	
+						}
+					opfile.close();
+					}
+				}
+			}
+			return (true);
+		}
+
+		bool																		verifServerName(void) {
+			if (this->_serverNames.empty()) {
+				std::cerr << RED << "Error: Bad configuration of server_name parameter" << RESET << std::endl;
+				return (false);
+			}
+			return (true);
+		}
+
+		bool																		verifLocationsPaths(void) {
+			std::ifstream opfile;
+			for (size_t i = 0; i < this->_locations.size(); i++) {
+				if (this->_locations[i]["key"].empty()) {
+					std::cerr << RED << "Error: Path of location " << i + 1 << " is empty" << RESET << std::endl;
+					return (false);
+				}
+				opfile.open(this->_locations[i]["key"][0].c_str());
+				if (!opfile.is_open()) {
+					std::cerr << RED << "Error: Bad configuration of path in location " << i + 1 << RESET << std::endl;
+					return (false);	
+				}
+				opfile.close();
+			}
+			return (true);
+		}
+
+		bool																		verifAllPathsInLocations(void) {
+			for (size_t i = 0; i < this->_locations.size(); i++) {
+				std::map<std::string, std::vector<std::string> >::iterator it;
+				for (it = this->_locations[i].begin(); it != this->_locations[i].end(); it++) {
+					for (size_t i = 0; i < it->second.size(); i++) {
+						if (it->first != "key" && it->second[i][it->second[i].size() - 1] == '/') {
+							std::cerr << RED << "Error: Bad initialisation of path in a location " << RESET << std::endl;
+							return (false);
+						}
+						else if (it->first == "key" && (it->second[0][0] != '/' || it->second[0][it->second[0].size() - 1] != '/'))
+							return (false);
+					}
+				}
+			}
+			return (true);
 		}
 
 	private:
