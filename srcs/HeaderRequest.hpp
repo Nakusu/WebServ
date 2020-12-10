@@ -45,6 +45,12 @@ class HeaderRequest {
 			this->addContent("Server", "webserv");
 			this->addContent("Date", getTime());
 		}
+		void											Error405HeaderFormat(Request *req, std::string allowMethods){
+			this->basicHeaderFormat(req);
+			this->updateContent("HTTP/1.1", "405 Method Not Allowed");
+			this->updateContent("Content-Type", "text/html");
+			this->addContent("Allow", allowMethods);
+		}
 
 		/***************************************************
 		*********************    GET   *********************

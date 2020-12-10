@@ -117,8 +117,7 @@ class Execution
 			std::string redir;
 			std::vector<std::string> vec = this->vserv->findOption("error_page", this->req->get_uri(), 1, this->vserv->get_errorPages());
 		
-			this->header->updateContent("HTTP/1.1", "405 Method Not Allowed");
-			this->header->updateContent("Content-Type", "text/html");
+			this->header->Error405HeaderFormat(this->req, this->getAllowMethods());
 			this->header->sendHeader(this->req);
 			redir = vec.empty() ? this->getRoot() : this->getRoot() + "/" + vec[vec.size() - 1];
 			if ((searchInVec("405", vec) == -1 && searchInVec("405", this->vserv->get_errorPages()) == -1) || !fileIsOpenable(redir))
@@ -315,12 +314,27 @@ class Execution
 			}
 			return (0);
 		}
-
+		std::string									getAllowMethods(void){
+			std::vector<size_t> indexs = this->vserv->findLocationsAndSublocations(this->req->get_uri());
+			std::vector<std::map<std::string, std::vector<std::string> > > locations = this->vserv->get_locations();
+			std::string														ret;
+			if (!indexs.empty()) {
+				for (size_t j = 0; j < locations[indexs[0]]["method"].size(); j++)
+					ret += (" " + locations[indexs[0]]["method"][j] + ",");
+				ret.erase(ret.size() - 1);
+				return (ret);
+			} else {
+				for (size_t k = 0; k < this->vserv->get_method().size(); k++)
+					ret += (" " + this->vserv->get_method()[k] + ",");
+				ret.erase(ret.size() - 1);
+				return (ret);
+			}
+			return (ret);
+		}
 		bool										checkMethod(void){
 			std::vector<size_t> indexs = this->vserv->findLocationsAndSublocations(this->req->get_uri());
 			std::vector<std::map<std::string, std::vector<std::string> > > locations = this->vserv->get_locations();
-			if (!indexs.empty())
-			{
+			if (!indexs.empty()) {
 				if (locations[indexs[0]]["method"].empty())
 					return (true);
 				for (size_t j = 0; j < locations[indexs[0]]["method"].size(); j++) {
@@ -328,9 +342,7 @@ class Execution
 					if (this->req->get_method() == locations[indexs[0]]["method"][j])
 						return (true);
 				}
-			}
-			else
-			{
+			} else {
 				if (this->vserv->get_method().empty())
 					return (true);
 				for (size_t k = 0; k < this->vserv->get_method().size(); k++) {
