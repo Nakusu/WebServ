@@ -54,6 +54,7 @@ int			main(int argc, char **argv, char **env)
 				if (!exec.needRedirection() && exec.checkMethod()){
 					if (!exec.searchIndex() && !exec.initCGI(req) && !exec.openText() && !exec.binaryFile())
 						exec.searchError404();	
+					}
 				}
 				delete req;
 				delete header;
