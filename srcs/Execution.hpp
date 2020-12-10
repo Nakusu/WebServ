@@ -81,12 +81,14 @@ class Execution
 				//Search if AutoIndex is on
 				if (this->getAutoIndex()){
 					if (this->req->get_method() != "HEAD"){
-						autoindex = "<h1>Index of " + std::string(this->req->get_uri()) + "</h1><hr><pre>";
+						autoindex = "<html><head><title>AutoIndex</title></head><body>";
+						autoindex += "<h1>Index of " + std::string(this->req->get_uri()) + "</h1><hr><pre>";
 						autoindex += "<a href=\"../\"> ../</a><br/>";
 						for (size_t j = 0; j < files.size(); j++)
 							autoindex += "<a href=\"" + std::string(this->req->get_uri()) + files[j] +"\">" + files[j] + "</a><br/>";
 
 						autoindex += "</pre><hr>";
+						autoindex += "</body></html>";
 					}
 					this->header->basicHeaderFormat(this->req);
 					this->header->sendHeader(this->req);
