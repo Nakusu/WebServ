@@ -78,14 +78,17 @@ class Execution
 						return (0);
 					}
 				}
-				autoindex = "<h1>Index of " + std::string(this->req->get_uri()) + "</h1><hr><pre>";
 				//Search if AutoIndex is on
 				if (this->getAutoIndex()){
-					autoindex += "<a href=\"../\"> ../</a><br/>";
-					for (size_t j = 0; j < files.size(); j++){
-						autoindex += "<a href=\"" + std::string(this->req->get_uri()) + files[j] +"\">" + files[j] + "</a><br/>";
+					if (this->req->get_method() != "HEAD"){
+						autoindex = "<h1>Index of " + std::string(this->req->get_uri()) + "</h1><hr><pre>";
+						autoindex += "<a href=\"../\"> ../</a><br/>";
+						for (size_t j = 0; j < files.size(); j++)
+							autoindex += "<a href=\"" + std::string(this->req->get_uri()) + files[j] +"\">" + files[j] + "</a><br/>";
+
+						autoindex += "</pre><hr>";
 					}
-					autoindex += "</pre><hr>";
+					this->header->basicHeaderFormat(this->req);
 					this->header->sendHeader(this->req);
 					this->req->sendPacket(autoindex.c_str());
 				}
@@ -305,9 +308,7 @@ class Execution
 				}
 				else{
 					uri.push_back('/');
-					this->header->updateContent("HTTP/1.1", "301 Moved Permanently");
-					this->header->updateContent("Content-Type", "text/html");
-					this->header->updateContent("Location", uri);
+					this->header->RedirectionHeaderFormat(this->req, uri);
 					this->header->sendHeader(this->req);
 					return (1);
 				}
