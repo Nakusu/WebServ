@@ -151,7 +151,8 @@ class Execution
   			opfile.open(tmp.data(), std::ios::binary | std::ios::in);
 			  if (!opfile.is_open())
 			  	return (0);
-			req->sendPacket("HTTP/1.1 200\n\n");
+			this->header->basicHeaderFormat(this->req);
+			this->header->sendHeader(this->req);
 			while (!opfile.eof()) {
 				if (this->req->get_method() != "HEAD") {
 					opfile.read(content, 4096); 
@@ -173,10 +174,7 @@ class Execution
   			opfile.open(tmp.data());
 			if (opfile.is_open() == false)
 				return (0);
-			//this->header->updateContent("HTTP/1.1", "200");
-			std::cout << "CHECK -------------------" << std::endl;
-			this->header->addContent("Server", "webserv");
-			this->header->addContent("Date", getTime());
+			this->header->basicHeaderFormat(this->req);
 			this->header->sendHeader(this->req);
 			while (std::getline(opfile, content))
 				if (this->req->get_method() != "HEAD")

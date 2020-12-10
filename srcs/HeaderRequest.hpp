@@ -40,6 +40,11 @@ class HeaderRequest {
 			rep += "\n\n";
 			req->sendPacket(rep.c_str());
 		}
+		void											basicHeaderFormat(Request *req){
+			this->addContent("Host", (req->get_host() + ":" + req->get_port()));
+			this->addContent("Server", "webserv");
+			this->addContent("Date", getTime());
+		}
 
 		/***************************************************
 		*********************    GET   *********************
