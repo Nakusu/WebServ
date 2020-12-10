@@ -65,9 +65,8 @@ class Execution
 				std::vector<std::string>	files;
 				std::vector<std::string>	vec;
 				size_t						index;
-				
-				this->header->updateContent("Content-Type", "text/html");
 
+				this->header->updateContent("Content-Type", "text/html");
 				vec = this->vserv->findOption("index", this->req->get_uri(), 0, this->vserv->get_index());
 				files = listFilesInFolder(this->getRoot() + this->req->get_uri());
 				std::cout << "CHECK" << std::endl;
@@ -110,11 +109,11 @@ class Execution
 			this->header->updateContent("HTTP/1.1", "404 Not Found");
 			this->header->updateContent("Content-Type", "text/html");
 			this->header->sendHeader(this->req);
-			redir = vec.empty() ? this->getRoot() : this->getRoot() + "/" + vec[vec.size() - 1];
+			redir = vec.empty() ? this->getRoot() : this->getRoot() + vec[vec.size() - 1];
 			if ((searchInVec("404", vec) == -1 && searchInVec("404", this->vserv->get_errorPages()) == -1) ||
 			!fileIsOpenable(redir))
 				req->sendPacket("<html><head><title>404 Not Found</title></head><body bgcolor=\"white\"><center><h1>404 Not Found</h1></center><hr><center>Les Poldters Server Web</center></html>");
-			else 
+			else
 				req->sendPacket(fileToString(redir));
 		}
 
@@ -197,18 +196,12 @@ class Execution
 				std::map<std::string, std::string> tmpmap = this->req->get_Parsing().getMap();
 				std::map<std::string, std::string>::iterator it = tmpmap.begin();
 
-				for (; it != tmpmap.end(); it++) {
+				while (it != tmpmap.end()) {
 					if (it->first != "First" && !it->first.empty())
 						args.insert(std::make_pair(("HTTP_" + it->first), it->second));
+					it++;
 				}
 			}
-			/*args = this->req->get_Parsing().getMap();
-			for (std::map<std::string, std::string>::iterator it = args.begin(); it != args.end(); it++)
-			{
-				std::cout <<  it->first << std::endl;
-			}*/
-
-		
 			args["AUTH_TYPE"] = req->get_authType();
 			args["SERVER_SOFTWARE"] = "webserv";
 			args["SERVER_PROTOCOL"] = "HTTP/1.1";
@@ -230,13 +223,10 @@ class Execution
 			args["REMOTE_ADDR"] = this->req->get_IpClient();
 			args["REQUEST_METHOD"] = this->req->get_method();
 			args["GATEWAY_INTERFACE"] = "CGI/1.1";
-			args["REMOTE_USER"] = req->get_authCredential();
-			args["REMOTE_IDENT"] = req->get_authCredential();
+			args["REMOTE_USER"] = this->req->get_authCredential();
+			args["REMOTE_IDENT"] = this->req->get_authCredential();
 			args["PATH_INFO"] = this->req->get_uri();
-			args["PATH_TRANSLATED"] = "./public/php/test.php";
-
-			for (std::map<std::string, std::string>::iterator it = args.begin(); it != args.end(); it++)
-				std::cout << "KEY [" << it->first << "] VALUE [" << it->second << "]" << std::endl;
+			args["PATH_TRANSLATED"] = "./" + this->vserv->getRoot() + this->req->get_uri();
 			return (args);
 		}
 
@@ -247,36 +237,37 @@ class Execution
 
 			for (std::map<std::string, std::string>::iterator it = args.begin(); it != args.end(); it++)
 				tmpargs[i++] = strdup((it->first + "=" + it->second).c_str());
-			tmpargs[i] = NULL;
+			tmpargs[i] = 0;
 			return (tmpargs);
 		}
 		void										processCGI(std::string cgi_path, char **args) {
 			int  pfd[2];
 			int  pid;
+			char **env = mergeArrays(args, this->_envs, 0);
+
 
 			if (pipe(pfd) == -1)
 				return ; // error gestion
 			pfd[0] = 1;
-			// pfd[1] = this->vserv->getFd();
+			pfd[1] = this->req->getSocket();
 			char **tmp = (char**)malloc(sizeof(char*) * 3);
 			tmp[0] = strdup(cgi_path.c_str());
-			tmp[1] = strdup(std::string("/php/test.php").c_str());
-			tmp[2] = NULL;
-			std::cout << "JUST BEFORE JOB" << std::endl;
+			tmp[1] = strdup(std::string("./" + this->vserv->getRoot() + this->req->get_uri()).c_str());
+			tmp[2] = 0;
 
 			if ((pid = fork()) < 0)
 				return ; // error gestion
 			if (pid == 0) {
-				int fd = open("./public/php/test.php", O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+				int fd = open(this->req->get_uri().c_str(), O_RDWR | O_TRUNC, S_IRUSR | S_IWUSR);
 				dup2(fd, 0); // ici en entrée mettre le body
-				dup2(pfd[0], 1);
-				std::cout << "JUST BEFORE THE WORK" << std::endl;
-				if (execve(cgi_path.c_str(), args, this->_envs) == -1)
+				dup2(pfd[1], 1);
+				dup2(1, 2);
+				if (execve(cgi_path.c_str(), tmp, env) == -1)
 					return ;
-				std::cout << "WORK IS OK !" << std::endl;
-				exit(0);
+				close(fd);
 				close(pfd[0]);
 				close(pfd[1]);
+				exit(0);
 			} else {
 				close(pfd[0]);
 				close(pfd[1]);
@@ -285,18 +276,15 @@ class Execution
 		int											initCGI(Request *req) {
 			std::vector<size_t> indexs = this->vserv->findLocationsAndSublocations(this->req->get_uri());
 			std::vector<std::map<std::string, std::vector<std::string> > > locations = this->vserv->get_locations();
-			if (!indexs.empty() && !locations[indexs[0]]["cgiextension"].empty() && !locations[indexs[0]]["cgi_path"].empty() && req->getExtension() == &locations[indexs[0]]["cgiextension"][0][1]) {
-				std::cout << "READY FOR DO WORK !" << std::endl;
-				if (fileIsOpenable(locations[indexs[0]]["cgi_path"][0])) {
-					std::cout << "BEFORE SET META CGI" << std::endl;
-					std::map<std::string, std::string> args = setMetaCGI(locations[indexs[0]]["cgi_path"][0]);
-					std::cout << "METAS WAS ALL SET" << std::endl;
+			if (!indexs.empty() && locations[indexs[0]][req->getExtension()].size() != 0) {
+				if (fileIsOpenable(locations[indexs[0]][req->getExtension()][0])) {
+					std::map<std::string, std::string> args = setMetaCGI(locations[indexs[0]][req->getExtension()][0]);
 					char **tmpargs = swapMaptoChar(args);
-					std::cout << "CONVERTION TO CHAR** OK" << std::endl;
-					processCGI(locations[indexs[0]]["cgi_path"][0], tmpargs);
+					processCGI(locations[indexs[0]][req->getExtension()][0], tmpargs);
+					return (1);
 				}
 			}
-			return (1);
+			return (0);
 		}
 
 		/***************************************************
@@ -305,9 +293,8 @@ class Execution
 		int											needRedirection(void){
 			if (folderIsOpenable(getRoot() + this->req->get_uri())) {
 				std::string uri = this->req->get_uri();
-				if (uri.rfind('/') == uri.size() - 1){
+				if (uri.rfind('/') == uri.size() - 1)
 					return (0);
-				}
 				else{
 					uri.push_back('/');
 					this->header->RedirectionHeaderFormat(this->req, uri);
@@ -337,15 +324,25 @@ class Execution
 		bool										checkMethod(void){
 			std::vector<size_t> indexs = this->vserv->findLocationsAndSublocations(this->req->get_uri());
 			std::vector<std::map<std::string, std::vector<std::string> > > locations = this->vserv->get_locations();
-			if (!indexs.empty()) {
+
+			if (!indexs.empty() && locations[indexs[0]][this->req->getExtension()].size() != 0) {
+				int ret = 0;
+				for (size_t i = 1; i < locations[indexs[0]][this->req->getExtension()].size(); i++){
+					if (locations[indexs[0]][this->req->getExtension()][i] == this->req->get_method())
+						ret = 1;
+				}
+				if (!ret && locations[indexs[0]][this->req->getExtension()].size() > 1)
+					return (false);
+			}
+			if (!indexs.empty()){
 				if (locations[indexs[0]]["method"].empty())
 					return (true);
 				for (size_t j = 0; j < locations[indexs[0]]["method"].size(); j++) {
-					std::cout << "REQUEST METHOD " << this->req->get_method() << " LOCATION METHOD : " << locations[indexs[0]]["method"][j] << std::endl;
 					if (this->req->get_method() == locations[indexs[0]]["method"][j])
 						return (true);
 				}
-			} else {
+			}
+			else{
 				if (this->vserv->get_method().empty())
 					return (true);
 				for (size_t k = 0; k < this->vserv->get_method().size(); k++) {
@@ -353,6 +350,7 @@ class Execution
 						return (true);
 				}
 			}
+			
 			return (false);
 		}
 
@@ -361,6 +359,6 @@ class Execution
 		VirtualServer *		vserv;
 		Request * 			req;
 		HeaderRequest *		header;
-		char		  **	_envs;
+		char **				_envs;
 };
 #endif

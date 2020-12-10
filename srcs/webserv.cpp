@@ -10,7 +10,7 @@ int			checkArgs(int argc, char **argv, std::string *defaultConf, ServerWeb *serv
 	*defaultConf = "srcs/default.conf";
 
 	if (argc > 1)
-		*defaultConf = std::string(argv[1]) + "/" + *defaultConf;
+		*defaultConf = std::string(argv[1]);
 	std::ifstream	ifs((*defaultConf).c_str());
 	if (ifs.fail()){
 		std::cerr << "Reading Error" << std::endl;
@@ -52,8 +52,7 @@ int			main(int argc, char **argv, char **env)
 				if (!exec.checkMethod())
 					exec.searchError405();
 				if (!exec.needRedirection() && exec.checkMethod()){
-					if (!exec.searchIndex() && exec.initCGI(req) && !exec.openText() && !exec.binaryFile()) {
-						std::cout << "404 error" << std::endl;
+					if (!exec.searchIndex() && !exec.initCGI(req) && !exec.openText() && !exec.binaryFile())
 						exec.searchError404();	
 					}
 				}
