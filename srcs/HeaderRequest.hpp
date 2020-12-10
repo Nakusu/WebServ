@@ -6,7 +6,7 @@
 class HeaderRequest {
 	public:
 		HeaderRequest() {
-			this->_content.insert(std::pair<std::string, std::string>("HTTP/1.1", "200 OK"));
+			this->addContent("HTTP/1.1", "200 OK");
 		}
 		virtual	~HeaderRequest() {
 			return ;

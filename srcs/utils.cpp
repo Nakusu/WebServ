@@ -146,5 +146,8 @@ bool 								inArray(std::string arr[], std::string needle){
 
 std::string							getTime(){
 	time_t ttime = time(0);
-	return (ctime(&ttime));
+	std::string ret = std::string(ctime(&ttime));
+	ret.erase(ret.size() - 1);
+	std::cout << "CHECK DATE [" << ret << "]" << std::endl;
+	return (ret);
 }

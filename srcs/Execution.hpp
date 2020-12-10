@@ -174,6 +174,7 @@ class Execution
 			if (opfile.is_open() == false)
 				return (0);
 			//this->header->updateContent("HTTP/1.1", "200");
+			std::cout << "CHECK -------------------" << std::endl;
 			this->header->addContent("Server", "webserv");
 			this->header->addContent("Date", getTime());
 			this->header->sendHeader(this->req);
