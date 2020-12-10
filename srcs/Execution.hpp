@@ -324,7 +324,8 @@ class Execution
 		bool										checkMethod(void){
 			std::vector<size_t> indexs = this->vserv->findLocationsAndSublocations(this->req->get_uri());
 			std::vector<std::map<std::string, std::vector<std::string> > > locations = this->vserv->get_locations();
-
+		
+			// PREMIER IF POUR LA GESTION DES CGI
 			if (!indexs.empty() && locations[indexs[0]][this->req->getExtension()].size() != 0) {
 				int ret = 0;
 				for (size_t i = 1; i < locations[indexs[0]][this->req->getExtension()].size(); i++){
