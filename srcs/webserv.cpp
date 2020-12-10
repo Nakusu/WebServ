@@ -10,7 +10,7 @@ int			checkArgs(int argc, char **argv, std::string *defaultConf, ServerWeb *serv
 	*defaultConf = "srcs/default.conf";
 
 	if (argc > 1)
-		*defaultConf = std::string(argv[1]) + "/" + *defaultConf;
+		*defaultConf = std::string(argv[1]);
 	std::ifstream	ifs((*defaultConf).c_str());
 	if (ifs.fail()){
 		std::cerr << "Reading Error" << std::endl;

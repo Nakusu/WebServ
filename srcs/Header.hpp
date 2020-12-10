@@ -52,7 +52,7 @@ std::vector<std::string>				split(std::string str, std::string separator);
 int										searchInVec(std::string find, std::vector<std::string> entry);
 std::string								fileToString(std::string file);
 std::string								convertInSpaces(std::string line);
-std::string								cleanSpaces(std::string	&line);
+std::string								cleanLine(std::string	&line);
 int										fileIsOpenable(std::string path);
 bool									folderIsOpenable(std::string repos);
 std::vector<std::string>				listFilesInFolder(std::string repos);

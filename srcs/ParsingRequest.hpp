@@ -61,17 +61,14 @@ class ParsingRequest{
 
 			std::vector<std::string> pars = split(_buffer, "\n");
 			for (size_t i = 1; i < pars.size(); i++)
-				pars[i] = cleanSpaces(pars[i]);
+				pars[i] = cleanLine(pars[i]);
 			std::string key = "First";
 			std::string value = (pars.size() > 0) ? pars[0] : "";
 			this->_map[key] = value;
 			
 			for (size_t i = 1; i < pars.size(); i++){
 				if (!pars[i].empty())
-				{
                 	this->_map[pars[i].substr(0, pars[i].find_first_of(" ") - 1)] = &pars[i][pars[i].find_first_of(" ") + 1];
-				// std::cout << "[" << pars[i] << "]" << std::endl;
-				}
 			}
 		}
 
