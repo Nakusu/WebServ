@@ -65,9 +65,8 @@ class Execution
 				std::vector<std::string>	files;
 				std::vector<std::string>	vec;
 				size_t						index;
-				
-				this->header->updateContent("Content-Type", "text/html");
 
+				this->header->updateContent("Content-Type", "text/html");
 				vec = this->vserv->findOption("index", this->req->get_uri(), 0, this->vserv->get_index());
 				files = listFilesInFolder(this->getRoot() + this->req->get_uri());
 
@@ -284,9 +283,8 @@ class Execution
 		int											needRedirection(void){
 			if (folderIsOpenable(getRoot() + this->req->get_uri())) {
 				std::string uri = this->req->get_uri();
-				if (uri.rfind('/') == uri.size() - 1){
+				if (uri.rfind('/') == uri.size() - 1)
 					return (0);
-				}
 				else{
 					uri.push_back('/');
 					this->header->updateContent("HTTP/1.1", "301 Moved Permanently");

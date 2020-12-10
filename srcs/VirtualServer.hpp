@@ -162,6 +162,13 @@ class VirtualServer
 		std::string															getRoot(void){
 			return (this->_root[0]);
 		}
+		std::string															getRootLocation(std::string path){
+			std::vector<std::string> redir;
+			redir = this->findOption("root", path, 0, this->get_root());
+			if (redir.empty())
+				return (this->getRoot());
+			return (redir[0]);
+		}
 		int																	getFd(void){
 			return (this->_fd);
 		}
@@ -189,8 +196,13 @@ class VirtualServer
 			this->parsingMaxBody();
 		}
 		void																parsingAutoIndex(void){
+			unsigned int cpt = 0;
 			for (unsigned int i = 0; i < this->_virtualserver.size(); i++){
-				if (this->_virtualserver[i].find("autoindex") != SIZE_MAX){
+				if (this->_virtualserver[i].find("{") != SIZE_MAX)
+					cpt++;
+				else if (this->_virtualserver[i].find("}") != SIZE_MAX)
+					cpt--;
+				if (this->_virtualserver[i].find("autoindex") != SIZE_MAX && (cpt == 1)){
 					if (this->_virtualserver[i].find("off") != SIZE_MAX)
 						this->_autoIndex = false;
 					else
@@ -200,8 +212,13 @@ class VirtualServer
 			}
 		}
 		void																parsingIndex(void){
+			unsigned int cpt = 0;
 			for (unsigned int i = 0; i < this->_virtualserver.size(); i++){
-				if (this->_virtualserver[i].find("index") == 0){
+				if (this->_virtualserver[i].find("{") != SIZE_MAX)
+					cpt++;
+				else if (this->_virtualserver[i].find("}") != SIZE_MAX)
+					cpt--;
+				if (this->_virtualserver[i].find("index") != SIZE_MAX && (cpt == 1)){
 					std::string iss = this->_virtualserver[i];
 					iss = convertInSpaces(iss);
 					iss = cleanLine(iss);
@@ -212,8 +229,13 @@ class VirtualServer
 			}
 		}
 		void																parsingListen(void){
-			for (unsigned int i = 0; i < this->_virtualserver.size(); i++) {
-				if (this->_virtualserver[i].find("listen") != SIZE_MAX){
+			unsigned int cpt = 0;
+			for (unsigned int i = 0; i < this->_virtualserver.size(); i++){
+				if (this->_virtualserver[i].find("{") != SIZE_MAX)
+					cpt++;
+				else if (this->_virtualserver[i].find("}") != SIZE_MAX)
+					cpt--;
+				if (this->_virtualserver[i].find("listen") != SIZE_MAX && (cpt == 1)){
 					std::vector<std::string> results = split(_virtualserver[i], " ");
 					results.erase(results.begin());
 					this->_listen = results;

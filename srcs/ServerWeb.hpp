@@ -10,7 +10,7 @@ class ServerWeb
 	public:
 		ServerWeb(void){
 			this->_fdmax = 0;
-			this->_root = "./public/";
+			this->_root = "./public";
 		}
 		ServerWeb(ServerWeb const &rhs){
 			operator=(rhs);
