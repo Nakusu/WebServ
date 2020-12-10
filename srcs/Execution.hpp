@@ -105,11 +105,10 @@ class Execution
 			this->header->updateContent("Content-Type", "text/html");
 			this->header->sendHeader(this->req);
 			redir = vec.empty() ? this->getRoot() : this->getRoot() + vec[vec.size() - 1];
-			std::cout << redir << std::endl;
 			if ((searchInVec("404", vec) == -1 && searchInVec("404", this->vserv->get_errorPages()) == -1) ||
 			!fileIsOpenable(redir))
 				req->sendPacket("<html><head><title>404 Not Found</title></head><body bgcolor=\"white\"><center><h1>404 Not Found</h1></center><hr><center>Les Poldters Server Web</center></html>");
-			else 
+			else
 				req->sendPacket(fileToString(redir));
 		}
 
@@ -219,9 +218,6 @@ class Execution
 			args["REMOTE_IDENT"] = this->req->get_authCredential();
 			args["PATH_INFO"] = this->req->get_uri();
 			args["PATH_TRANSLATED"] = "./" + this->vserv->getRoot() + this->req->get_uri();
-
-			// for (std::map<std::string, std::string>::iterator it = args.begin(); it != args.end(); it++)
-			// 	std::cout << "KEY [" << it->first << "] VALUE [" << it->second << "]" << std::endl;
 			return (args);
 		}
 
@@ -257,7 +253,6 @@ class Execution
 				dup2(fd, 0); // ici en entrée mettre le body
 				dup2(pfd[1], 1);
 				dup2(1, 2);
-				// std::cout << "\n" << std::endl;
 				if (execve(cgi_path.c_str(), tmp, env) == -1)
 					return ;
 				close(fd);

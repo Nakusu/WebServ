@@ -22,11 +22,6 @@ std::vector<std::string>    split(std::string str, std::string separator)
 }
 
 int					searchInVec(std::string find, std::vector<std::string> entry){
-	for (size_t i = 0; i < entry.size(); i++)
-	{
-		std::cout << entry[i] << std::endl;
-	}
-	
 	for (size_t i = 0; i < entry.size(); i++){
 		if (!find.compare(entry[i]))
 			return (i);
