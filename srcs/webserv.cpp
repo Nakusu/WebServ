@@ -47,6 +47,7 @@ int			main(int argc, char **argv, char **env)
 				struct sockaddr_in * IPClient = serv->getVS(i)->getAddress();
 				Request *req = new Request(accept(serv->getVS(i)->getFd(), (struct sockaddr *)IPClient, (socklen_t *)&addrlen));
 				req->setIPClient(inet_ntoa(*(in_addr *)IPClient));
+				std::cout << IPClient << std::endl;
 				HeaderRequest *header = new HeaderRequest();
 				Execution exec = Execution(serv, serv->getVS(i), req, header, env);
 				if (!exec.checkMethod())
