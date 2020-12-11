@@ -143,6 +143,5 @@ std::string							getTime(){
 	time_t ttime = time(0);
 	std::string ret = std::string(ctime(&ttime));
 	ret.erase(ret.size() - 1);
-	std::cout << "CHECK DATE [" << ret << "]" << std::endl;
 	return (ret);
 }

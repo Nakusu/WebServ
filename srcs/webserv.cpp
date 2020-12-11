@@ -55,6 +55,7 @@ int			main(int argc, char **argv, char **env)
 					if (!exec.searchIndex() && !exec.initCGI(req) && !exec.openText() && !exec.binaryFile())
 						exec.searchError404();	
 				}
+				serv->getVS(i)->setHistory(req->get_userAgent(), req->get_url());
 				delete req;
 				delete header;
 				nb_activity--;

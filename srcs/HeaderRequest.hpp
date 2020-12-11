@@ -32,7 +32,6 @@ class HeaderRequest {
 			for (std::map<std::string, std::string>::iterator i = this->_content.begin(); i != this->_content.end(); i++) {
 				if (i->first != "HTTP/1.1"){
 					rep += i->first + ": " + i->second;
-					std::cout << "CHECK REQUEST HEADER " << rep << std::endl;
 				}
 			}
 			rep.erase(rep.size() - 1);
@@ -45,6 +44,10 @@ class HeaderRequest {
 			this->addContent("Server", "webserv");
 			this->addContent("Date", getTime());
 		}
+		void											basicHistory(VirtualServer *vserv, Request *req){
+			if (vserv->get_history(req->get_userAgent()) != "")
+				this->updateContent("Referer", vserv->get_history(req->get_userAgent()));
+		}
 		void											Error405HeaderFormat(Request *req, std::string allowMethods){
 			this->basicHeaderFormat(req);
 			this->updateContent("HTTP/1.1", "405 Method Not Allowed");
@@ -52,6 +55,7 @@ class HeaderRequest {
 			this->addContent("Allow", allowMethods);
 		}
 		void											RedirectionHeaderFormat(Request *req, std::string uri){
+			std::cout << "REDIRECTION HEADER FORMAT" << std::endl;
 			this->basicHeaderFormat(req);
 			this->updateContent("HTTP/1.1", "301 Moved Permanently");
 			this->updateContent("Content-Type", "text/html");
