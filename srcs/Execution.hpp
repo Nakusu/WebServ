@@ -54,7 +54,26 @@ class Execution
 			else
 				return (0);
 		}
-
+		std::string									getRedirError(std::string num_error, std::vector<std::string> vec){
+			for (size_t i = 0; i < vec.size(); i++){
+				if (vec[i] == num_error){
+					while (vec[i][0] != '.' && vec[i][0] != '/')
+						i++;
+					if (i < vec.size())
+						return (this->getRoot() + vec[i]);
+				}
+			}
+			std::vector<std::string> vecgbl = this->vserv->get_errorPages();
+			for (size_t i = 0; i < vecgbl.size(); i++){
+				if (vecgbl[i] == num_error){
+					while (vecgbl[i][0] != '.' && vecgbl[i][0] != '/')
+						i++;
+					if (i < vecgbl.size())
+						return (this->serv->get_root() + vecgbl[i]);
+				}
+			}
+			return ("error");
+		}
 		/***************************************************
 		*******************    SEARCH    *******************
 		***************************************************/
@@ -89,11 +108,13 @@ class Execution
 						autoindex += "</body></html>";
 					}
 					this->header->basicHeaderFormat(this->req);
+					this->header->basicHistory(this->vserv, this->req);
 					this->header->sendHeader(this->req);
 					this->req->sendPacket(autoindex.c_str());
 				}
 				else{
 					this->header->updateContent("HTTP/1.1", "403");
+					this->header->basicHistory(this->vserv, this->req);
 					this->header->sendHeader(this->req);
 					this->req->sendPacket("Interaction interdite..."); // SI IL N'Y A PAS D'INDEX DE BASE ET QUE L'AUTOINDEX EST SUR OFF
 				}
@@ -107,10 +128,10 @@ class Execution
 		
 			this->header->updateContent("HTTP/1.1", "404 Not Found");
 			this->header->updateContent("Content-Type", "text/html");
+			this->header->basicHistory(this->vserv, this->req);
 			this->header->sendHeader(this->req);
-			redir = vec.empty() ? this->getRoot() : this->getRoot() + vec[vec.size() - 1];
-			if ((searchInVec("404", vec) == -1 && searchInVec("404", this->vserv->get_errorPages()) == -1) ||
-			!fileIsOpenable(redir))
+			redir = getRedirError("404", vec);
+			if (redir == "error")
 				req->sendPacket("<html><head><title>404 Not Found</title></head><body bgcolor=\"white\"><center><h1>404 Not Found</h1></center><hr><center>Les Poldters Server Web</center></html>");
 			else
 				req->sendPacket(fileToString(redir));
@@ -121,9 +142,10 @@ class Execution
 			std::vector<std::string> vec = this->vserv->findOption("error_page", this->req->get_uri(), 1, this->vserv->get_errorPages());
 		
 			this->header->Error405HeaderFormat(this->req, this->getAllowMethods());
+			this->header->basicHistory(this->vserv, this->req);
 			this->header->sendHeader(this->req);
-			redir = vec.empty() ? this->getRoot() : this->getRoot() + "/" + vec[vec.size() - 1];
-			if ((searchInVec("405", vec) == -1 && searchInVec("405", this->vserv->get_errorPages()) == -1) || !fileIsOpenable(redir))
+			redir = getRedirError("405", vec);
+			if (redir == "error")
 				req->sendPacket("<html><head><title>405 Method Not Allowed</title></head><body bgcolor=\"white\"><center><h1>405 Method Not Allowed</h1></center><hr><center>Les Poldters Server Web</center></html>");
 			else 
 				req->sendPacket(fileToString(redir));
@@ -154,6 +176,7 @@ class Execution
 			  if (!opfile.is_open())
 			  	return (0);
 			this->header->basicHeaderFormat(this->req);
+			this->header->basicHistory(this->vserv, this->req);
 			this->header->sendHeader(this->req);
 			while (!opfile.eof()) {
 				if (this->req->get_method() != "HEAD") {
@@ -177,6 +200,7 @@ class Execution
 			if (opfile.is_open() == false)
 				return (0);
 			this->header->basicHeaderFormat(this->req);
+			this->header->basicHistory(this->vserv, this->req);
 			this->header->sendHeader(this->req);
 			while (std::getline(opfile, content))
 				if (this->req->get_method() != "HEAD")
@@ -297,6 +321,7 @@ class Execution
 				else{
 					uri.push_back('/');
 					this->header->RedirectionHeaderFormat(this->req, uri);
+					this->header->basicHistory(this->vserv, this->req);
 					this->header->sendHeader(this->req);
 					return (1);
 				}

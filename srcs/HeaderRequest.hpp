@@ -40,8 +40,13 @@ class HeaderRequest {
 		}
 		void											basicHeaderFormat(Request *req){
 			this->addContent("Host", (req->get_host() + ":" + req->get_port()));
+			this->updateContent("Content-Location", req->get_uri());
 			this->addContent("Server", "webserv");
 			this->addContent("Date", getTime());
+		}
+		void											basicHistory(VirtualServer *vserv, Request *req){
+			if (vserv->get_history((req->get_IpClient() + req->get_userAgent())) != "")
+				this->updateContent("Referer", vserv->get_history((req->get_IpClient() + req->get_userAgent())));
 		}
 		void											Error405HeaderFormat(Request *req, std::string allowMethods){
 			this->basicHeaderFormat(req);
@@ -50,6 +55,7 @@ class HeaderRequest {
 			this->addContent("Allow", allowMethods);
 		}
 		void											RedirectionHeaderFormat(Request *req, std::string uri){
+			std::cout << "REDIRECTION HEADER FORMAT" << std::endl;
 			this->basicHeaderFormat(req);
 			this->updateContent("HTTP/1.1", "301 Moved Permanently");
 			this->updateContent("Content-Type", "text/html");

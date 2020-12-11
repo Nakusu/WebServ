@@ -46,15 +46,18 @@ int			main(int argc, char **argv, char **env)
 				int addrlen = sizeof(serv->getVS(i)->getAddress());
 				struct sockaddr_in * IPClient = serv->getVS(i)->getAddress();
 				Request *req = new Request(accept(serv->getVS(i)->getFd(), (struct sockaddr *)IPClient, (socklen_t *)&addrlen));
-				req->setIPClient(inet_ntoa(*(in_addr *)IPClient));
+				req->setIPClient(inet_ntoa(IPClient->sin_addr));
 				HeaderRequest *header = new HeaderRequest();
 				Execution exec = Execution(serv, serv->getVS(i), req, header, env);
+				std::cout << "CHECK IP CLIENT : " << req->get_IpClient() << std::endl;
 				if (!exec.checkMethod())
 					exec.searchError405();
 				if (!exec.needRedirection() && exec.checkMethod()){
 					if (!exec.searchIndex() && !exec.initCGI(req) && !exec.openText() && !exec.binaryFile())
 						exec.searchError404();	
 				}
+				// HISTORY FOR REFERER
+				serv->getVS(i)->setHistory((req->get_IpClient() + req->get_userAgent()), req->get_url());
 				delete req;
 				delete header;
 				nb_activity--;
