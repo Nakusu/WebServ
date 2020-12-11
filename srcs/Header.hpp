@@ -58,7 +58,8 @@ int										fileIsOpenable(std::string path);
 bool									folderIsOpenable(std::string repos);
 std::vector<std::string>				listFilesInFolder(std::string repos);
 bool 									inArray(std::string arr[], std::string needle);
-std::string						getTime();
+std::string								getTime();
 char 									**mergeArrays(char **tab1, char **tab2, int freeOption);
+long long int 							getSizeFileBits(std::string filename);
 
 #endif
