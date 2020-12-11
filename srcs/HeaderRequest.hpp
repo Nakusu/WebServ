@@ -45,8 +45,8 @@ class HeaderRequest {
 			this->addContent("Date", getTime());
 		}
 		void											basicHistory(VirtualServer *vserv, Request *req){
-			if (vserv->get_history(req->get_userAgent()) != "")
-				this->updateContent("Referer", vserv->get_history(req->get_userAgent()));
+			if (vserv->get_history((req->get_IpClient() + req->get_userAgent())) != "")
+				this->updateContent("Referer", vserv->get_history((req->get_IpClient() + req->get_userAgent())));
 		}
 		void											Error405HeaderFormat(Request *req, std::string allowMethods){
 			this->basicHeaderFormat(req);
