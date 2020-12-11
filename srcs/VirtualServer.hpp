@@ -192,7 +192,7 @@ class VirtualServer
 			this->parsingIndex();
 			this->parsingLocations();
 			this->parsingAutoIndex();
-			this->parsingRedirGbl();
+			this->parsingErrorPages();
 			this->parsingMethods();
 			this->parsingMaxBody();
 		}
@@ -262,11 +262,17 @@ class VirtualServer
 					std::vector<std::string> results = split(iss, " ");
 					std::string key = results[0];
 					results.erase(results.begin());
-					if (key == "CGI"){
-						key = results[0];
-						results.erase(results.begin());
+					if (key == "error_page"){
+						for (size_t i = 0; i < results.size(); i++)
+							value[key].push_back(results[i]);
 					}
-					value[key] = results;
+					else{
+						if (key == "CGI"){
+							key = results[0];
+							results.erase(results.begin());
+						}
+						value[key] = results;
+					}
 					j++;
 				}
 				this->_locations.push_back(value);
@@ -274,7 +280,7 @@ class VirtualServer
 			}
 		}
 		}
-		void 																parsingRedirGbl(void){
+		void 																parsingErrorPages(void){
 			unsigned int cpt = 0;
 			for (unsigned int i = 0; i < this->_virtualserver.size(); i++){
 				if (this->_virtualserver[i].find("{") != SIZE_MAX)
@@ -284,7 +290,8 @@ class VirtualServer
 				if (this->_virtualserver[i].find("error_page") != SIZE_MAX && (cpt == 1)){
 					std::vector<std::string> results = split(_virtualserver[i], " ");
 					results.erase(results.begin());
-					this->_errorPages = results;
+					for (size_t i = 0; i < results.size(); i++)
+						this->_errorPages.push_back(results[i]);
 				}
 			}
 		}
@@ -383,7 +390,7 @@ class VirtualServer
 
 		void 																verifications(void){
 			if (!verifAllPathsInLocations() || !verifAllMethods() || !verifListen()
-			|| /* !verifGblErrorPages() || !verifLocationsErrorPages() || */ !verifGblIndex()
+			||  !verifGblErrorPages() || !verifLocationsErrorPages() ||  !verifGblIndex()
 			|| !verifLocationIndex() || !verifGblRoot() || !verifLocationRoot() || !verifServerName()
 			|| !verifLocationsPaths())
 				exit(-1);
@@ -429,32 +436,41 @@ class VirtualServer
 			std::ifstream opfile;
 			if (this->_errorPages.empty())
 				return (true);
-			for (size_t i = 0; i < this->_errorPages.size() - 1; i++) {
-				std::cout << this->_errorPages[i] << std::endl;
-				if (atoi(this->_errorPages[i].c_str()) < 100 || atoi(this->_errorPages[i].c_str()) > 599) {
-					std::cerr << RED << "Error: Bad configuration of ports in global errorPages parameter impossible to set port : " << this->_errorPages[i] << RESET << std::endl;
-					return (false);
+			for (size_t i = 0; i < this->_errorPages.size(); i++) {
+				if ((atoi(this->_errorPages[i].c_str()) < 100 || atoi(this->_errorPages[i].c_str()) > 599)){
+					if (this->_errorPages[i][0] != '/' && this->_errorPages[i][0] != '.'){
+						std::cerr << RED << "Error: Bad configuration of ports in global errorPages parameter impossible to set port : " << this->_errorPages[i] << RESET << std::endl;
+						return (false);
+					}
+					else{
+						std::string path = this->_root[0] + this->_errorPages[i];
+						if (!fileIsOpenable(path)){
+							std::cerr << RED << "Error: Bad configuration of path in global errorPages parameter : " << this->_errorPages[i] << RESET << std::endl;
+							return (false);
+						}
+					}
 				}
-			}
-			if (!fileIsOpenable(this->_root[0] + this->_errorPages[this->_errorPages.size() - 1])) {
-				std::cerr << RED << "Error: Bad configuration of path in global errorPages parameter" << RESET << std::endl;
-				return (false);
 			}
 			return (true);
 		}
 		bool																verifLocationsErrorPages(void){
 			std::ifstream opfile;
-			for (size_t i = 0; i < this->_locations.size() - 1; i++) {
+			for (size_t i = 0; i < this->_locations.size(); i++) {
 				if (!this->_locations[i]["error_page"].empty()) {
-					for (size_t j = 0; j < this->_locations[i]["error_page"].size() - 1; j++) {
+					for (size_t j = 0; j < this->_locations[i]["error_page"].size(); j++) {
 						if (atoi(this->_locations[i]["error_page"][j].c_str()) < 100 || atoi(this->_locations[i]["error_page"][j].c_str()) > 599) {
-							std::cerr << RED << "Error: Bad configuration of ports of errorPages parameter in the location" << i + 1 << RESET << std::endl;
-							return (false);
+							if (this->_locations[i]["error_page"][j][0] != '/' && this->_locations[i]["error_page"][j][0] != '.'){
+								std::cerr << RED << "Error: Bad configuration of ports in global errorPages parameter impossible to set port : " << this->_locations[i]["error_page"][j] << RESET << std::endl;
+								return (false);
+							}
+							else{
+								std::string path = getRootLocation(this->_locations[i]["key"][0]) + this->_locations[i]["error_page"][j];
+								if (!fileIsOpenable(path)){
+									std::cerr << RED << "Error: Bad configuration of path in global errorPages parameter : " << this->_locations[i]["error_page"][j] << RESET << std::endl;
+									return (false);
+								}
+							}
 						}
-					}
-					if (!fileIsOpenable((this->_locations[i]["error_page"][this->_locations[i]["error_page"].size() - 1] + this->_locations[i]["key"][0]))) {
-						std::cerr << RED << "Error: Bad configuration of path of errorPages parameter in the location" << i + 1 << RESET << std::endl;
-						return (false);
 					}
 				}
 			}

@@ -123,6 +123,7 @@ class Request {
 			this->_uri = "";
 			std::string string(this->_buffer);
 			this->_uri = strndup(&this->_buffer[string.find("/")], (string.find("HTTP") - 5));
+			this->_uri = cleanLine(this->_uri);
 		}
 		void				findTypeContent(void){
 			this->_typeContent = "";

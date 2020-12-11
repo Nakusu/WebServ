@@ -76,14 +76,19 @@ class Execution
 						return (0);
 					}
 				}
-				autoindex = "<h1>Index of " + std::string(this->req->get_uri()) + "</h1><hr><pre>";
 				//Search if AutoIndex is on
 				if (this->getAutoIndex()){
-					autoindex += "<a href=\"../\"> ../</a><br/>";
-					for (size_t j = 0; j < files.size(); j++){
-						autoindex += "<a href=\"" + std::string(this->req->get_uri()) + files[j] +"\">" + files[j] + "</a><br/>";
+					if (this->req->get_method() != "HEAD"){
+						autoindex = "<html><head><title>AutoIndex</title></head><body>";
+						autoindex += "<h1>Index of " + std::string(this->req->get_uri()) + "</h1><hr><pre>";
+						autoindex += "<a href=\"../\"> ../</a><br/>";
+						for (size_t j = 0; j < files.size(); j++)
+							autoindex += "<a href=\"" + std::string(this->req->get_uri()) + files[j] +"\">" + files[j] + "</a><br/>";
+
+						autoindex += "</pre><hr>";
+						autoindex += "</body></html>";
 					}
-					autoindex += "</pre><hr>";
+					this->header->basicHeaderFormat(this->req);
 					this->header->sendHeader(this->req);
 					this->req->sendPacket(autoindex.c_str());
 				}
@@ -115,8 +120,7 @@ class Execution
 			std::string redir;
 			std::vector<std::string> vec = this->vserv->findOption("error_page", this->req->get_uri(), 1, this->vserv->get_errorPages());
 		
-			this->header->updateContent("HTTP/1.1", "405 Method Not Allowed");
-			this->header->updateContent("Content-Type", "text/html");
+			this->header->Error405HeaderFormat(this->req, this->getAllowMethods());
 			this->header->sendHeader(this->req);
 			redir = vec.empty() ? this->getRoot() : this->getRoot() + "/" + vec[vec.size() - 1];
 			if ((searchInVec("405", vec) == -1 && searchInVec("405", this->vserv->get_errorPages()) == -1) || !fileIsOpenable(redir))
@@ -149,10 +153,13 @@ class Execution
   			opfile.open(tmp.data(), std::ios::binary | std::ios::in);
 			  if (!opfile.is_open())
 			  	return (0);
-			req->sendPacket("HTTP/1.1 200\n\n");
+			this->header->basicHeaderFormat(this->req);
+			this->header->sendHeader(this->req);
 			while (!opfile.eof()) {
-				opfile.read(content, 4096); 
-				req->sendPacket(content, 4096);
+				if (this->req->get_method() != "HEAD") {
+					opfile.read(content, 4096); 
+					req->sendPacket(content, 4096);
+				}
 			}
 			opfile.close();
 			return (1);
@@ -165,13 +172,15 @@ class Execution
 		int											openFile(std::string file, Request *req){
 			std::ifstream opfile;
 			std::string content;
-			std::string tmp = this->getRoot() + file;
+			std::string tmp = (this->getRoot() + file);
   			opfile.open(tmp.data());
-			if (!opfile.is_open())
+			if (opfile.is_open() == false)
 				return (0);
-			req->sendPacket("HTTP/1.1 200\n\n");
+			this->header->basicHeaderFormat(this->req);
+			this->header->sendHeader(this->req);
 			while (std::getline(opfile, content))
-				req->sendPacket(content.c_str());
+				if (this->req->get_method() != "HEAD")
+					req->sendPacket(content.c_str());
 			opfile.close();
 			return (1);
 		}
@@ -287,19 +296,35 @@ class Execution
 					return (0);
 				else{
 					uri.push_back('/');
-					this->header->updateContent("HTTP/1.1", "301 Moved Permanently");
-					this->header->updateContent("Content-Type", "text/html");
-					this->header->updateContent("Location", uri);
+					this->header->RedirectionHeaderFormat(this->req, uri);
 					this->header->sendHeader(this->req);
 					return (1);
 				}
 			}
 			return (0);
 		}
-
+		std::string									getAllowMethods(void){
+			std::vector<size_t> indexs = this->vserv->findLocationsAndSublocations(this->req->get_uri());
+			std::vector<std::map<std::string, std::vector<std::string> > > locations = this->vserv->get_locations();
+			std::string														ret;
+			if (!indexs.empty()) {
+				for (size_t j = 0; j < locations[indexs[0]]["method"].size(); j++)
+					ret += (" " + locations[indexs[0]]["method"][j] + ",");
+				ret.erase(ret.size() - 1);
+				return (ret);
+			} else {
+				for (size_t k = 0; k < this->vserv->get_method().size(); k++)
+					ret += (" " + this->vserv->get_method()[k] + ",");
+				ret.erase(ret.size() - 1);
+				return (ret);
+			}
+			return (ret);
+		}
 		bool										checkMethod(void){
 			std::vector<size_t> indexs = this->vserv->findLocationsAndSublocations(this->req->get_uri());
 			std::vector<std::map<std::string, std::vector<std::string> > > locations = this->vserv->get_locations();
+		
+			// PREMIER IF POUR LA GESTION DES CGI
 			if (!indexs.empty() && locations[indexs[0]][this->req->getExtension()].size() != 0) {
 				int ret = 0;
 				for (size_t i = 1; i < locations[indexs[0]][this->req->getExtension()].size(); i++){

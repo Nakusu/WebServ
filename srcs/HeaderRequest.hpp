@@ -6,7 +6,7 @@
 class HeaderRequest {
 	public:
 		HeaderRequest() {
-			this->_content.insert(std::pair<std::string, std::string>("HTTP/1.1", "200 OK"));
+			this->addContent("HTTP/1.1", "200 OK");
 		}
 		virtual	~HeaderRequest() {
 			return ;
@@ -16,7 +16,7 @@ class HeaderRequest {
 		*****************    Operations    *****************
 		***************************************************/
 		void											addContent(std::string key, std::string content){
-			this->_content.insert(std::pair<std::string, std::string>(key, content));
+			this->_content.insert(std::pair<std::string, std::string>(key, (content + "\r\n")));
 			this->_size += 1;
 		}
 		void											updateContent(std::string key, std::string content){
@@ -24,21 +24,38 @@ class HeaderRequest {
 				this->addContent(key, content);
 				return ;
 			}
-			this->_content[key] = content;
+			this->_content[key] = (content + "\r\n");
 		}
 		void											sendHeader(Request *req){
 			std::string										rep;
-			rep = "HTTP/1.1 " + this->_content["HTTP/1.1"] + "\r\n";
+			rep = "HTTP/1.1 " + this->_content["HTTP/1.1"];
 			for (std::map<std::string, std::string>::iterator i = this->_content.begin(); i != this->_content.end(); i++) {
-				if (i->first != "HTTP/1.1"){
+				if (i->first != "HTTP/1.1")
 					rep += i->first + ": " + i->second;
-					rep += "\r\n";
-				}
 			}
 			rep.erase(rep.size() - 1);
 			rep.erase(rep.size() - 1);
 			rep += "\n\n";
 			req->sendPacket(rep.c_str());
+		}
+		void											basicHeaderFormat(Request *req){
+			this->addContent("Host", (req->get_host() + ":" + req->get_port()));
+			this->addContent("Server", "webserv");
+			this->addContent("Date", getTime());
+		}
+		void											Error405HeaderFormat(Request *req, std::string allowMethods){
+			this->basicHeaderFormat(req);
+			this->updateContent("HTTP/1.1", "405 Method Not Allowed");
+			this->updateContent("Content-Type", "text/html");
+			this->addContent("Allow", allowMethods);
+		}
+		void											RedirectionHeaderFormat(Request *req, std::string uri){
+			this->basicHeaderFormat(req);
+			this->updateContent("HTTP/1.1", "301 Moved Permanently");
+			this->updateContent("Content-Type", "text/html");
+			this->updateContent("Location", uri);
+			this->updateContent("Retry-After", "1");
+			this->updateContent("Connection", "keep-alive");
 		}
 
 		/***************************************************
