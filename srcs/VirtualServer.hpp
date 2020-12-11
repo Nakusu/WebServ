@@ -382,17 +382,11 @@ class VirtualServer
 
 
 		void 																verifications(void){
-			verifAllPathsInLocations();
-			verifAllMethods();
-			verifListen();
-			// verifGblErrorPages();
-			//verifLocationsErrorPages();
-			verifGblIndex();
-			verifLocationIndex();
-			verifGblRoot();
-			verifLocationRoot();
-			verifServerName();
-			verifLocationsPaths();
+			if (!verifAllPathsInLocations() || !verifAllMethods() || !verifListen()
+			|| /* !verifGblErrorPages() || !verifLocationsErrorPages() || */ !verifGblIndex()
+			|| !verifLocationIndex() || !verifGblRoot() || !verifLocationRoot() || !verifServerName()
+			|| !verifLocationsPaths())
+				exit(-1);
 		}
 		bool																verifMethod(std::string method) {
 			std::string validMethods[8] = {"GET", "HEAD", "POST", "PUT", "DELETE", "CONNECT", "OPTIONS", "TRACE"};
@@ -442,14 +436,10 @@ class VirtualServer
 					return (false);
 				}
 			}
-			std::string path = this->_root[0] + this->_errorPages[this->_errorPages.size() - 1];
-			std::cout << path << std::endl;
-			opfile.open(path.c_str());
-			if (!opfile.is_open()) {
+			if (!fileIsOpenable(this->_root[0] + this->_errorPages[this->_errorPages.size() - 1])) {
 				std::cerr << RED << "Error: Bad configuration of path in global errorPages parameter" << RESET << std::endl;
 				return (false);
 			}
-			opfile.close();
 			return (true);
 		}
 		bool																verifLocationsErrorPages(void){
@@ -462,12 +452,10 @@ class VirtualServer
 							return (false);
 						}
 					}
-					opfile.open((this->_locations[i]["error_page"][this->_locations[i]["error_page"].size() - 1] + this->_locations[i]["key"][0]).c_str());
-					if (!opfile.is_open()) {
+					if (!fileIsOpenable((this->_locations[i]["error_page"][this->_locations[i]["error_page"].size() - 1] + this->_locations[i]["key"][0]))) {
 						std::cerr << RED << "Error: Bad configuration of path of errorPages parameter in the location" << i + 1 << RESET << std::endl;
 						return (false);
 					}
-					opfile.close();
 				}
 			}
 			return (true);
