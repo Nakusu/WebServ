@@ -43,7 +43,15 @@ class HeaderRequest {
 			this->updateContent("Content-Location", req->get_uri());
 			this->addContent("Server", "webserv");
 			this->addContent("Date", getTime());
+			if (req->getMimeType(req->getExtension()) != "")
+				this->updateContent("Content-Type", req->getMimeType(req->getExtension()));
+			this->updateContent("Accept-Charset", "utf-8");
 		}
+
+		void										basicContentLength(VirtualServer *vserv, Request *req){
+			this->updateContent("Content-Length")
+		}
+
 		void											basicHistory(VirtualServer *vserv, Request *req){
 			if (vserv->get_history((req->get_IpClient() + req->get_userAgent())) != "")
 				this->updateContent("Referer", vserv->get_history((req->get_IpClient() + req->get_userAgent())));
@@ -63,6 +71,7 @@ class HeaderRequest {
 			this->updateContent("Retry-After", "1");
 			this->updateContent("Connection", "keep-alive");
 		}
+
 
 		/***************************************************
 		*********************    GET   *********************

@@ -442,7 +442,6 @@ class VirtualServer
 			return (true);
 		}
 		bool																verifGblErrorPages(void){
-			std::ifstream opfile;
 			if (this->_errorPages.empty())
 				return (true);
 			for (size_t i = 0; i < this->_errorPages.size(); i++) {
@@ -463,7 +462,6 @@ class VirtualServer
 			return (true);
 		}
 		bool																verifLocationsErrorPages(void){
-			std::ifstream opfile;
 			for (size_t i = 0; i < this->_locations.size(); i++) {
 				if (!this->_locations[i]["error_page"].empty()) {
 					for (size_t j = 0; j < this->_locations[i]["error_page"].size(); j++) {
@@ -486,7 +484,6 @@ class VirtualServer
 			return (true);
 		}
 		bool																verifGblIndex(void) {
-			std::ifstream opfile;
 			if (this->_index.empty())
 				return (true);
 			for (size_t i = 0; i < this->_index.size(); i++) {
@@ -498,7 +495,6 @@ class VirtualServer
 			return (true);
 		}
 		bool																verifLocationIndex(void) {
-			std::ifstream opfile;
 			for (size_t i = 0; i < this->_locations.size(); i++) {
 				if (!this->_locations[i]["index"].empty()) {
 					for (size_t j = 0; j < this->_locations[i]["index"].size(); j++) {
@@ -512,7 +508,6 @@ class VirtualServer
 			return (true);
 		}
 		bool																verifGblRoot(void){
-			std::ifstream opfile;
 			for (size_t i = 0; i < this->_root.size(); i++) {
 				if (!folderIsOpenable(this->_root[0]) || this->_root[0][this->_root[0].size() - 1] == '/' ||
 				 (this->_root[0][0] != '/' && this->_root[0][0] != '.'))
@@ -524,7 +519,6 @@ class VirtualServer
 			return (true);
 		}
 		bool																verifLocationRoot(void) {
-			std::ifstream opfile;
 			for (size_t i = 0; i < this->_locations.size(); i++) {
 				if (!this->_locations[i]["root"].empty()) {
 					for (size_t j = 0; j < this->_root.size(); j++) {
@@ -546,7 +540,6 @@ class VirtualServer
 			return (true);
 		}
 		bool																verifLocationsPaths(void) {
-			std::ifstream opfile;
 			for (size_t i = 0; i < this->_locations.size(); i++) {
 				if (this->_locations[i]["key"].empty()) {
 					std::cerr << RED << "Error: Path of location " << i + 1 << " is empty" << RESET << std::endl;

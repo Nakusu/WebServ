@@ -173,8 +173,10 @@ class Execution
 			std::string tmp = this->getRoot() + file;
 			memset(content,0,4096);
   			opfile.open(tmp.data(), std::ios::binary | std::ios::in);
-			  if (!opfile.is_open())
-			  	return (0);
+			if (!opfile.is_open()) {
+				opfile.close();
+				return (0);
+			}
 			this->header->basicHeaderFormat(this->req);
 			this->header->basicHistory(this->vserv, this->req);
 			this->header->sendHeader(this->req);
@@ -375,9 +377,9 @@ class Execution
 						return (true);
 				}
 			}
-			
 			return (false);
 		}
+
 
 	private:
 		ServerWeb *			serv;
