@@ -41,6 +41,7 @@ class HeaderRequest {
 		}
 		void											basicHeaderFormat(Request *req){
 			this->addContent("Host", (req->get_host() + ":" + req->get_port()));
+			this->updateContent("Content-Location", req->get_uri());
 			this->addContent("Server", "webserv");
 			this->addContent("Date", getTime());
 		}

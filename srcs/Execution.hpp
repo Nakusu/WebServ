@@ -90,13 +90,13 @@ class Execution
 						autoindex += "</body></html>";
 					}
 					this->header->basicHeaderFormat(this->req);
-					this->header->basicHistory(this->vserv, this->req);;
+					this->header->basicHistory(this->vserv, this->req);
 					this->header->sendHeader(this->req);
 					this->req->sendPacket(autoindex.c_str());
 				}
 				else{
 					this->header->updateContent("HTTP/1.1", "403");
-					this->header->basicHistory(this->vserv, this->req);;
+					this->header->basicHistory(this->vserv, this->req);
 					this->header->sendHeader(this->req);
 					this->req->sendPacket("Interaction interdite..."); // SI IL N'Y A PAS D'INDEX DE BASE ET QUE L'AUTOINDEX EST SUR OFF
 				}
