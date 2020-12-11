@@ -43,7 +43,10 @@ class HeaderRequest {
 			this->updateContent("Content-Location", req->get_uri());
 			this->addContent("Server", "webserv");
 			this->addContent("Date", getTime());
+			if (req->getMimeType(req->getExtension()) != "")
+				this->updateContent("Content-Type", req->getMimeType(req->getExtension()));
 		}
+
 		void											basicHistory(VirtualServer *vserv, Request *req){
 			if (vserv->get_history((req->get_IpClient() + req->get_userAgent())) != "")
 				this->updateContent("Referer", vserv->get_history((req->get_IpClient() + req->get_userAgent())));
