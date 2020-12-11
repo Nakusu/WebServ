@@ -30,9 +30,8 @@ class HeaderRequest {
 			std::string										rep;
 			rep = "HTTP/1.1 " + this->_content["HTTP/1.1"];
 			for (std::map<std::string, std::string>::iterator i = this->_content.begin(); i != this->_content.end(); i++) {
-				if (i->first != "HTTP/1.1"){
+				if (i->first != "HTTP/1.1")
 					rep += i->first + ": " + i->second;
-				}
 			}
 			rep.erase(rep.size() - 1);
 			rep.erase(rep.size() - 1);
