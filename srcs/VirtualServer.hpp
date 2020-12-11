@@ -389,17 +389,11 @@ class VirtualServer
 
 
 		void 																verifications(void){
-			verifAllPathsInLocations();
-			verifAllMethods();
-			verifListen();
-			verifGblErrorPages();
-			verifLocationsErrorPages();
-			verifGblIndex();
-			verifLocationIndex();
-			verifGblRoot();
-			verifLocationRoot();
-			verifServerName();
-			verifLocationsPaths();
+			if (!verifAllPathsInLocations() || !verifAllMethods() || !verifListen()
+			||  !verifGblErrorPages() || !verifLocationsErrorPages() ||  !verifGblIndex()
+			|| !verifLocationIndex() || !verifGblRoot() || !verifLocationRoot() || !verifServerName()
+			|| !verifLocationsPaths())
+				exit(-1);
 		}
 		bool																verifMethod(std::string method) {
 			std::string validMethods[8] = {"GET", "HEAD", "POST", "PUT", "DELETE", "CONNECT", "OPTIONS", "TRACE"};
