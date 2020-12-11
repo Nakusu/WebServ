@@ -142,6 +142,12 @@ class VirtualServer
 		std::vector<std::string>											get_serverNames(void){
 			return (this->_serverNames);
 		}
+		std::map<std::string, std::string>									get_history(void){
+			return (this->_history);
+		}
+		std::string															get_history(std::string user){
+			return (this->_history[user]);
+		}
 		std::vector<std::string>											get_root(void){
 			return (this->_root);
 		}
@@ -178,6 +184,9 @@ class VirtualServer
 		}
 		void																setFile(std::vector<std::string> file){
 			this->_file = file;
+		}
+		void																setHistory(std::string user, std::string url){
+			this->_history[user] = url;
 		}
 
 
@@ -585,6 +594,7 @@ class VirtualServer
 		std::vector<std::string>											_methods;
 		std::vector<std::string>											_maxBody;
 		std::map<std::string, std::vector<std::string> >					_CGI;
+		std::map<std::string, std::string>									_history;
 
 };
 

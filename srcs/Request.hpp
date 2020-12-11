@@ -159,6 +159,9 @@ class Request {
 		std::string			get_PathInfo(void) const{
 			return (this->_pathInfo);
 		}
+		std::string			get_url(void) const {
+			return (("http://" + this->get_host() + ":" + this->get_port() + this->get_uri()));
+		}
 	private:
 		int													_socket;
 		char												_buffer[1025];

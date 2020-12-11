@@ -108,11 +108,13 @@ class Execution
 						autoindex += "</body></html>";
 					}
 					this->header->basicHeaderFormat(this->req);
+					this->header->basicHistory(this->vserv, this->req);
 					this->header->sendHeader(this->req);
 					this->req->sendPacket(autoindex.c_str());
 				}
 				else{
 					this->header->updateContent("HTTP/1.1", "403");
+					this->header->basicHistory(this->vserv, this->req);
 					this->header->sendHeader(this->req);
 					this->req->sendPacket("Interaction interdite..."); // SI IL N'Y A PAS D'INDEX DE BASE ET QUE L'AUTOINDEX EST SUR OFF
 				}
@@ -126,6 +128,7 @@ class Execution
 		
 			this->header->updateContent("HTTP/1.1", "404 Not Found");
 			this->header->updateContent("Content-Type", "text/html");
+			this->header->basicHistory(this->vserv, this->req);
 			this->header->sendHeader(this->req);
 			redir = getRedirError("404", vec);
 			if (redir == "error")
@@ -139,6 +142,7 @@ class Execution
 			std::vector<std::string> vec = this->vserv->findOption("error_page", this->req->get_uri(), 1, this->vserv->get_errorPages());
 		
 			this->header->Error405HeaderFormat(this->req, this->getAllowMethods());
+			this->header->basicHistory(this->vserv, this->req);
 			this->header->sendHeader(this->req);
 			redir = getRedirError("405", vec);
 			if (redir == "error")
@@ -172,6 +176,7 @@ class Execution
 			  if (!opfile.is_open())
 			  	return (0);
 			this->header->basicHeaderFormat(this->req);
+			this->header->basicHistory(this->vserv, this->req);
 			this->header->sendHeader(this->req);
 			while (!opfile.eof()) {
 				if (this->req->get_method() != "HEAD") {
@@ -195,6 +200,7 @@ class Execution
 			if (opfile.is_open() == false)
 				return (0);
 			this->header->basicHeaderFormat(this->req);
+			this->header->basicHistory(this->vserv, this->req);
 			this->header->sendHeader(this->req);
 			while (std::getline(opfile, content))
 				if (this->req->get_method() != "HEAD")
@@ -315,6 +321,7 @@ class Execution
 				else{
 					uri.push_back('/');
 					this->header->RedirectionHeaderFormat(this->req, uri);
+					this->header->basicHistory(this->vserv, this->req);
 					this->header->sendHeader(this->req);
 					return (1);
 				}
