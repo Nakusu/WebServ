@@ -69,7 +69,6 @@ class Execution
 				this->header->updateContent("Content-Type", "text/html");
 				vec = this->vserv->findOption("index", this->req->get_uri(), 0, this->vserv->get_index());
 				files = listFilesInFolder(this->getRoot() + this->req->get_uri());
-				std::cout << "CHECK" << std::endl;
 
 				for (size_t i = 0; i < vec.size(); i++){
 					if ((index = searchInVec(vec[i], files)) != -1){ //Compare index with files in Folder
