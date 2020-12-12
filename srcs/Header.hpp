@@ -26,6 +26,7 @@
 #include <exception>
 #include <fcntl.h>
 #include <ctime>
+#include <sstream>
 
 # define RESET   		"\033[0m"
 # define BLACK   		"\033[30m"				/* Black */
@@ -58,7 +59,10 @@ int										fileIsOpenable(std::string path);
 bool									folderIsOpenable(std::string repos);
 std::vector<std::string>				listFilesInFolder(std::string repos);
 bool 									inArray(std::string arr[], std::string needle);
-std::string						getTime();
+std::string								getTime();
 char 									**mergeArrays(char **tab1, char **tab2, int freeOption);
+long int										getSizeFileBits(std::string filename);
+char									*ft_itoa(long int n);
+std::string								NumberToString(long int Number);
 
 #endif

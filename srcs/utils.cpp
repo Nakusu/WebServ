@@ -145,3 +145,26 @@ std::string							getTime(){
 	ret.erase(ret.size() - 1);
 	return (ret);
 }
+
+long int									getSizeFileBits(std::string filename) {
+	std::ifstream opfile;
+	long int ret = 0;
+	
+	opfile.open(filename.c_str(), std::ios::in);
+	if (!opfile.is_open()) {
+		opfile.close();
+		return (0);
+	}
+	opfile.seekg(0, std::ios::end);
+	ret = opfile.tellg();
+	std::cout << "FILE LENGTH " << ret << std::endl;
+	opfile.close();
+	return (ret);
+}
+
+std::string NumberToString(long int Number)
+{
+	std::ostringstream ss;
+    ss << Number;
+    return ss.str();
+}

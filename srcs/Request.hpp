@@ -25,6 +25,7 @@ class Request {
 			this->parsingMetasVars();
 			this->parsingAuthorizations();
 			this->setPathInfo();
+			this->getContentType();
 		}
 
 		virtual ~Request(){
@@ -162,6 +163,27 @@ class Request {
 		std::string			get_url(void) const {
 			return (("http://" + this->get_host() + ":" + this->get_port() + this->get_uri()));
 		}
+
+		void				getContentType(void){
+			std::string line;
+			std::ifstream	ifs("srcs/mime.types");
+			std::vector<std::string> res;
+			if (ifs.fail()){
+				std::cerr << "Reading Error" << std::endl;
+				return;
+			}
+			while (std::getline(ifs, line)){
+				line = cleanLine(line);
+				res = split(line, " ");
+				this->_mimesTypes[res[1]] = res[0];
+			}
+			(ifs).close();
+		}
+		
+		std::string			getMimeType(std::string extension) {
+			return (this->_mimesTypes[extension]);
+		}
+		
 	private:
 		int													_socket;
 		char												_buffer[1025];
@@ -177,6 +199,7 @@ class Request {
 		std::string											_authCredentials;
 		std::string											_queryString;
 		std::string 										_pathInfo;
+		std::map<std::string, std::string> 					_mimesTypes;
 };
 
 #endif
