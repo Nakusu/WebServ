@@ -157,7 +157,6 @@ long int									getSizeFileBits(std::string filename) {
 	}
 	opfile.seekg(0, std::ios::end);
 	ret = opfile.tellg();
-	std::cout << "FILE LENGTH " << ret << std::endl;
 	opfile.close();
 	return (ret);
 }

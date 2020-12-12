@@ -87,10 +87,11 @@ class Execution
 
 				this->header->updateContent("Content-Type", "text/html");
 				vec = this->vserv->findOption("index", this->req->get_uri(), 0, this->vserv->get_index());
+				std::cout << vec[0] << std::endl;
 				files = listFilesInFolder(this->getRoot() + this->req->get_uri());
 
 				for (size_t i = 0; i < vec.size(); i++){
-					if ((index = searchInVec(vec[i], files)) != -1){ //Compare index with files in Folder
+					if ((index = searchInVec(&vec[i][1], files)) != -1){ //Compare index with files in Folder
 						this->req->setUri(this->req->get_uri() + files[index]); //Return new URI with the index
 						return (0);
 					}

@@ -44,6 +44,7 @@ class HeaderRequest {
 			this->updateContent("Content-Location", req->get_uri());
 			this->addContent("Server", "webserv");
 			this->addContent("Date", getTime());
+			this->updateContent("Content-Type", "text/html");
 			if (req->getMimeType(req->getExtension()) != "")
 				this->updateContent("Content-Type", req->getMimeType(req->getExtension()));
 			this->updateContent("Accept-Charset", "utf-8");
