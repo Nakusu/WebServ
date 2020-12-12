@@ -55,7 +55,6 @@ class HeaderRequest {
 			this->addContent("Allow", allowMethods);
 		}
 		void											RedirectionHeaderFormat(Request *req, std::string uri){
-			std::cout << "REDIRECTION HEADER FORMAT" << std::endl;
 			this->basicHeaderFormat(req);
 			this->updateContent("HTTP/1.1", "301 Moved Permanently");
 			this->updateContent("Content-Type", "text/html");

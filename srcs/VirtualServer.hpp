@@ -204,6 +204,7 @@ class VirtualServer
 			this->parsingErrorPages();
 			this->parsingMethods();
 			this->parsingMaxBody();
+			this->parsingCGI();
 		}
 		void																parsingAutoIndex(void){
 			unsigned int cpt = 0;
