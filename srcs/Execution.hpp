@@ -90,7 +90,7 @@ class Execution
 				files = listFilesInFolder(this->getRoot() + this->req->get_uri());
 
 				for (size_t i = 0; i < vec.size(); i++){
-					if ((index = searchInVec(vec[i], files)) != -1){ //Compare index with files in Folder
+					if ((index = searchInVec(&vec[i][1], files)) != -1){ //Compare index with files in Folder
 						this->req->setUri(this->req->get_uri() + files[index]); //Return new URI with the index
 						return (0);
 					}
@@ -270,45 +270,49 @@ class Execution
 			int  pid;
 			char **env = mergeArrays(args, this->_envs, 0);
 
-
-			if (pipe(pfd) == -1)
-				return ; // error gestion
-			pfd[0] = 1;
-			pfd[1] = this->req->getSocket();
 			char **tmp = (char**)malloc(sizeof(char*) * 3);
 			tmp[0] = strdup(cgi_path.c_str());
-			tmp[1] = strdup(std::string("./" + this->vserv->getRoot() + this->req->get_uri()).c_str());
+			tmp[1] = 0;
 			tmp[2] = 0;
-
+			this->header->basicHeaderFormat(this->req);
+			// this->header->updateContent("Content-Type", "text/html");
+			this->header->sendHeader(this->req);
+			if (pipe(pfd) == -1)
+				return ; // error gestion
 			if ((pid = fork()) < 0)
 				return ; // error gestion
+				// int fd = open("./cgi_tmp_php", O_WRONLY | O_CREAT, 0666);
 			if (pid == 0) {
-				int fd = open(this->req->get_uri().c_str(), O_RDWR | O_TRUNC, S_IRUSR | S_IWUSR);
-				dup2(fd, 0); // ici en entrée mettre le body
-				dup2(pfd[1], 1);
-				dup2(1, 2);
-				if (execve(cgi_path.c_str(), tmp, env) == -1)
-					return ;
-				close(fd);
-				close(pfd[0]);
 				close(pfd[1]);
-				exit(0);
-			} else {
+				pfd[0] = open(std::string(this->vserv->getRoot() + this->req->get_uri()).c_str(), O_RDONLY);
+				dup2(pfd[0], 0); // ici en entrée mettre le body
+				// dup2(fd, 1); // ici en entrée mettre le body
+				dup2(this->req->getSocket(), 1);
+				errno = 0;
+				if (execve(cgi_path.c_str(), tmp, env) == -1){
+					std::cerr << "Error with CGI: " << strerror(errno) << std::endl;
+					exit(1);
+				}
+			}
+			else {
 				close(pfd[0]);
-				close(pfd[1]);
 			}
 		}
 		int											initCGI(Request *req) {
-			std::vector<size_t> indexs = this->vserv->findLocationsAndSublocations(this->req->get_uri());
-			std::vector<std::map<std::string, std::vector<std::string> > > locations = this->vserv->get_locations();
-			if (!indexs.empty() && locations[indexs[0]][req->getExtension()].size() != 0) {
-				if (fileIsOpenable(locations[indexs[0]][req->getExtension()][0])) {
-					std::map<std::string, std::string> args = setMetaCGI(locations[indexs[0]][req->getExtension()][0]);
+
+
+			std::vector<std::string> vec = this->vserv->findOption("." + req->getExtension(), this->req->get_uri(), 0, this->vserv->get_CGI()["." + req->getExtension()]);
+			
+			if (!vec.empty()){
+				if (fileIsOpenable(vec[0])){
+					std::map<std::string, std::string> args = setMetaCGI(vec[0]);
 					char **tmpargs = swapMaptoChar(args);
-					processCGI(locations[indexs[0]][req->getExtension()][0], tmpargs);
+					processCGI(vec[0], tmpargs);
 					return (1);
 				}
+
 			}
+
 			return (0);
 		}
 

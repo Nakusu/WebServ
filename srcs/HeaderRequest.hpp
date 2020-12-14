@@ -3,6 +3,7 @@
 
 #include "Header.hpp"
 #include "Request.hpp"
+
 class HeaderRequest {
 	public:
 		HeaderRequest() {
@@ -43,18 +44,16 @@ class HeaderRequest {
 			this->updateContent("Content-Location", req->get_uri());
 			this->addContent("Server", "webserv");
 			this->addContent("Date", getTime());
+			this->updateContent("Content-Type", "text/html");
 			if (req->getMimeType(req->getExtension()) != "")
 				this->updateContent("Content-Type", req->getMimeType(req->getExtension()));
 			this->updateContent("Accept-Charset", "utf-8");
 		}
-
-		void										basicContentLength(VirtualServer *vserv, Request *req){
-			this->updateContent("Content-Length")
-		}
-
 		void											basicHistory(VirtualServer *vserv, Request *req){
 			if (vserv->get_history((req->get_IpClient() + req->get_userAgent())) != "")
 				this->updateContent("Referer", vserv->get_history((req->get_IpClient() + req->get_userAgent())));
+			if (!folderIsOpenable((vserv->get_root()[0] + req->get_uri())))
+				this->updateContent("Content-Length", NumberToString(getSizeFileBits(vserv->get_root()[0] + req->get_uri())));
 		}
 		void											Error405HeaderFormat(Request *req, std::string allowMethods){
 			this->basicHeaderFormat(req);
@@ -63,7 +62,6 @@ class HeaderRequest {
 			this->addContent("Allow", allowMethods);
 		}
 		void											RedirectionHeaderFormat(Request *req, std::string uri){
-			std::cout << "REDIRECTION HEADER FORMAT" << std::endl;
 			this->basicHeaderFormat(req);
 			this->updateContent("HTTP/1.1", "301 Moved Permanently");
 			this->updateContent("Content-Type", "text/html");

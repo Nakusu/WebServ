@@ -146,21 +146,24 @@ std::string							getTime(){
 	return (ret);
 }
 
-long long int 						getSizeFileBits(std::string filename) {
-			std::ifstream opfile;
-			long long int ret = 0;
+long int									getSizeFileBits(std::string filename) {
+	std::ifstream opfile;
+	long int ret = 0;
 	
-			char buff[4096];
-			memset(buff,0,4096);
-			opfile.open(filename.c_str(), std::ios::in);
-			if (!fileIsOpenable(filename) || !opfile.is_open()) {
-				opfile.close();
-				return (0);
-			}
-			while (!opfile.eof()) {
-				opfile.read(buff, 4096);
-				ret += strlen(buff);
-			}
-			opfile.close();
-			return (ret * 8);
+	opfile.open(filename.c_str(), std::ios::in);
+	if (!opfile.is_open()) {
+		opfile.close();
+		return (0);
+	}
+	opfile.seekg(0, std::ios::end);
+	ret = opfile.tellg();
+	opfile.close();
+	return (ret);
+}
+
+std::string NumberToString(long int Number)
+{
+	std::ostringstream ss;
+    ss << Number;
+    return ss.str();
 }
