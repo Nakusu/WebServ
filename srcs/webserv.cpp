@@ -51,7 +51,7 @@ int			main(int argc, char **argv, char **env)
 				if (!exec.checkMethod())
 					exec.searchError405();
 				if (!exec.needRedirection() && exec.checkMethod()){
-					if (!exec.searchIndex() && !exec.initCGI() && !exec.openText() && !exec.binaryFile())
+					if (!exec.searchIndex() && !exec.initCGI() && !exec.binaryFile())
 						exec.searchError404();	
 				}
 				// HISTORY FOR REFERER

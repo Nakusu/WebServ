@@ -37,7 +37,7 @@ class Execution
 		/***************************************************
 		*********************    GET    ********************
 		***************************************************/
-		std::string										getFullPath(void){
+		std::string									getFullPath(void){
 			return (this->vserv->findRoot(this->req->get_uri()) + this->req->get_uri());
 		}
 
@@ -94,25 +94,31 @@ class Execution
 			this->header->updateContent("HTTP/1.1", "404 Not Found");
 			this->header->updateContent("Content-Type", "text/html");
 			this->header->basicHistory(this->vserv, this->req);
-			this->header->sendHeader(this->req);
-			if (redir.empty())
-				std::cout << RED << "VIENS CHERCHER DANS SEARCHERROR404 et change la ligne de dessous avec le .empty" << std::endl;
-			if (redir == "")
+			if (redir.empty()){
+				this->header->updateContent("Content-Length", "161");
+				this->header->sendHeader(this->req);
 				req->sendPacket("<html><head><title>404 Not Found</title></head><body bgcolor=\"white\"><center><h1>404 Not Found</h1></center><hr><center>Les Poldters Server Web</center></html>");
-			else
+				
+			}
+			else{
+				this->header->sendHeader(this->req);
 				req->sendPacket(fileToString(redir));
+			}
 		}
-
 		void										searchError405(void){
 			std::string redir = this->vserv->findErrorPage(this->req->get_uri(), "405");
 		
 			this->header->Error405HeaderFormat(this->req, this->getAllowMethods());
 			this->header->basicHistory(this->vserv, this->req);
-			this->header->sendHeader(this->req);
-			if (redir == "")
+			if (redir.empty()){
+				this->header->updateContent("Content-Length", "179");
+				this->header->sendHeader(this->req);
 				req->sendPacket("<html><head><title>405 Method Not Allowed</title></head><body bgcolor=\"white\"><center><h1>405 Method Not Allowed</h1></center><hr><center>Les Poldters Server Web</center></html>");
-			else 
+			}
+			else{
+				this->header->sendHeader(this->req);
 				req->sendPacket(fileToString(redir));
+			} 
 		}
 
 		/***************************************************
@@ -127,16 +133,15 @@ class Execution
 			"cpp", ".h", ".hh", ".hpp", ".dic", ".f", ".for", ".f77", ".f90", ".java",
 			"opml", ".p", ".pas", ".nfo", ".etx", ".sfv", ".uu", ".vcs", ".vcf"};
 			for (size_t i = 0; i < 68; i++)
-				if (textExtensions[i] == this->req->getExtension() && this->openFile()){
-					std::cout << YELLOW << "END" << RESET << std::endl;
+				if (textExtensions[i] == this->req->getExtension() && this->binaryFile())
 					return (1);
-				}
 			return (0);
 		}
-		int											openBinary(std::string file){
+		int											binaryFile(void){
 			std::ifstream		opfile;
 			char 				*content = new char[4096];
-			std::string tmp = this->getFullPath() + file;
+
+			std::string tmp = this->getFullPath();
 			memset(content,0,4096);
   			opfile.open(tmp.data(), std::ios::binary | std::ios::in);
 			if (!opfile.is_open())
@@ -150,31 +155,6 @@ class Execution
 					req->sendPacket(content, 4096);
 				}
 			}
-			opfile.close();
-			return (1);
-		}
-		int											binaryFile(void){
-			std::cout << GREEN << this->getFullPath() << RESET << std::endl;
-			if (openBinary(this->getFullPath()))
-				return (1);
-			return (0);
-		}
-
-		//LEOOOOOOOOOOO on a deja FILE IS OPENABLE
-		int											openFile(void){
-			std::ifstream opfile;
-			std::string content;
-			std::string tmp = (this->getFullPath());
-			std::cout << RED << tmp << RESET << std::endl;
-  			opfile.open(tmp.data());
-			if (opfile.is_open() == false)
-				return (0);
-			this->header->basicHeaderFormat(this->req);
-			this->header->basicHistory(this->vserv, this->req);
-			this->header->sendHeader(this->req);
-			while (std::getline(opfile, content))
-				if (this->req->get_method() != "HEAD")
-					req->sendPacket(content.c_str());
 			opfile.close();
 			return (1);
 		}
@@ -222,8 +202,7 @@ class Execution
 			args["PATH_TRANSLATED"] = "./" + this->vserv->get_root() + this->req->get_uri();
 			return (args);
 		}
-
-		char										**swapMaptoChar(std::map<std::string, std::string> args){
+		char **										swapMaptoChar(std::map<std::string, std::string> args){
 			char	**tmpargs = (char**)malloc(sizeof(char*) * (args.size() + 1));
 			size_t	i = 0;
 			tmpargs[args.size()] = 0;
@@ -306,12 +285,10 @@ class Execution
 			return (ret);
 		}
 		bool										checkMethod(void){
-			std::cout << YELLOW << this->req->getExtension() << RESET << std::endl;
 			if (this->vserv->findCGI(this->req->get_uri(), this->req->getExtension(), this->req->get_method()) == "bad_method")
 				return (false);
 			return (this->vserv->findMethod(this->req->get_uri(), this->req->get_method()));
 		}
-
 
 	private:
 		ServerWeb *			serv;

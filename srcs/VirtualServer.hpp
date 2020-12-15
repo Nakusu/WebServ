@@ -29,16 +29,13 @@ class VirtualServer
 			}
 			return (*this);
 		}
-
-		class IncorrectMethodUsed : public std::exception
-		{
-
+		class IncorrectMethodUsed : public std::exception{
 			public:
-				IncorrectMethodUsed( void ) {}
-				IncorrectMethodUsed( IncorrectMethodUsed const & src ) { this->operator=(src); }
-				virtual ~IncorrectMethodUsed( void ) throw() {}
-				IncorrectMethodUsed &	operator=( IncorrectMethodUsed const & rhs ) { (void)rhs; return (*this); }
-				virtual const char* what() const throw() { return ("Error : Incorrect Method Used."); }
+				IncorrectMethodUsed(void){}
+				IncorrectMethodUsed( IncorrectMethodUsed const & src){this->operator=(src);}
+				virtual ~IncorrectMethodUsed(void)throw(){}
+				IncorrectMethodUsed &	operator=(IncorrectMethodUsed const & rhs){(void)rhs; return (*this);}
+				virtual const char* what()const throw(){return ("Error : Incorrect Method Used.");}
 		};
 
 		/***************************************************
@@ -116,7 +113,7 @@ class VirtualServer
 		***************************************************/
 		bool																findAutoIndex(std::string path){
 			std::string result;
-			result = this->findOption("autoindex", path, "off");
+			result = this->findOption("autoindex", path, this->get_autoIndex(1));
 			return (result == "on");
 		}
 		std::vector<std::string>											findErrorPage(std::string path){
@@ -141,6 +138,9 @@ class VirtualServer
 		}
 		std::string															findRoot(std::string path){
 			std::string result;
+
+			if (path.rfind('/') != path.size() - 1)
+				path = path.substr(0, path.rfind('/') + 1);
 			result = this->findOption("root", path, this->get_root());
 			return (result);
 		}
@@ -162,11 +162,15 @@ class VirtualServer
 		}
 		bool																findMethod(std::string path, std::string method){
 			std::vector<std::string> vec = findMethod(path);
-			for (size_t i = 0; i < vec.size(); i++){
-				if (vec[i] == method)
-					return (true);
+			if (!vec.empty())
+			{
+				for (size_t i = 0; i < vec.size(); i++){
+					if (vec[i] == method)
+						return (true);
+				}
+				return (false);
 			}
-			return (false);
+			return (true);
 		}
 		std::vector<std::string>											findCGI(std::string path, std::string extension){
 			std::vector<std::string> result;
@@ -198,6 +202,14 @@ class VirtualServer
 		}
 		bool																get_autoIndex(void){
 			return (this->_autoIndex);
+		}
+		std::string															get_autoIndex(int i){
+			if (i){
+				if (this->_autoIndex)
+					return ("on");
+				return ("off");
+			}
+			return ("off");
 		}
 		std::map<std::string, std::vector<std::string> >					get_CGI(void){
 			return (this->_CGI);
