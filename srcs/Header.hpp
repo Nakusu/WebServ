@@ -27,6 +27,7 @@
 #include <fcntl.h>
 #include <ctime>
 #include <sstream>
+#include <sys/wait.h>
 
 # define RESET   		"\033[0m"
 # define BLACK   		"\033[30m"				/* Black */
