@@ -50,8 +50,11 @@ class ServerWeb
 		***************************************************/
 		int																waitForSelect(void){
 			int activity;
+			struct timeval			timeout;
 
-			activity = select(this->_fdmax + 1, &this->_readfds , NULL , NULL , NULL);
+			timeout.tv_sec = 10;
+			timeout.tv_usec = 0;
+			activity = select(this->_fdmax + 1, &this->_readfds , NULL , NULL , &timeout);
 			if ((activity < 0) && (errno != EINTR))  
 				printf("select error");   
 			return (activity);

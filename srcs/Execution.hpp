@@ -95,7 +95,7 @@ class Execution
 			this->header->updateContent("Content-Type", "text/html");
 			this->header->basicHistory(this->vserv, this->req);
 			if (redir.empty()){
-				this->header->updateContent("Content-Length", "161");
+				this->header->updateContent("Content-Length", "159");
 				this->header->sendHeader(this->req);
 				req->sendPacket("<html><head><title>404 Not Found</title></head><body bgcolor=\"white\"><center><h1>404 Not Found</h1></center><hr><center>Les Poldters Server Web</center></html>");
 				
@@ -222,6 +222,7 @@ class Execution
 			tmp[0] = strdup(cgi_path.c_str());
 			tmp[1] = 0;
 			tmp[2] = 0;
+			std::cout << RED << "Passe dans la CGI" << RESET << std::endl;
 			this->header->basicHeaderFormat(this->req);
 			// this->header->updateContent("Content-Type", "text/html");
 			this->header->sendHeader(this->req);

@@ -4,7 +4,7 @@
 #include "Header.hpp"
 #include "ParsingRequest.hpp"
 
-class Request {
+class Request{
 	public:
 		Request(){
 			this->_socket = 0;
@@ -15,7 +15,13 @@ class Request {
 		}
 		Request(int socket){
 			this->_socket = socket;
-			this->_buffer[recv(this->_socket, &this->_buffer, sizeof(this->_buffer), 0)] = 0;
+			int i = recv(this->_socket, &this->_buffer, sizeof(this->_buffer) - 1, 0);
+			if (i == -1)
+				std::cout << "FUCKING ERROR" << std::endl;
+			std::cout << RED << i << RESET << std::endl;
+			this->_buffer[i] = 0;
+			std::cout << BLUE << this->_buffer << RESET << std::endl;
+			std::cout << RED << sizeof(this->_buffer) << RESET << std::endl;
 			this->_method = this->set_method();
 			this->_parsing.parsingMap(this->_buffer);
 			this->_parsing.parsingMime();
@@ -27,12 +33,15 @@ class Request {
 			this->parsingAuthorizations();
 			this->setPathInfo();
 			this->getContentType();
+			std::cout << "BLANC" << std::endl;
+			std::cout << this->_parsing.getMap()["Connection"] << std::endl;
 		}
 
 		virtual ~Request(){
 			close(this->_socket);
 			return ; 
 		}
+
 
 		/***************************************************
 		********************    GET   **********************
@@ -64,25 +73,25 @@ class Request {
 		std::string								getQueryString(void) const{
 			return (this->_queryString);
 		}
-		ParsingRequest							get_Parsing(void) const {
+		ParsingRequest							get_Parsing(void) const{
 			return (this->_parsing);
 		}
-		std::string								get_authType(void) const {
+		std::string								get_authType(void) const{
 			return (this->_authType);
 		}
-		std::string								get_authCredential(void) const {
+		std::string								get_authCredential(void) const{
 			return (this->_authCredentials);
 		}
-		std::string								get_host(void) const {
+		std::string								get_host(void) const{
 				return (this->_hostName);
 			}
-		std::string								get_port(void) const {
+		std::string								get_port(void) const{
 				return (this->_hostPort);
 			}
-		std::string								get_userAgent(void) const {
+		std::string								get_userAgent(void) const{
 				return (this->_userAgent);
 			}
-		std::string								set_method(void) {
+		std::string								set_method(void){
 				std::string rep = "";
 				for (int i = 0; (this->_buffer[i] && this->_buffer[i] != ' ') ; i++)
 					rep += this->_buffer[i];
@@ -91,13 +100,13 @@ class Request {
 		std::string								get_method(void) const{ 
 				return (this->_method);
 			}
-		std::string								get_IpClient(void) const {
+		std::string								get_IpClient(void) const{
 				return (this->_IPClient);
 			}
 		std::string								get_PathInfo(void) const{
 			return (this->_pathInfo);
 		}
-		std::string								get_url(void) const {
+		std::string								get_url(void) const{
 			return (("http://" + this->get_host() + ":" + this->get_port() + this->get_uri()));
 		}
 		void									getContentType(void){
@@ -115,7 +124,7 @@ class Request {
 			}
 			(ifs).close();
 		}
-		std::string								getMimeType(std::string extension) {
+		std::string								getMimeType(std::string extension){
 			return (this->_mimesTypes[extension]);
 		}
 
@@ -134,7 +143,7 @@ class Request {
 		void									setIPClient(char * pIPClient){
 			this->_IPClient = (std::string)pIPClient;
 		}
-		void									setPathInfo(void) {
+		void									setPathInfo(void){
 			this->_extension =  (this->_uri.find(".") != SIZE_MAX) ? &this->_uri[this->_uri.find(".")] : "";
 			if (this->_extension.empty())
 				this->_pathInfo = "";
@@ -145,10 +154,12 @@ class Request {
 		*******************    SEND   **********************
 		***************************************************/
 		void									sendPacket(std::string content){
-			send(this->_socket, content.c_str(), strlen(content.c_str()), 0);
+			std::cout << GREEN << content << RESET << std::endl;
+			send(this->_socket, content.c_str(), strlen(content.c_str()), MSG_CONFIRM);
 		}
 		void									sendPacket(char *content, size_t len){
-			send(this->_socket, content, len, 0);
+			std::cout << GREEN << content << RESET << std::endl;
+			send(this->_socket, content, len, MSG_CONFIRM);
 		}
 
 		/***************************************************
@@ -178,13 +189,13 @@ class Request {
 			iss = convertInSpaces(iss);
 			iss = cleanLine(iss);
 			std::vector<std::string> results = split(iss, " ");
-			if (!results.empty()) {
+			if (!results.empty()){
 				this->_authType = results[0];
 				this->_authCredentials = results[1];
 			}
 		}
 
-	private:
+
 		int													_socket;
 		char												_buffer[1025];
 		std::string											_uri;

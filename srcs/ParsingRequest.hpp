@@ -60,8 +60,11 @@ class ParsingRequest{
 		void												parsingMap(char *_buffer){
 
 			std::vector<std::string> pars = split(_buffer, "\n");
-			for (size_t i = 1; i < pars.size(); i++)
+			for (size_t i = 1; i < pars.size(); i++){
 				pars[i] = cleanLine(pars[i]);
+			}
+			std::cout << RED << "------------------------------------------------------" << RESET << std::endl;
+
 			std::string key = "First";
 			std::string value = (pars.size() > 0) ? pars[0] : "";
 			this->_map[key] = value;
