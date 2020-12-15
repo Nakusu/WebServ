@@ -601,10 +601,6 @@ class VirtualServer
 					std::cerr << RED << "Error: Path of location " << i + 1 << " is empty" << RESET << std::endl;
 					return (false);
 				}
-				if (!folderIsOpenable(this->findRoot(this->_locations[i]["key"][0]) + this->_locations[i]["key"][0])) {
-					std::cerr << RED << "Error: Bad configuration of path in location " << this->_locations[i]["key"][0] << RESET << std::endl;
-					return (false);	
-				}
 			}
 			return (true);
 		}
