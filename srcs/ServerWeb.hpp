@@ -10,7 +10,6 @@ class ServerWeb
 	public:
 		ServerWeb(void){
 			this->_fdmax = 0;
-			this->_root = "./public";
 		}
 		ServerWeb(ServerWeb const &rhs){
 			operator=(rhs);
@@ -25,16 +24,13 @@ class ServerWeb
 		/***************************************************
 		********************    GET   **********************
 		***************************************************/
-		std::string														get_root(void){
-			return (this->_root);
-		}
 		VirtualServer*													getVS(int i){
 			return (this->_VServs[i]);
 		}
 		size_t															getVSsize(void){
 			return (this->_VServs.size());
 		}
-		int																getFdmax(void){
+		int																get_fdmax(void){
 			return (this->_fdmax);
 		}
 
@@ -43,9 +39,9 @@ class ServerWeb
 		***************************************************/
 		void															setAllFDSET_fdmax(void){
 			for (size_t i = 0; i < this->_VServs.size(); i++){
-				FD_SET(this->_VServs[i]->getFd() , &this->_readfds);
-				if (this->_fdmax < this->_VServs[i]->getFd())
-					this->_fdmax = this->_VServs[i]->getFd();
+				FD_SET(this->_VServs[i]->get_fd() , &this->_readfds);
+				if (this->_fdmax < this->_VServs[i]->get_fd())
+					this->_fdmax = this->_VServs[i]->get_fd();
 			}
 		}
 
@@ -67,8 +63,8 @@ class ServerWeb
 		/***************************************************
 		******************    PARSING   ********************
 		***************************************************/
-		void															splitConfsVServ(void){
-			//Transform the file in Vectors<VirtualServer> who contain is own conf in a Vector<String>
+		void															createVServs(void){
+			//Find configuration and create VSERV
 			std::vector<std::string> Conf;
 
 			for (unsigned int i = 0; i < this->_file.size(); i++){
@@ -87,7 +83,8 @@ class ServerWeb
 					}
 					i--;
 				}
-				this->_VServ_confs.push_back(Conf);
+				VirtualServer *vserv = new VirtualServer(Conf);
+				this->_VServs.push_back(vserv);
 				Conf.clear();
 			}
 		}
@@ -104,23 +101,14 @@ class ServerWeb
 			}
 			(*ifs).close();
 		}
-		void															createVServs(void){
-			for (size_t i = 0; i < this->_VServ_confs.size(); i++){
-				VirtualServer *vserv = new VirtualServer(this->_VServ_confs[i], this->_root);
-				this->_VServs.push_back(vserv);
-			}
-		}
 		void															clearFd(void){
 			FD_ZERO(&this->_readfds);
 		}
 
 	private:
-		std::vector<VirtualServer*> 									_VServs;
-		std::string														_root;
-		int																_fdmax;
-		std::map<std::string, std::string>								_conf;
 		std::vector<std::string> 										_file;
-		std::vector<std::vector<std::string> >							_VServ_confs;
+		std::vector<VirtualServer*> 									_VServs;
+		int																_fdmax;
 		fd_set		 													_readfds;
 };
 

@@ -30,7 +30,6 @@ int			main(int argc, char **argv, char **env)
 	puts("Waiting for connections ...");
 
 	defaultConf = checkArgs(argc, argv, &defaultConf, serv);
-	serv->splitConfsVServ();
 	serv->createVServs();
 	
 	while(TRUE)
@@ -39,20 +38,20 @@ int			main(int argc, char **argv, char **env)
 		serv->setAllFDSET_fdmax();
 		//Le server attends un nouvelle activité (une requete)
 	  	nb_activity = serv->waitForSelect();
-		//Si une requete est envoyé au serv->getFd()
+		//Si une requete est envoyé au serv->get_fd()
 		for (size_t i = 0; i < serv->getVSsize() && nb_activity; i++)
 		{
-			if (serv->verifFdFDISSET(serv->getVS(i)->getFd())){
-				int addrlen = sizeof(serv->getVS(i)->getAddress());
-				struct sockaddr_in * IPClient = serv->getVS(i)->getAddress();
-				Request *req = new Request(accept(serv->getVS(i)->getFd(), (struct sockaddr *)IPClient, (socklen_t *)&addrlen));
+			if (serv->verifFdFDISSET(serv->getVS(i)->get_fd())){
+				int addrlen = sizeof(serv->getVS(i)->get_address());
+				struct sockaddr_in * IPClient = serv->getVS(i)->get_address();
+				Request *req = new Request(accept(serv->getVS(i)->get_fd(), (struct sockaddr *)IPClient, (socklen_t *)&addrlen));
 				req->setIPClient(inet_ntoa(IPClient->sin_addr));
 				HeaderRequest *header = new HeaderRequest();
 				Execution exec = Execution(serv, serv->getVS(i), req, header, env);
 				if (!exec.checkMethod())
 					exec.searchError405();
 				if (!exec.needRedirection() && exec.checkMethod()){
-					if (!exec.searchIndex() && !exec.initCGI(req) && !exec.openText() && !exec.binaryFile())
+					if (!exec.searchIndex() && !exec.initCGI() && !exec.openText() && !exec.binaryFile())
 						exec.searchError404();	
 				}
 				// HISTORY FOR REFERER

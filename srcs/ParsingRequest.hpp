@@ -38,7 +38,8 @@ class ParsingRequest{
 			this->_path = (this->_path.find("?") != SIZE_MAX) ? this->_path.substr(0, this->_path.find("?") - 1)
 			: this->_path.substr(0, this->_path.find("HTTP") - 1);
 			this->_file = (this->_path.rfind("/") != SIZE_MAX) ? &this->_path[this->_path.rfind("/") + 1] : this->_path;
-			this->_extension = (this->_file.rfind(".") != SIZE_MAX) ? &this->_file[this->_file.rfind(".") + 1] : "";
+			this->_extension = (this->_file.rfind(".") != SIZE_MAX) ? &this->_file[this->_file.rfind(".")] : "";
+			std::cout << GREEN << "PARSEGET THIS EXTENSION" << this->_extension << RESET << std::endl;
 		}
 		void												parsingMime(void){
 			std::ifstream			file("srcs/mime.types");
