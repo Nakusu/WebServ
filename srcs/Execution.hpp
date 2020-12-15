@@ -111,7 +111,7 @@ class Execution
 			this->header->Error405HeaderFormat(this->req, this->getAllowMethods());
 			this->header->basicHistory(this->vserv, this->req);
 			if (redir.empty()){
-				this->header->updateContent("Content-Length", "179");
+				this->header->updateContent("Content-Length", "177");
 				this->header->sendHeader(this->req);
 				req->sendPacket("<html><head><title>405 Method Not Allowed</title></head><body bgcolor=\"white\"><center><h1>405 Method Not Allowed</h1></center><hr><center>Les Poldters Server Web</center></html>");
 			}
