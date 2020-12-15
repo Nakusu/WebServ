@@ -216,6 +216,7 @@ class Execution
 			int  pfd[2];
 			int  pid;
 			char **env = mergeArrays(args, this->_envs, 0);
+			int status;
 
 			char **tmp = (char**)malloc(sizeof(char*) * 3);
 			tmp[0] = strdup(cgi_path.c_str());
@@ -243,6 +244,7 @@ class Execution
 			}
 			else {
 				close(pfd[0]);
+				waitpid(pid, &status,0);
 			}
 		}
 		int											initCGI(void){
