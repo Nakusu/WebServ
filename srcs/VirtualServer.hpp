@@ -639,7 +639,7 @@ class VirtualServer
 		std::vector<std::string>											_methods;
 		std::string															_root;
 		std::string															_serverNames;
-
+		
 };
 
 #endif
