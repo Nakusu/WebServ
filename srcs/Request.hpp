@@ -7,21 +7,16 @@
 class Request{
 	public:
 		Request(){
-			this->_socket = 0;
+			this->_fd = 0;
 			this->_uri = "";
 			this->_typeContent = "";
 			this->_authCredentials = "";
 			this->_authType = "";
 		}
-		Request(int socket){
-			this->_socket = socket;
-			int i = recv(this->_socket, &this->_buffer, sizeof(this->_buffer) - 1, 0);
-			if (i == -1)
-				std::cout << "FUCKING ERROR" << std::endl;
-			std::cout << RED << i << RESET << std::endl;
-			this->_buffer[i] = 0;
-			std::cout << BLUE << this->_buffer << RESET << std::endl;
-			std::cout << RED << sizeof(this->_buffer) << RESET << std::endl;
+		Request(int fd){
+			this->_fd = fd;
+			this->_fd = fd;
+			this->_buffer[recv(this->_fd, &this->_buffer, sizeof(this->_buffer), 0)] = 0;
 			this->_method = this->set_method();
 			this->_parsing.parsingMap(this->_buffer);
 			this->_parsing.parsingMime();
@@ -38,7 +33,7 @@ class Request{
 		}
 
 		virtual ~Request(){
-			close(this->_socket);
+			close(this->_fd);
 			return ; 
 		}
 
@@ -64,8 +59,8 @@ class Request{
 		std::string								getExtension(void) const{
 			return (this->_extension);
 		}
-		int										getSocket(void) const{
-			return (this->_socket);
+		int										getfd(void) const{
+			return (this->_fd);
 		}
 		std::string								getContentMimes(void) const{
 			return (this->_parsing.getMap().find("Content-Type") != this->_parsing.getMap().end() ? this->_parsing.getMap()["Content-Type"] : "");
@@ -134,8 +129,8 @@ class Request{
 		void									setQueryString(void){
 			this->_queryString = (this->_uri.find("?") != SIZE_MAX) ? &this->_uri[this->_uri.find("?") + 1] : "";
 		}
-		void									setSocket(int socket){
-			this->_socket = socket;
+		void									setfd(int fd){
+			this->_fd = fd;
 		}
 		void									setUri(std::string uri){
 			this->_uri = uri;
@@ -155,11 +150,11 @@ class Request{
 		***************************************************/
 		void									sendPacket(std::string content){
 			std::cout << GREEN << content << RESET << std::endl;
-			send(this->_socket, content.c_str(), strlen(content.c_str()), MSG_CONFIRM);
+			send(this->_fd, content.c_str(), strlen(content.c_str()), MSG_CONFIRM);
 		}
 		void									sendPacket(char *content, size_t len){
 			std::cout << GREEN << content << RESET << std::endl;
-			send(this->_socket, content, len, MSG_CONFIRM);
+			send(this->_fd, content, len, MSG_CONFIRM);
 		}
 
 		/***************************************************
@@ -196,8 +191,8 @@ class Request{
 		}
 
 
-		int													_socket;
-		char												_buffer[1025];
+		int													_fd;
+		char												_buffer[1024];
 		std::string											_uri;
 		std::string											_typeContent;
 		ParsingRequest										_parsing;

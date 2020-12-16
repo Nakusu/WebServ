@@ -42,6 +42,9 @@ class ServerWeb
 				FD_SET(this->_VServs[i]->get_fd() , &this->_readfds);
 				if (this->_fdmax < this->_VServs[i]->get_fd())
 					this->_fdmax = this->_VServs[i]->get_fd();
+				for (size_t j = 0; j < this->_VServs[i]->get_fd(); j++){
+					this->_VServs[i]->get_fdClients(j);
+				}
 			}
 		}
 
@@ -60,7 +63,7 @@ class ServerWeb
 			return (activity);
 		}
 		int																verifFdFDISSET(int fd){
-			return (FD_ISSET(fd, &this->_readfds));
+			return (FD_ISSET(fd, &this->_write) && FD_ISSET(fd, &this->_readfds));
 		}
 
 		/***************************************************
@@ -106,6 +109,7 @@ class ServerWeb
 		}
 		void															clearFd(void){
 			FD_ZERO(&this->_readfds);
+			FD_ZERO(&this->_write);
 		}
 
 	private:
@@ -113,6 +117,7 @@ class ServerWeb
 		std::vector<VirtualServer*> 									_VServs;
 		int																_fdmax;
 		fd_set		 													_readfds;
+		fd_set		 													_write;
 };
 
 #endif
