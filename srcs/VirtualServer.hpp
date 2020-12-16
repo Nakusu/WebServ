@@ -234,6 +234,12 @@ class VirtualServer
 		int																	get_fd(void){
 			return (this->_fd);
 		}
+		std::vector<int>													get_fdClients(void){
+			return (this->_fdClients);
+		}
+		int																	get_fdClients(int i){
+			return (this->_fdClients[i]);
+		}
 		std::map<std::string, std::string>									get_history(void){
 			return (this->_history);
 		}
@@ -268,7 +274,19 @@ class VirtualServer
 		void																setHistory(std::string user, std::string url){
 			this->_history[user] = url;
 		}
+		void																set_fdClients(int i){
+			return (this->_fdClients.push_back(i));
+		}
 
+		/***************************************************
+		********************    DEL   **********************
+		***************************************************/
+		void																del_fdClients(int i){
+			for (std::vector<int>::iterator it = this->_fdClients.begin(); it != this->_fdClients.end(); it++){
+				if (*it == i)
+					this->_fdClients.erase(it);
+			}
+		}
 		/***************************************************
 		******************    Parsing    *******************
 		***************************************************/
@@ -639,7 +657,7 @@ class VirtualServer
 		std::vector<std::string>											_methods;
 		std::string															_root;
 		std::string															_serverNames;
-		
+		std::vector<int>													_fdClients;
 };
 
 #endif

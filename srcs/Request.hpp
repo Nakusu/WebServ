@@ -15,8 +15,42 @@ class Request{
 		}
 		Request(int fd){
 			this->_fd = fd;
-			this->_fd = fd;
-			this->_buffer[recv(this->_fd, &this->_buffer, sizeof(this->_buffer), 0)] = 0;
+		}
+
+		virtual ~Request(){
+			close(this->_fd);
+			return ; 
+		}
+
+		int										init(void){
+			int size;
+			std::string tmp;
+			this->_buffer = (char *)calloc(sizeof(char), 1024);
+			std::cout << "AVANT RECV" << std::endl;
+
+			if ((size = read(this->_fd , this->_buffer, 1024)) == 0){
+				if (size == 0){
+					std::cout << RED << "size 0" << RESET << std::endl;
+					return (0);
+				}
+			}
+			// size = recv(this->_fd, this->_buffer, sizeof(this->_buffer), 0);
+			std::cout << GREEN << size << RESET << std::endl;
+			std::cout << BLUE << this->_buffer << RESET << std::endl;
+
+
+			// while ((size = recv(this->_fd, this->_buffer, sizeof(this->_buffer), 0)) != 1){
+
+			// 		std::cout << RED << size << RESET << std::endl;
+			// 	if (size == 0){
+			// 		std::cout << RED << "size 0" << RESET << std::endl;
+			// 		return (0);
+			// 	}
+			// 	tmp += this->_buffer;
+			// }
+			// this->_buffer = strdup(tmp.c_str());
+
+
 			this->_method = this->set_method();
 			this->_parsing.parsingMap(this->_buffer);
 			this->_parsing.parsingMime();
@@ -28,16 +62,8 @@ class Request{
 			this->parsingAuthorizations();
 			this->setPathInfo();
 			this->getContentType();
-			std::cout << "BLANC" << std::endl;
-			std::cout << this->_parsing.getMap()["Connection"] << std::endl;
+			return (1);
 		}
-
-		virtual ~Request(){
-			close(this->_fd);
-			return ; 
-		}
-
-
 		/***************************************************
 		********************    GET   **********************
 		***************************************************/
@@ -149,11 +175,9 @@ class Request{
 		*******************    SEND   **********************
 		***************************************************/
 		void									sendPacket(std::string content){
-			std::cout << GREEN << content << RESET << std::endl;
 			send(this->_fd, content.c_str(), strlen(content.c_str()), MSG_CONFIRM);
 		}
 		void									sendPacket(char *content, size_t len){
-			std::cout << GREEN << content << RESET << std::endl;
 			send(this->_fd, content, len, MSG_CONFIRM);
 		}
 
@@ -192,7 +216,7 @@ class Request{
 
 
 		int													_fd;
-		char												_buffer[1024];
+		char*												_buffer;
 		std::string											_uri;
 		std::string											_typeContent;
 		ParsingRequest										_parsing;
