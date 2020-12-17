@@ -109,9 +109,9 @@ class Request{
 		std::string								get_port(void) const{
 				return (this->_hostPort);
 			}
-		std::string								get_userAgent(void) const{
+		/*std::string								get_userAgent(void) const{
 				return (this->_userAgent);
-			}
+			}*/
 		std::string								set_method(void){
 				std::string rep = "";
 				for (int i = 0; (this->_buffer[i] && this->_buffer[i] != ' ') ; i++)
@@ -201,7 +201,7 @@ class Request{
 		void									parsingMetasVars(void){
 			this->_hostName = this->_parsing.getMap()["Host"].substr(0, this->_parsing.getMap()["Host"].find_first_of(":"));
 			this->_hostPort = &this->_parsing.getMap()["Host"][this->_parsing.getMap()["Host"].find_first_of(":") + 1];
-			this->_userAgent = this->_parsing.getMap()["User-Agent"];
+			//this->_userAgent = this->_parsing.getMap()["User-Agent"];
 		}
 		void									parsingAuthorizations(void){
 			std::string iss = this->_parsing.getMap()["Authorization"];
@@ -224,7 +224,7 @@ class Request{
 		std::string											_hostName;
 		std::string											_hostPort;
 		std::string											_IPClient;
-		std::string											_userAgent;
+		//std::string											_userAgent;
 		std::string											_authType;
 		std::string											_authCredentials;
 		std::string											_queryString;

@@ -29,7 +29,7 @@ void		Exec(ServerWeb *serv, Request *req, int i, char **env){
 		if (!exec.searchIndex() && !exec.initCGI() && !exec.binaryFile())
 			exec.searchError404();	
 	}
-	serv->getVS(i)->setHistory((req->get_IpClient() + req->get_userAgent()), req->get_url());
+	serv->getVS(i)->setHistory(req->getfd(), req->get_url());
 	delete req;
 	delete header;
 	
