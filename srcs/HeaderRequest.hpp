@@ -50,8 +50,8 @@ class HeaderRequest {
 			this->updateContent("Accept-Charset", "utf-8");
 		}
 		void											basicHistory(VirtualServer *vserv, Request *req){
-			if (vserv->get_history((req->get_IpClient() + req->get_userAgent())) != "")
-				this->updateContent("Referer", vserv->get_history((req->get_IpClient() + req->get_userAgent())));
+			if (vserv->get_history(req->getfd()) != "")
+				this->updateContent("Referer", vserv->get_history(req->getfd()));
 			if (!folderIsOpenable((vserv->findRoot(req->get_uri()) + req->get_uri())))
 				this->updateContent("Content-Length", NumberToString(getSizeFileBits(vserv->findRoot(req->get_uri()) + req->get_uri())));
 		}

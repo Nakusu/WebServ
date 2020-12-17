@@ -240,10 +240,10 @@ class VirtualServer
 		int																	get_fdClients(int i){
 			return (this->_fdClients[i]);
 		}
-		std::map<std::string, std::string>									get_history(void){
+		std::map<int, std::string>									get_history(void){
 			return (this->_history);
 		}
-		std::string															get_history(std::string user){
+		std::string															get_history(int user){
 			return (this->_history[user]);
 		}
 		std::vector<std::string>											get_index(void){
@@ -271,7 +271,7 @@ class VirtualServer
 		/***************************************************
 		********************    SET   **********************
 		***************************************************/
-		void																setHistory(std::string user, std::string url){
+		void																setHistory(int user, std::string url){
 			this->_history[user] = url;
 		}
 		void																set_fdClients(int i){
@@ -649,7 +649,7 @@ class VirtualServer
 		std::vector<std::string> 											_conf;
 		std::vector<std::string>											_errorPage;
 		int 																_fd;
-		std::map<std::string, std::string>									_history;
+		std::map<int, std::string>											_history;
 		std::vector<std::string>											_index;
 		std::string															_listen;
 		std::vector<std::map<std::string, std::vector<std::string> > >		_locations;
