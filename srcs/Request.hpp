@@ -25,15 +25,14 @@ class Request{
 		int										init(void){
 			int size;
 			std::string tmp;
-			this->_buffer = (char *)calloc(sizeof(char), 1024);
+			this->_buffer = (char *)calloc(sizeof(char), 4096);
 			std::cout << "AVANT RECV" << std::endl;
-
-			if ((size = read(this->_fd , this->_buffer, 1024)) == 0){
-				if (size == 0){
-					std::cout << RED << "size 0" << RESET << std::endl;
+			// size = read(this->_fd , this->_buffer, 1024);
+			size = recv(this->_fd, this->_buffer, 4096, MSG_DONTWAIT);
+			std::cout << RED << "size = " << size << RESET << std::endl;
+				if (size == 0 || size == -1){
 					return (0);
 				}
-			}
 			// size = recv(this->_fd, this->_buffer, sizeof(this->_buffer), 0);
 			std::cout << GREEN << size << RESET << std::endl;
 			std::cout << BLUE << this->_buffer << RESET << std::endl;

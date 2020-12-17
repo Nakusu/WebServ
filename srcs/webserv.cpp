@@ -30,7 +30,7 @@ void		Exec(ServerWeb *serv, Request *req, int i, char **env){
 			exec.searchError404();	
 	}
 	serv->getVS(i)->setHistory((req->get_IpClient() + req->get_userAgent()), req->get_url());
-	delete req;
+
 	delete header;
 	
 }
@@ -66,16 +66,15 @@ int			main(int argc, char **argv, char **env)
 				fdClient = accept(serv->getVS(i)->get_fd(), (struct sockaddr *)IPClient, (socklen_t *)&addrlen);
 				serv->getVS(i)->set_fdClients(fdClient);
 				Request *req = new Request(fdClient);
-				if (req->init()){
-					req->setIPClient(inet_ntoa(IPClient->sin_addr));
+				req->setIPClient(inet_ntoa(IPClient->sin_addr));
+				while (req->init()){
 					Exec(serv, req, i, env);
 				}
-				else{
-					std::cout << "ON CLOSE LE " << fdClient << " dans la part 1" << std::endl;
-					delete req;
-					close(fdClient);
-					serv->getVS(i)->del_fdClients(fdClient);
-				}
+				std::cout << "ON CLOSE LE " << fdClient << " dans la part 1" << std::endl;
+				delete req;
+				close(fdClient);
+					// serv->getVS(i)->del_fdClients(fdClient);
+				
 				nb_activity--;
 			}
 			//Si l'un des clients du virtualServer a recu une requete :
@@ -84,14 +83,14 @@ int			main(int argc, char **argv, char **env)
 				fdClient = serv->getVS(i)->get_fdClients(j);
 				if (serv->verifFdFDISSET(fdClient)){
 					Request *req = new Request(serv->verifFdFDISSET(fdClient));
-					if (req->init())
+					while (req->init())
 						Exec(serv, req, i, env);
-					else{
-						std::cout << "ON CLOSE LE " << fdClient << std::endl;
-						delete req;
+
+					std::cout << "ON CLOSE LE " << fdClient << std::endl;
+					delete req;
 						close(fdClient);
-						serv->getVS(i)->del_fdClients(fdClient);
-					}
+						// serv->getVS(i)->del_fdClients(fdClient);
+					
 					nb_activity--;
 				}
 			}

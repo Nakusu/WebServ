@@ -63,8 +63,8 @@ class ServerWeb
 			timeout.tv_usec = 0;
 
 			while ((activity = select(this->_fdmax + 1, &this->_readfds , NULL , NULL , NULL)) == -1){
-				std::cout << "activity = " << activity << std::endl;
 			}
+				std::cout << "activity = " << activity << std::endl;
 			if ((activity < 0) && (errno != EINTR))  
 				printf("select error");
 			return (activity);
