@@ -43,12 +43,12 @@ class ServerWeb
 				// FD_SET(this->_VServs[i]->get_fd() , &this->_writefds);
 				if (this->_fdmax < this->_VServs[i]->get_fd())
 					this->_fdmax = this->_VServs[i]->get_fd();
-				for (size_t j = 0; j < this->_VServs[i]->get_fdClients().size(); j++){
-					FD_SET(this->_VServs[i]->get_fdClients(j), &this->_readfds);
-					// FD_SET(this->_VServs[i]->get_fdClients(j), &this->_writefds);
-					if (this->_fdmax < this->_VServs[i]->get_fdClients(j))
-						this->_fdmax = this->_VServs[i]->get_fdClients(j);
-				}
+				// for (size_t j = 0; j < this->_VServs[i]->get_fdClients().size(); j++){
+				// 	FD_SET(this->_VServs[i]->get_fdClients(j), &this->_readfds);
+				// 	// FD_SET(this->_VServs[i]->get_fdClients(j), &this->_writefds);
+				// 	if (this->_fdmax < this->_VServs[i]->get_fdClients(j))
+				// 		this->_fdmax = this->_VServs[i]->get_fdClients(j);
+				// }
 			}
 		}
 
