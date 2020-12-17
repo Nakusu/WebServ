@@ -59,7 +59,7 @@ int			main(int argc, char **argv, char **env)
 			//Si le virtualServer a recu une requete :
 				std::cout << RED << "NUMERO " << i << RESET << std::endl;
 				std::cout << RED << "fd " << serv->getVS(i)->get_fd() << RESET << std::endl;
-			if (serv->verifFdFDISSET(serv->getVS(i)->get_fd())){
+			if (FD_ISSET(serv->getVS(i)->get_fd(), serv->get_readfds())){
 				std::cout << RED << "ici" << RESET << std::endl;
 				int addrlen = sizeof(serv->getVS(i)->get_address());
 				struct sockaddr_in * IPClient = serv->getVS(i)->get_address();
@@ -67,12 +67,12 @@ int			main(int argc, char **argv, char **env)
 				serv->getVS(i)->set_fdClients(fdClient);
 				Request *req = new Request(fdClient);
 				req->setIPClient(inet_ntoa(IPClient->sin_addr));
-				while (req->init()){
-					Exec(serv, req, i, env);
-				}
+				req->init();
+				Exec(serv, req, i, env);
+				
 				std::cout << "ON CLOSE LE " << fdClient << " dans la part 1" << std::endl;
 				delete req;
-				close(fdClient);
+				//close(fdClient);
 					// serv->getVS(i)->del_fdClients(fdClient);
 				
 				nb_activity--;
@@ -83,12 +83,12 @@ int			main(int argc, char **argv, char **env)
 				fdClient = serv->getVS(i)->get_fdClients(j);
 				if (serv->verifFdFDISSET(fdClient)){
 					Request *req = new Request(serv->verifFdFDISSET(fdClient));
-					while (req->init())
-						Exec(serv, req, i, env);
+					req->init();
+					Exec(serv, req, i, env);
 
 					std::cout << "ON CLOSE LE " << fdClient << std::endl;
 					delete req;
-						close(fdClient);
+						//close(fdClient);
 						// serv->getVS(i)->del_fdClients(fdClient);
 					
 					nb_activity--;
