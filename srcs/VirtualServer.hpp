@@ -281,10 +281,14 @@ class VirtualServer
 		/***************************************************
 		********************    DEL   **********************
 		***************************************************/
-		void																del_fdClients(int i){
+		void																del_fdClients(int fd){
 			for (std::vector<int>::iterator it = this->_fdClients.begin(); it != this->_fdClients.end(); it++){
-				if (*it == i)
+				std::cout << RED << "fd =" << fd << RESET << std::endl;
+				std::cout << RED << "it = " << *it << RESET << std::endl;
+				if (*it == fd){
 					this->_fdClients.erase(it);
+					return ;
+				}
 			}
 		}
 		/***************************************************

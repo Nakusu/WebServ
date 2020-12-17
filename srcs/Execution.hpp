@@ -222,7 +222,6 @@ class Execution
 			tmp[0] = strdup(cgi_path.c_str());
 			tmp[1] = 0;
 			tmp[2] = 0;
-			std::cout << RED << "Passe dans la CGI" << RESET << std::endl;
 			this->header->basicHeaderFormat(this->req);
 			// this->header->updateContent("Content-Type", "text/html");
 			this->header->sendHeader(this->req);

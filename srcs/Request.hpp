@@ -18,7 +18,7 @@ class Request{
 		}
 
 		virtual ~Request(){
-			close(this->_fd);
+			// close(this->_fd);
 			return ; 
 		}
 
@@ -26,16 +26,12 @@ class Request{
 			int size;
 			std::string tmp;
 			this->_buffer = (char *)calloc(sizeof(char), 4096);
-			std::cout << "AVANT RECV" << std::endl;
 			// size = read(this->_fd , this->_buffer, 1024);
 			size = recv(this->_fd, this->_buffer, 4096, MSG_DONTWAIT);
-			std::cout << RED << "size = " << size << RESET << std::endl;
 				if (size == 0 || size == -1){
 					return (0);
 				}
 			// size = recv(this->_fd, this->_buffer, sizeof(this->_buffer), 0);
-			std::cout << GREEN << size << RESET << std::endl;
-			std::cout << BLUE << this->_buffer << RESET << std::endl;
 
 
 			// while ((size = recv(this->_fd, this->_buffer, sizeof(this->_buffer), 0)) != 1){
@@ -61,6 +57,7 @@ class Request{
 			this->parsingAuthorizations();
 			this->setPathInfo();
 			this->getContentType();
+			std::cout << "URI = " << this->_uri << std::endl;
 			return (1);
 		}
 		/***************************************************

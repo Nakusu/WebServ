@@ -45,15 +45,15 @@ class ServerWeb
 		void															setAllFDSET_fdmax(void){
 			for (size_t i = 0; i < this->_VServs.size(); i++){
 				FD_SET(this->_VServs[i]->get_fd(), &this->_readfds);
-				// FD_SET(this->_VServs[i]->get_fd() , &this->_writefds);
+				FD_SET(this->_VServs[i]->get_fd() , &this->_writefds);
 				if (this->_fdmax < this->_VServs[i]->get_fd())
 					this->_fdmax = this->_VServs[i]->get_fd();
-				// for (size_t j = 0; j < this->_VServs[i]->get_fdClients().size(); j++){
-				// 	FD_SET(this->_VServs[i]->get_fdClients(j), &this->_readfds);
-				// 	// FD_SET(this->_VServs[i]->get_fdClients(j), &this->_writefds);
-				// 	if (this->_fdmax < this->_VServs[i]->get_fdClients(j))
-				// 		this->_fdmax = this->_VServs[i]->get_fdClients(j);
-				// }
+				for (size_t j = 0; j < this->_VServs[i]->get_fdClients().size(); j++){
+					FD_SET(this->_VServs[i]->get_fdClients(j), &this->_readfds);
+					FD_SET(this->_VServs[i]->get_fdClients(j), &this->_writefds);
+					if (this->_fdmax < this->_VServs[i]->get_fdClients(j))
+						this->_fdmax = this->_VServs[i]->get_fdClients(j);
+				}
 			}
 		}
 
@@ -66,7 +66,7 @@ class ServerWeb
 
 			timeout.tv_sec = 10;
 			timeout.tv_usec = 0;
-			this->_writefds = this->_readfds;
+			// this->_writefds = this->_readfds;
 			while ((activity = select(this->_fdmax + 1, &this->_readfds , &this->_writefds , NULL , NULL)) == -1){
 			}
 			std::cout << "activity = " << activity << std::endl;
@@ -123,6 +123,7 @@ class ServerWeb
 		}
 		void															clearFd(void){
 			FD_ZERO(&this->_readfds);
+			FD_ZERO(&this->_writefds);
 		}
 
 	private:

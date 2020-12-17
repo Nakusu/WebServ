@@ -63,7 +63,6 @@ class ParsingRequest{
 			for (size_t i = 1; i < pars.size(); i++){
 				pars[i] = cleanLine(pars[i]);
 			}
-			std::cout << RED << "------------------------------------------------------" << RESET << std::endl;
 
 			std::string key = "First";
 			std::string value = (pars.size() > 0) ? pars[0] : "";
