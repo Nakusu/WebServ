@@ -236,7 +236,7 @@ class Execution
 				pfd[0] = open(std::string(this->vserv->get_root() + this->req->get_uri()).c_str(), O_RDONLY);
 				dup2(pfd[0], 0); // ici en entrée mettre le body
 				// dup2(fd, 1); // ici en entrée mettre le body
-				dup2(this->req->getSocket(), 1);
+				dup2(this->req->getfd(), 1);
 				errno = 0;
 				if (execve(cgi_path.c_str(), tmp, env) == -1){
 					std::cerr << "Error with CGI: " << strerror(errno) << std::endl;

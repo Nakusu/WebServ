@@ -40,10 +40,14 @@ class ServerWeb
 		void															setAllFDSET_fdmax(void){
 			for (size_t i = 0; i < this->_VServs.size(); i++){
 				FD_SET(this->_VServs[i]->get_fd() , &this->_readfds);
+				// FD_SET(this->_VServs[i]->get_fd() , &this->_writefds);
 				if (this->_fdmax < this->_VServs[i]->get_fd())
 					this->_fdmax = this->_VServs[i]->get_fd();
-				for (size_t j = 0; j < this->_VServs[i]->get_fd(); j++){
-					this->_VServs[i]->get_fdClients(j);
+				for (size_t j = 0; j < this->_VServs[i]->get_fdClients().size(); j++){
+					FD_SET(this->_VServs[i]->get_fdClients(j), &this->_readfds);
+					// FD_SET(this->_VServs[i]->get_fdClients(j), &this->_writefds);
+					if (this->_fdmax < this->_VServs[i]->get_fdClients(j))
+						this->_fdmax = this->_VServs[i]->get_fdClients(j);
 				}
 			}
 		}
@@ -57,13 +61,18 @@ class ServerWeb
 
 			timeout.tv_sec = 10;
 			timeout.tv_usec = 0;
-			activity = select(this->_fdmax + 1, &this->_readfds , NULL , NULL , &timeout);
+
+			while ((activity = select(this->_fdmax + 1, &this->_readfds , NULL , NULL , NULL)) == -1){
+				std::cout << "activity = " << activity << std::endl;
+			}
 			if ((activity < 0) && (errno != EINTR))  
-				printf("select error");   
+				printf("select error");
 			return (activity);
 		}
 		int																verifFdFDISSET(int fd){
-			return (FD_ISSET(fd, &this->_write) && FD_ISSET(fd, &this->_readfds));
+			std::cout << GREEN << FD_ISSET(fd, &this->_writefds) << std::endl;
+			std::cout << FD_ISSET(fd, &this->_readfds) << RESET << std::endl;
+			return (FD_ISSET(fd, &this->_readfds));
 		}
 
 		/***************************************************
@@ -109,7 +118,7 @@ class ServerWeb
 		}
 		void															clearFd(void){
 			FD_ZERO(&this->_readfds);
-			FD_ZERO(&this->_write);
+			// FD_ZERO(&this->_writefds);
 		}
 
 	private:
@@ -117,7 +126,7 @@ class ServerWeb
 		std::vector<VirtualServer*> 									_VServs;
 		int																_fdmax;
 		fd_set		 													_readfds;
-		fd_set		 													_write;
+		fd_set		 													_writefds;
 };
 
 #endif
