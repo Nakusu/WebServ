@@ -51,6 +51,7 @@ class Request{
 			this->_parsing.parsingMime();
 			this->_parsing.parseGet();
 			this->_extension = this->_parsing.getExtension();
+			this->_datas = "";
 			this->findUri();
 			this->findTypeContent();
 			this->parsingMetasVars();
@@ -125,6 +126,14 @@ class Request{
 		}
 		std::string								get_url(void) const{
 			return (("http://" + this->get_host() + ":" + this->get_port() + this->get_uri()));
+		}
+		std::string								get_datas(void) const{
+			return (this->_datas);
+		}
+		std::string								getDatas(void) {
+			std::string							tmpbuffer = std::string(this->_buffer);
+			this->_datas = &tmpbuffer[(tmpbuffer.find("\n\r") + 3)];
+			return (this->_datas);
 		}
 		void									getContentType(void){
 			std::string line;
@@ -226,6 +235,7 @@ class Request{
 		std::string											_queryString;
 		std::string 										_pathInfo;
 		std::string											_extension;
+		std::string											_datas;
 		std::map<std::string, std::string> 					_mimesTypes;
 };
 

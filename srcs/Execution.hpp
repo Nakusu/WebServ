@@ -187,6 +187,8 @@ class Execution
 			args["CONTENT_LENGTH"] = req->getContentLength();
 			if (req->getQueryString() != "")
 				args["QUERY_STRING"] = req->getQueryString();
+			else if (req->get_datas() != "")
+				args["QUERY_STRING"] = req->get_datas();
 			else
 				args["QUERY_STRING"];
 			args["SERVER_NAME"] = this->req->get_host();

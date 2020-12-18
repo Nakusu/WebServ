@@ -23,6 +23,9 @@ int			checkArgs(int argc, char **argv, std::string *defaultConf, ServerWeb *serv
 void		Exec(ServerWeb *serv, Request *req, int i, char **env){
 	HeaderRequest *header = new HeaderRequest();
 	Execution exec = Execution(serv, serv->getVS(i), req, header, env);
+	std::string Method = req->get_method();
+	if (Method == "POST")
+		req->getDatas();
 	if (!exec.checkMethod())
 		exec.searchError405();
 	if (!exec.needRedirection() && exec.checkMethod()){
@@ -82,12 +85,14 @@ int			main(int argc, char **argv, char **env)
 				int addrlen = sizeof(serv->getVS(i)->get_address());
 				struct sockaddr_in * IPClient = serv->getVS(i)->get_address();
 				fdClient = accept(serv->getVS(i)->get_fd(), (struct sockaddr *)IPClient, (socklen_t *)&addrlen);
+				int val = 1;
+				setsockopt(fdClient, SOL_SOCKET, SO_REUSEADDR | SO_KEEPALIVE, &val, sizeof(val));
 				std::cout << YELLOW << "Creation du fd = " << fdClient << RESET << std::endl;
 				serv->getVS(i)->set_fdClients(fdClient);
 				Request *req = new Request(fdClient);
 				req->setIPClient(inet_ntoa(IPClient->sin_addr));
 				req->init();
-					Exec(serv, req, i, env);
+				Exec(serv, req, i, env);
 				
 				delete req;
 				//close(fdClient);
