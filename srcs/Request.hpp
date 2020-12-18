@@ -132,8 +132,22 @@ class Request{
 		}
 		std::string								getDatas(void) {
 			std::string							tmpbuffer = std::string(this->_buffer);
-			this->_datas = &tmpbuffer[(tmpbuffer.find("\n\r") + 3)];
-			return (this->_datas);
+			std::string							ret;
+			size_t								lock = 0;
+			size_t								j = 0;
+
+			tmpbuffer = &tmpbuffer[(tmpbuffer.find("\n\r") + 3)];
+			for (size_t i = 0; i < tmpbuffer.size(); i++) {
+				if (tmpbuffer[i] == '=')
+					lock = 1;
+				else if (tmpbuffer[i] == '&')
+					lock = 0;
+				if (lock == 1)
+					j++;
+				if (j < atoi(this->getContentLength().c_str()) && lock == 1)
+					ret += tmpbuffer[i];
+			}
+			return (ret);
 		}
 		void									getContentType(void){
 			std::string line;
