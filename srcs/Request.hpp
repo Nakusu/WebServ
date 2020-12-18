@@ -18,25 +18,20 @@ class Request{
 		}
 
 		virtual ~Request(){
-			close(this->_fd);
+			// close(this->_fd);
 			return ; 
 		}
 
 		int										init(void){
 			int size;
 			std::string tmp;
-			this->_buffer = (char *)calloc(sizeof(char), 1024);
-			std::cout << "AVANT RECV" << std::endl;
-
-			if ((size = read(this->_fd , this->_buffer, 1024)) == 0){
-				if (size == 0){
-					std::cout << RED << "size 0" << RESET << std::endl;
+			this->_buffer = (char *)calloc(sizeof(char), 4096);
+			// size = read(this->_fd , this->_buffer, 1024);
+			size = recv(this->_fd, this->_buffer, 4096, MSG_DONTWAIT);
+				if (size == 0 || size == -1){
 					return (0);
 				}
-			}
 			// size = recv(this->_fd, this->_buffer, sizeof(this->_buffer), 0);
-			std::cout << GREEN << size << RESET << std::endl;
-			std::cout << BLUE << this->_buffer << RESET << std::endl;
 
 
 			// while ((size = recv(this->_fd, this->_buffer, sizeof(this->_buffer), 0)) != 1){
@@ -62,6 +57,7 @@ class Request{
 			this->parsingAuthorizations();
 			this->setPathInfo();
 			this->getContentType();
+			std::cout << "URI = " << this->_uri << std::endl;
 			return (1);
 		}
 		/***************************************************
@@ -109,9 +105,9 @@ class Request{
 		std::string								get_port(void) const{
 				return (this->_hostPort);
 			}
-		/*std::string								get_userAgent(void) const{
+		std::string								get_userAgent(void) const{
 				return (this->_userAgent);
-			}*/
+			}
 		std::string								set_method(void){
 				std::string rep = "";
 				for (int i = 0; (this->_buffer[i] && this->_buffer[i] != ' ') ; i++)
@@ -201,7 +197,7 @@ class Request{
 		void									parsingMetasVars(void){
 			this->_hostName = this->_parsing.getMap()["Host"].substr(0, this->_parsing.getMap()["Host"].find_first_of(":"));
 			this->_hostPort = &this->_parsing.getMap()["Host"][this->_parsing.getMap()["Host"].find_first_of(":") + 1];
-			//this->_userAgent = this->_parsing.getMap()["User-Agent"];
+			this->_userAgent = this->_parsing.getMap()["User-Agent"];
 		}
 		void									parsingAuthorizations(void){
 			std::string iss = this->_parsing.getMap()["Authorization"];
@@ -224,7 +220,7 @@ class Request{
 		std::string											_hostName;
 		std::string											_hostPort;
 		std::string											_IPClient;
-		//std::string											_userAgent;
+		std::string											_userAgent;
 		std::string											_authType;
 		std::string											_authCredentials;
 		std::string											_queryString;
