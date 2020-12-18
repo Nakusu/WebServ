@@ -47,7 +47,7 @@ class Execution
 		int											searchIndex(void){
 			//If it's a folder
 			if (folderIsOpenable(this->getFullPath())){
-				std::string					autoindex;
+				std::string					autoindex = "";
 				std::vector<std::string>	files;
 				std::vector<std::string>	vec;
 				size_t						index;
@@ -64,7 +64,7 @@ class Execution
 				}
 				//Search if AutoIndex is on
 				if (this->vserv->findAutoIndex(this->req->get_uri())){
-					if (this->vserv->findMethod(this->req->get_uri(), "HEAD")){
+					
 						autoindex = "<html><head><title>AutoIndex</title></head><body>";
 						autoindex += "<h1>Index of " + this->req->get_uri() + "</h1><hr><pre>";
 						autoindex += "<a href=\"../\"> ../</a><br/>";
@@ -72,15 +72,16 @@ class Execution
 							autoindex += "<a href=\"" + this->req->get_uri() + files[j] +"\">" + files[j] + "</a><br/>";
 						autoindex += "</pre><hr>";
 						autoindex += "</body></html>";
-					}
 					this->header->basicHeaderFormat(this->req);
 					this->header->basicHistory(this->vserv, this->req);
+					this->header->updateContent("Content-Length", NumberToString(autoindex.size()));
 					this->header->sendHeader(this->req);
-					this->req->sendPacket(autoindex.c_str());
+					this->req->sendPacket(autoindex);
 				}
 				else{
 					this->header->updateContent("HTTP/1.1", "403");
 					this->header->basicHistory(this->vserv, this->req);
+					this->header->updateContent("Content-Length", "24");
 					this->header->sendHeader(this->req);
 					this->req->sendPacket("Interaction interdite..."); // SI IL N'Y A PAS D'INDEX DE BASE ET QUE L'AUTOINDEX EST SUR OFF
 				}
@@ -151,7 +152,7 @@ class Execution
 			this->header->sendHeader(this->req);
 			while (!opfile.eof()) {
 				if (this->req->get_method() != "HEAD") {
-					opfile.read(content, 4096); 
+					opfile.read(content, 4096);  
 					req->sendPacket(content, 4096);
 				}
 			}
@@ -165,8 +166,8 @@ class Execution
 
  		std::map<std::string, std::string>			setMetaCGI(std::string script_name){
 			std::map<std::string, std::string> args;
-			if (this->req->get_Parsing().getMap().size() > 0) {
-				std::map<std::string, std::string> tmpmap = this->req->get_Parsing().getMap();
+			if (this->req->get_Parsing()->getMap().size() > 0) {
+				std::map<std::string, std::string> tmpmap = this->req->get_Parsing()->getMap();
 				std::map<std::string, std::string>::iterator it = tmpmap.begin();
 
 				while (it != tmpmap.end()) {
@@ -218,10 +219,9 @@ class Execution
 			char **env = mergeArrays(args, this->_envs, 0);
 			int status;
 
-			char **tmp = (char**)malloc(sizeof(char*) * 3);
+			char **tmp = (char**)malloc(sizeof(char*) * 1);
 			tmp[0] = strdup(cgi_path.c_str());
-			tmp[1] = 0;
-			tmp[2] = 0;
+
 			this->header->basicHeaderFormat(this->req);
 			// this->header->updateContent("Content-Type", "text/html");
 			this->header->sendHeader(this->req);
@@ -246,6 +246,8 @@ class Execution
 				close(pfd[0]);
 				waitpid(pid, &status,0);
 			}
+			free(tmp[0]);
+			free(tmp);
 		}
 		int											initCGI(void){
 			std::string path = this->vserv->findCGI(this->req->get_uri(), "." + this->req->getExtension(), this->req->get_method());
@@ -254,6 +256,12 @@ class Execution
 					std::map<std::string, std::string> args = setMetaCGI(path);
 					char **tmpargs = swapMaptoChar(args);
 					processCGI(path, tmpargs);
+					
+					for (size_t i = 0; tmpargs[i]; i++){
+						free(tmpargs[i]);
+					}
+					free(tmpargs);
+					
 					return (1);
 				}
 			}

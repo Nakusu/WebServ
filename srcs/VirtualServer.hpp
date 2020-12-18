@@ -284,8 +284,6 @@ class VirtualServer
 		***************************************************/
 		void																delClient(Client* ptr){
 			for (std::vector<Client *>::iterator it = this->_clients.begin(); it != this->_clients.end(); it++){
-				std::cout << RED << "fd =" << ptr << RESET << std::endl;
-				std::cout << RED << "it = " << *it << RESET << std::endl;
 				if (*it == ptr){
 					this->_clients.erase(it);
 					return ;

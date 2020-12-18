@@ -27,10 +27,12 @@ void		Exec(ServerWeb *serv, Request *req, int i, char **env){
 	if (!exec.checkMethod())
 		exec.searchError405();
 	if (!exec.needRedirection() && exec.checkMethod()){
-		if (!exec.searchIndex() && !exec.initCGI() && !exec.binaryFile())
+		if (!exec.searchIndex() && !exec.initCGI() && !exec.binaryFile()){
 			exec.searchError404();	
+		}
 	}
-	serv->getVS(i)->setHistory((req->get_IpClient() + req->get_userAgent()), req->get_url());
+	// serv->getVS(i)->setHistory((req->get_IpClient() + req->get_userAgent()), req->get_url());
+
 	delete header;
 	
 }
@@ -74,10 +76,10 @@ int			main(int argc, char **argv, char **env)
 			if (FD_ISSET(serv->getVS(i)->get_fd(), serv->get_readfds()) && nb_activity){
 				std::cout << GREEN << "SERVER" << RESET << std::endl;
 				int addrlen = sizeof(serv->getVS(i)->get_address());
-				struct sockaddr_in * IPClient = serv->getVS(i)->get_address();
-				fdClient = accept(serv->getVS(i)->get_fd(), (struct sockaddr *)IPClient, (socklen_t *)&addrlen);
+				struct sockaddr_in * AddrVS = serv->getVS(i)->get_address();
+				fdClient = accept(serv->getVS(i)->get_fd(), (struct sockaddr *)AddrVS, (socklen_t *)&addrlen);
 				std::cout << YELLOW << "Creation du fd = " << fdClient << RESET << std::endl;
-				client = new Client(fdClient, IPClient);
+				client = new Client(fdClient);
 				serv->getVS(i)->setClient(client);
 				if (client->get_req()->init()){
 					Exec(serv, client->get_req(), i, env);
@@ -94,18 +96,19 @@ int			main(int argc, char **argv, char **env)
 					std::cout << BLUE << "Lecture du fd = " << fdClient << RESET << std::endl;
 					int ret;
 					ret = client->get_req()->init();
-					if (ret){
+					if (ret > 0){
 						Exec(serv, client->get_req(), i, env);
 						client->new_req();
 					}
 					else if (ret == -1){
+						std::cout << YELLOW << "SUPPRESSION" << RESET << std::endl;
 						serv->getVS(i)->delClient(client);
 						delete client;
+						std::cout << YELLOW << "SUPPRESSION" << RESET << std::endl;
 					}
 					nb_activity--;
 				}
 			}
-
 		}
 	}
 	return 0;

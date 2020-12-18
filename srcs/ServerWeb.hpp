@@ -71,14 +71,12 @@ class ServerWeb
 			// this->_writefds = this->_readfds;
 			while ((activity = select(this->_fdmax + 1, &this->_readfds , &this->_writefds , NULL , NULL)) == -1){
 			}
-			// std::cout << "activity = " << activity << std::endl;
 			if ((activity < 0) && (errno != EINTR))  
 				printf("select error");
 			return (activity);
 		}
 		int																verifFdFDISSET(int fd){
-			// std::cout << GREEN << FD_ISSET(fd, &this->_writefds);
-			// std::cout << FD_ISSET(fd, &this->_readfds) << RESET;
+			// std::cout << YELLOW << "on test fd : " << fd << " result wr = " << FD_ISSET(fd, &this->_writefds) << FD_ISSET(fd, &this->_readfds) << std::endl;
 			return (FD_ISSET(fd, &this->_readfds) && FD_ISSET(fd, &this->_writefds));
 		}
 

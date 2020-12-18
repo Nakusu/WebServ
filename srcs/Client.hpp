@@ -6,10 +6,9 @@
 class Client{
 	public:
 		Client(void){}
-		Client(int fd, struct sockaddr_in * IPClient){
+		Client(int fd){
 			this->_fd = fd;
 			this->_req = new Request(this->_fd);
-			this->_req->setIPClient(inet_ntoa(IPClient->sin_addr));
 		}
 		Client(Client const &cpy){
 			operator=(cpy);
@@ -20,8 +19,10 @@ class Client{
 			return (*this);
 		}
 		virtual ~Client(void){
+			std::cout << YELLOW << "Debut Suppression du client" << RESET << std::endl;
 			delete this->_req;
 			close(this->_fd);
+			std::cout << YELLOW << "Fin Suppression du client" << RESET << std::endl;
 		}
 
 		int										get_fd(void){

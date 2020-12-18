@@ -13,6 +13,7 @@ class Request{
 			this->_typeContent = "";
 			this->_authCredentials = "";
 			this->_authType = "";
+			this->_parsing = new ParsingRequest();
 		}
 		Request(int fd){
 			this->_fd = fd;
@@ -21,10 +22,11 @@ class Request{
 			this->_typeContent = "";
 			this->_authCredentials = "";
 			this->_authType = "";
+			this->_parsing = new ParsingRequest();
 		}
 
 		virtual ~Request(){
-			return ; 
+			delete this->_parsing;
 		}
 		Request(Request const &cpy){
 			operator=(cpy);
@@ -38,42 +40,33 @@ class Request{
 			int 	size;
 			char*	buffer;
 
+			std::cout << YELLOW << "Il passe dans init" << RESET << std::endl;
 			buffer = (char *)calloc(sizeof(char), 4096);
-			size = read(this->_fd, buffer, 4096);
-			std::cout << "size = " << size << std::endl;
-			if (size == 0 || size == -1)
+			size = recv(this->_fd, buffer, 4096, MSG_DONTWAIT);
+			std::cout << YELLOW << size << RESET << std::endl;
+			if (size == 0)
 				return (-1);
+			if (size == -1)
+				return(0);
+			std::cout << YELLOW << "Il passe dans init" << RESET << std::endl;
 			this->_request += buffer;
+			free(buffer);
+			std::cout << GREEN << "FIND \\r\\n\\r\\n = " << this->_request.find("\r\n\r\n") << RESET << std::endl;
 			if (this->_request.find("\r\n\r\n") == SIZE_MAX)
 				return (0);
-			// size = recv(this->_fd, buffer, sizeof(buffer), 0);
-
-
-			// while ((size = recv(this->_fd, buffer, 4096, MSG_DONTWAIT)) > 0){
-
-			// 		std::cout << RED << size << RESET << std::endl;
-			// 	if (size == 0){
-			// 		std::cout << RED << "size 0" << RESET << std::endl;
-			// 		return (0);
-			// 	}
-			// 	tmp += buffer;
-			// }
-			// buffer = strdup(tmp.c_str());
-			std::cout << BLUE << buffer << RESET << std::endl;
-
+			std::cout << BLUE << this->_request << RESET << std::endl;
 
 			this->_method = this->set_method();
-			this->_parsing.parsingMap(buffer);
-			this->_parsing.parsingMime();
-			this->_parsing.parseGet();
-			this->_extension = this->_parsing.getExtension();
+			this->_parsing->parsingMap((char *)this->_request.c_str());
+			this->_parsing->parsingMime();
+			this->_parsing->parseGet();
+			this->_extension = this->_parsing->getExtension();
 			this->findUri();
 			this->findTypeContent();
 			this->parsingMetasVars();
 			this->parsingAuthorizations();
 			this->setPathInfo();
 			this->getContentType();
-			std::cout << "URI = " << this->_uri << std::endl;
 			return (1);
 		}
 		/***************************************************
@@ -84,9 +77,9 @@ class Request{
 		}
 		std::string								getContentLength(void) const{
 			std::string notFounded = "0";
-			if (this->_parsing.getMap()["Content-Length"].empty())
+			if (this->_parsing->getMap()["Content-Length"].empty())
 				return (notFounded);
-			return (this->_parsing.getMap()["Content-Length"]);
+			return (this->_parsing->getMap()["Content-Length"]);
 		}
 		std::string								getTypeContent(void) const{ 
 			return (this->_typeContent);
@@ -98,12 +91,12 @@ class Request{
 			return (this->_fd);
 		}
 		std::string								getContentMimes(void) const{
-			return (this->_parsing.getMap().find("Content-Type") != this->_parsing.getMap().end() ? this->_parsing.getMap()["Content-Type"] : "");
+			return (this->_parsing->getMap().find("Content-Type") != this->_parsing->getMap().end() ? this->_parsing->getMap()["Content-Type"] : "");
 		}
 		std::string								getQueryString(void) const{
 			return (this->_queryString);
 		}
-		ParsingRequest							get_Parsing(void) const{
+		ParsingRequest *						get_Parsing(void) const{
 			return (this->_parsing);
 		}
 		std::string								get_authType(void) const{
@@ -126,7 +119,6 @@ class Request{
 				std::string rep = "";
 				for (int i = 0; (tmp[i] &&tmp[i] != ' ') ; i++)
 					rep += tmp[i];
-				std::cout << RED << rep << RESET << std::endl;
 				return (rep);
 			}
 		std::string								get_method(void) const{ 
@@ -186,9 +178,15 @@ class Request{
 		*******************    SEND   **********************
 		***************************************************/
 		void									sendPacket(std::string content){
-			send(this->_fd, content.c_str(), strlen(content.c_str()), MSG_CONFIRM);
+			std::cout << RED << "On envoi a : " << this->_fd << RESET << std::endl;
+			std::cout << RED << "Taille de l'envoi " << content.size() << RESET << std::endl;
+			std::cout << RED << "L'envoi : " << content << RESET << std::endl;
+			send(this->_fd, content.c_str(), content.size(), MSG_CONFIRM);
 		}
 		void									sendPacket(char *content, size_t len){
+			std::cout << RED <<  "On envoi a : " << this->_fd << RESET << std::endl;
+			std::cout << RED <<  "Taille de l'envoi " << len << RESET << std::endl;
+			std::cout << RED <<  "L'envoi : " << content << RESET << std::endl;
 			send(this->_fd, content, len, MSG_CONFIRM);
 		}
 
@@ -202,19 +200,19 @@ class Request{
 		}
 		void									findTypeContent(void){
 			this->_typeContent = "";
-			this->_typeContent = this->_parsing.getMap()["Accept"];
+			this->_typeContent = this->_parsing->getMap()["Accept"];
 		}
 
 		/***************************************************
 		******************    Parsing   ********************
 		***************************************************/
 		void									parsingMetasVars(void){
-			this->_hostName = this->_parsing.getMap()["Host"].substr(0, this->_parsing.getMap()["Host"].find_first_of(":"));
-			this->_hostPort = &this->_parsing.getMap()["Host"][this->_parsing.getMap()["Host"].find_first_of(":") + 1];
-			this->_userAgent = this->_parsing.getMap()["User-Agent"];
+			this->_hostName = this->_parsing->getMap()["Host"].substr(0, this->_parsing->getMap()["Host"].find_first_of(":"));
+			this->_hostPort = &this->_parsing->getMap()["Host"][this->_parsing->getMap()["Host"].find_first_of(":") + 1];
+			this->_userAgent = this->_parsing->getMap()["User-Agent"];
 		}
 		void									parsingAuthorizations(void){
-			std::string iss = this->_parsing.getMap()["Authorization"];
+			std::string iss = this->_parsing->getMap()["Authorization"];
 			iss = convertInSpaces(iss);
 			iss = cleanLine(iss);
 			std::vector<std::string> results = split(iss, " ");
@@ -230,7 +228,7 @@ private :
 		std::string											_request;
 		std::string											_uri;
 		std::string											_typeContent;
-		ParsingRequest										_parsing;
+		ParsingRequest *									_parsing;
 		std::string											_method;
 		std::string											_hostName;
 		std::string											_hostPort;
