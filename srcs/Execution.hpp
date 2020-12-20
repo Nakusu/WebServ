@@ -46,6 +46,7 @@ class Execution
 		***************************************************/
 		int											searchIndex(void){
 			//If it's a folder
+				std::cout << YELLOW << this->getFullPath() << RESET << std::endl;
 			if (folderIsOpenable(this->getFullPath())){
 				std::string					autoindex = "";
 				std::vector<std::string>	files;
@@ -92,7 +93,7 @@ class Execution
 		}
 		void										searchError404(void){
 			std::string redir = this->vserv->findErrorPage(this->req->get_uri(), "404");
-		
+
 			this->header->updateContent("HTTP/1.1", "404 Not Found");
 			this->header->updateContent("Content-Type", "text/html");
 			this->header->basicHistory(this->vserv, this->req);
@@ -231,18 +232,15 @@ class Execution
 			tmp[0] = strdup(cgi_path.c_str());
 
 			this->header->basicHeaderFormat(this->req);
-			// this->header->updateContent("Content-Type", "text/html");
 			this->header->sendHeader(this->req);
 			if (pipe(pfd) == -1)
 				return ; // error gestion
 			if ((pid = fork()) < 0)
 				return ; // error gestion
-				// int fd = open("./cgi_tmp_php", O_WRONLY | O_CREAT, 0666);
 			if (pid == 0) {
 				close(pfd[1]);
 				pfd[0] = open(std::string(this->vserv->get_root() + this->req->get_uri()).c_str(), O_RDONLY);
 				dup2(pfd[0], 0); // ici en entrée mettre le body
-				// dup2(fd, 1); // ici en entrée mettre le body
 				dup2(this->req->getfd(), 1);
 				errno = 0;
 				if (execve(cgi_path.c_str(), tmp, env) == -1){

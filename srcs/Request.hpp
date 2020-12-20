@@ -203,15 +203,15 @@ class Request{
 		*******************    SEND   **********************
 		***************************************************/
 		void									sendPacket(std::string content){
-			std::cout << RED << "On envoi a : " << this->_fd << RESET << std::endl;
-			std::cout << RED << "Taille de l'envoi " << content.size() << RESET << std::endl;
-			std::cout << RED << "L'envoi : " << content << RESET << std::endl;
+			// std::cout << RED << "On envoi a : " << this->_fd << RESET << std::endl;
+			// std::cout << RED << "Taille de l'envoi " << content.size() << RESET << std::endl;
+			// std::cout << RED << "L'envoi : " << content << RESET << std::endl;
 			send(this->_fd, content.c_str(), content.size(), MSG_CONFIRM);
 		}
 		void									sendPacket(char *content, size_t len){
-			std::cout << RED <<  "On envoi a : " << this->_fd << RESET << std::endl;
-			std::cout << RED <<  "Taille de l'envoi " << len << RESET << std::endl;
-			std::cout << RED <<  "L'envoi : " << content << RESET << std::endl;
+			// std::cout << RED <<  "On envoi a : " << this->_fd << RESET << std::endl;
+			// std::cout << RED <<  "Taille de l'envoi " << len << RESET << std::endl;
+			// std::cout << RED <<  "L'envoi : " << content << RESET << std::endl;
 			send(this->_fd, content, len, MSG_CONFIRM);
 		}
 
