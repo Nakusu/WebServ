@@ -21,10 +21,12 @@ int			checkArgs(int argc, char **argv, std::string *defaultConf, ServerWeb *serv
 	return (1);
 }
 
-void		Exec(ServerWeb *serv, Request *req, int i, char **env){
+void		Exec(ServerWeb *serv, Client *client, int i, char **env){
+	Request *req = client->get_req();
 	HeaderRequest *header = new HeaderRequest();
 	Execution exec = Execution(serv, serv->getVS(i), req, header, env);
 	std::string Method = req->get_method();
+
 	if (Method == "POST")
 		req->getDatas();
 	if (!exec.checkMethod())
@@ -34,10 +36,8 @@ void		Exec(ServerWeb *serv, Request *req, int i, char **env){
 			exec.searchError404();	
 		}
 	}
-	// serv->getVS(i)->setHistory((req->get_IpClient() + req->get_userAgent()), req->get_url());
-
 	delete header;
-	
+	client->new_req();
 }
 
 int			main(int argc, char **argv, char **env)
@@ -58,38 +58,20 @@ int			main(int argc, char **argv, char **env)
 	{
 		serv->clearFd();
 		serv->setAllFDSET_fdmax();
-		//Le server attends un nouvelle activité (une requete)
 		nb_activity = serv->waitForSelect();
-		//Si une requete est envoyé au serv->get_fd()
-		// std::cout << "test de passage" << std::endl;
 		for (size_t i = 0; i < serv->getVSsize() && nb_activity; i++){
-		
-			//Si le virtualServer a recu une requete :
-			// if(FD_ISSET(STDIN_FILENO, serv->get_readfds())){
-			// 		char * _buffer = (char *)calloc(sizeof(char), 30);
-			// 		_buffer[read(STDIN_FILENO, _buffer, 30)] = 0;
-
-			// 		std::cout << _buffer << std::endl;
-			// 		std::cout << strcmp(_buffer, "quit")  << std::endl;
-			// 		if (strcmp(_buffer, "quit") == 0)
-			// 			return (1);
-			// }
 
 			//Check les sockets master
 			if (FD_ISSET(serv->getVS(i)->get_fd(), serv->get_readfds()) && nb_activity){
 				std::cout << GREEN << "SERVER" << RESET << std::endl;
 				int addrlen = sizeof(serv->getVS(i)->get_address());
 				struct sockaddr_in * AddrVS = serv->getVS(i)->get_address();
+				
 				fdClient = accept(serv->getVS(i)->get_fd(), (struct sockaddr *)AddrVS, (socklen_t *)&addrlen);
-        //int val = 1;
-				//setsockopt(fdClient, SOL_SOCKET, SO_REUSEADDR | SO_KEEPALIVE, &val, sizeof(val));
-				std::cout << YELLOW << "Creation du fd = " << fdClient << RESET << std::endl;
 				client = new Client(fdClient);
 				serv->getVS(i)->setClient(client);
-				if (client->get_req()->init()){
-					Exec(serv, client->get_req(), i, env);
-					client->new_req();
-				}
+				if (client->get_req()->init())
+					Exec(serv, client, i, env);
 				nb_activity--;
 			}
 
@@ -97,19 +79,12 @@ int			main(int argc, char **argv, char **env)
 			for (size_t j = 0; j < serv->getVS(i)->get_clients().size() && nb_activity; j++){
 				client = serv->getVS(i)->get_client(j);
 				if (serv->verifFdFDISSET(client->get_fd())){
-					std::cout << GREEN << "CLIENT" << RESET << std::endl;
-					std::cout << BLUE << "Lecture du fd = " << fdClient << RESET << std::endl;
-					int ret;
-					ret = client->get_req()->init();
-					if (ret > 0){
-						Exec(serv, client->get_req(), i, env);
-						client->new_req();
-					}
+					int ret = client->get_req()->init();
+					if (ret > 0)
+						Exec(serv, client, i, env);
 					else if (ret == -1){
-						std::cout << YELLOW << "SUPPRESSION" << RESET << std::endl;
 						serv->getVS(i)->delClient(client);
 						delete client;
-						std::cout << YELLOW << "SUPPRESSION" << RESET << std::endl;
 					}
 					nb_activity--;
 				}
