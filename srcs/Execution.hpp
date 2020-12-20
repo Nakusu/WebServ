@@ -13,6 +13,7 @@ class Execution
 			this->vserv = NULL;
 			this->req = NULL;
 			this->header = NULL;
+			this->file = 1;
 		}
 		Execution(ServerWeb *serv, VirtualServer *vserv, Request *req, HeaderRequest *header, char **envs){
 			this->serv = serv;
@@ -20,6 +21,7 @@ class Execution
 			this->req = req;
 			this->header = header;
 			this->_envs = envs;
+			this->file = 1;
 		}
 		Execution(Execution const & rhs){
 			operator=(rhs);
@@ -49,8 +51,8 @@ class Execution
 		std::string									findFullPath(void){
 			std::vector<size_t> index = this->vserv->findLocationsAndSublocations(this->req->get_uri());
 			for (size_t i = 0; i < index.size(); i++){
-				if (!this->vserv->get_locations()[i]["root"].empty())
-					return (this->_fullPath = replaceStr(this->req->get_uri(), this->vserv->get_locations()[i]["key"][0], this->vserv->get_locations()[i]["root"][0]));
+				if (!this->vserv->get_locations()[index[i]]["root"].empty())
+					return (this->_fullPath = replaceStrStart(this->req->get_uri(), this->vserv->get_locations()[index[i]]["key"][0], this->vserv->get_locations()[index[i]]["root"][0]));
 			}
 			return (this->vserv->get_root() + this->req->get_uri());
 		}
@@ -58,15 +60,8 @@ class Execution
 			std::vector<size_t> index = this->vserv->findLocationsAndSublocations(path);
 			if (!index.empty()){
 				for (size_t i = 0; i < index.size(); i++){
-					if (!this->vserv->get_locations()[index[i]]["root"].empty()){
-						std::cout << "Ca passe ici" << std::endl;
-						std::cout << "1 = " << path << std::endl;
-						std::cout << "1 = " << index[i] << std::endl;
-						std::cout << "2 = " << this->vserv->get_locations()[index[i]]["key"][0] << std::endl;
-						std::cout << "3 = " << this->vserv->get_locations()[index[i]]["root"][0] << std::endl;
-
+					if (!this->vserv->get_locations()[index[i]]["root"].empty())
 						return (this->_fullPath = replaceStr(path, this->vserv->get_locations()[index[i]]["key"][0], this->vserv->get_locations()[index[i]]["root"][0]));
-					}
 				}
 			}
 			return (this->vserv->get_root() + path);
@@ -77,8 +72,12 @@ class Execution
 		***************************************************/
 		int											searchIndex(void){
 			//If it's a folder
-				std::cout << YELLOW << this->req->get_uri() << RESET << std::endl;
-			if (folderIsOpenable(this->getFullPath())){
+				std::cout << YELLOW << "this file = " << this->file << RESET << std::endl;
+			if (this->file == 1)
+				return (0);
+			
+				std::cout << YELLOW << this->_fullPath << RESET << std::endl;
+			if (folderIsOpenable(this->findFullPath())){
 				std::string					autoindex = "";
 				std::vector<std::string>	files;
 				std::vector<std::string>	vec;
@@ -86,8 +85,9 @@ class Execution
 
 				this->header->updateContent("Content-Type", "text/html");
 				vec = this->vserv->findIndex(this->req->get_uri());
-				files = listFilesInFolder(this->getFullPath());
+				files = listFilesInFolder(this->findFullPath());
 				for (size_t i = 0; i < vec.size(); i++){
+					std::cout << vec[i] << std::endl;
 					if ((index = searchInVec(vec[i], files)) != -1){//Compare index with files in Folder
 						this->req->setUri(this->req->get_uri() + files[index]); //Return new URI with the index
 						this->req->setPathInfo();
@@ -174,27 +174,23 @@ class Execution
 		}
 		int											binaryFile(void){
 			std::ifstream		opfile;
-			size_t				size_content = 0;
-			char 				*content = new char[4096];
 
-			std::string tmp = this->getFullPath();
-			memset(content,0,4096);
+			std::string tmp = this->findFullPath();
   			opfile.open(tmp.data(), std::ios::binary | std::ios::in);
 			if (!opfile.is_open())
 				return (0);
+			long long unsigned int size_file = getSizeFileBits(tmp);
+			char 				*content = (char *)calloc(sizeof(char), size_file + 1);
 			this->header->basicHeaderFormat(this->req);
 			this->header->basicHistory(this->vserv, this->req);
-			this->header->updateContent("Content-Length", NumberToString(getSizeFileBits(this->getFullPath())));
-			std::cout << YELLOW << NumberToString(getSizeFileBits(this->getFullPath())) << RESET << std::endl;
+			this->header->updateContent("Content-Length", NumberToString(size_file));
+			std::cout << YELLOW << NumberToString(size_file) << RESET << std::endl;
 			if (this->req->get_method() == "HEAD")
 				this->header->updateContent("Content-Length", "0");
 			this->header->sendHeader(this->req);
-			while (!opfile.eof()) {
-				if (this->req->get_method() != "HEAD") {
-					opfile.read(content, 4096);
-					size_content += strlen(content);
-					req->sendPacket(content, getSizeFileBits(this->getFullPath()));
-				}
+			if (this->req->get_method() != "HEAD") {
+				opfile.read(content, size_file);
+				req->sendPacket(content, size_file);
 			}
 			opfile.close();
 			return (1);
@@ -311,10 +307,14 @@ class Execution
 		*****************    Operation    ******************
 		***************************************************/
 		int											needRedirection(void){
-			std::cout << this->findFullPath() << std::endl;
-			std::cout << this->findFullPath(this->req->get_uri() + "/") << std::endl;
-			
-			if (folderIsOpenable(this->findFullPath()) || folderIsOpenable(this->findFullPath(this->req->get_uri() + "/"))) {
+
+			this->_fullPath = this->findFullPath();
+			if (fileIsOpenable(this->_fullPath) && !folderIsOpenable(this->_fullPath))
+				return (0);
+			this->file = 0;
+			if (this->_fullPath.rfind("/", 0) != this->_fullPath .size() - 1)
+				this->_fullPath = this->findFullPath(this->req->get_uri() + "/");
+			if (folderIsOpenable(this->_fullPath)) {
 				std::cout << "IS OPENABLE" << std::endl;
 				std::string uri = this->req->get_uri();
 				if (uri.rfind('/') == uri.size() - 1)
@@ -351,6 +351,7 @@ class Execution
 		HeaderRequest *		header;
 		std::string 		_fullPath;
 		char **				_envs;
+		bool				file;
 };
 #endif
 
