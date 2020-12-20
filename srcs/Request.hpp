@@ -57,10 +57,13 @@ class Request{
 			std::cout << BLUE << this->_request << RESET << std::endl;
 
 			this->_method = this->set_method();
+
 			this->_parsing->parsingMap((char *)this->_request.c_str());
 			this->_parsing->parsingMime();
 			this->_parsing->parseGet();
 			this->_extension = this->_parsing->getExtension();
+      this->_datas = "";
+
 			this->findUri();
 			this->findTypeContent();
 			this->parsingMetasVars();
@@ -132,6 +135,28 @@ class Request{
 		}
 		std::string								get_url(void) const{
 			return (("http://" + this->get_host() + ":" + this->get_port() + this->get_uri()));
+		}
+		std::string								get_datas(void) const{
+			return (this->_datas);
+		}
+		std::string								getDatas(void) {
+			std::string							tmpbuffer = std::string(this->_buffer);
+			std::string							ret;
+			size_t								lock = 0;
+			int									j = 0;
+
+			tmpbuffer = &tmpbuffer[(tmpbuffer.find("\n\r") + 3)];
+			for (size_t i = 0; i < tmpbuffer.size(); i++) {
+				if (tmpbuffer[i] == '=')
+					lock = 1;
+				else if (tmpbuffer[i] == '&')
+					lock = 0;
+				if (lock == 1)
+					j++;
+				if (j < atoi(this->getContentLength().c_str()) && lock == 1)
+					ret += tmpbuffer[i];
+			}
+			return (ret);
 		}
 		void									getContentType(void){
 			std::string line;
@@ -239,6 +264,7 @@ private :
 		std::string											_queryString;
 		std::string 										_pathInfo;
 		std::string											_extension;
+		std::string											_datas;
 		std::map<std::string, std::string> 					_mimesTypes;
 };
 
