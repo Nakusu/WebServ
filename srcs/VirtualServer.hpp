@@ -3,6 +3,7 @@
 
 #include "./Header.hpp"
 #include "Request.hpp"
+#include "Client.hpp"
 
 class VirtualServer
 {
@@ -61,7 +62,7 @@ class VirtualServer
 		}
 		int																	initFd(int domain, int type, int protocol){
 			int opt = TRUE;
-			if( (this->_fd = socket(domain , type , protocol)) == 0){
+			if( (this->_fd = socket(domain , type , protocol)) < 0){
 				perror("socket failed");
 				exit(EXIT_FAILURE);
 			}
@@ -225,6 +226,9 @@ class VirtualServer
 			}
 			return ("");
 		}
+		std::vector<Client *>												get_clients(void){
+			return (this->_clients);
+		}
 		std::vector<std::string>											get_errorPage(void){
 			return (this->_errorPage);
 		}
@@ -233,12 +237,6 @@ class VirtualServer
 		}
 		int																	get_fd(void){
 			return (this->_fd);
-		}
-		std::vector<int>													get_fdClients(void){
-			return (this->_fdClients);
-		}
-		int																	get_fdClients(int i){
-			return (this->_fdClients[i]);
 		}
 		std::map<std::string, std::string>									get_history(void){
 			return (this->_history);
@@ -267,6 +265,9 @@ class VirtualServer
 		std::string															get_serverNames(void){
 			return (this->_serverNames);
 		}
+		Client *															get_client(int i){
+			return (this->_clients[i]);
+		}
 
 		/***************************************************
 		********************    SET   **********************
@@ -274,19 +275,17 @@ class VirtualServer
 		void																setHistory(std::string user, std::string url){
 			this->_history[user] = url;
 		}
-		void																set_fdClients(int i){
-			return (this->_fdClients.push_back(i));
+		void																setClient(Client *client){
+			return (this->_clients.push_back(client));
 		}
 
 		/***************************************************
 		********************    DEL   **********************
 		***************************************************/
-		void																del_fdClients(int fd){
-			for (std::vector<int>::iterator it = this->_fdClients.begin(); it != this->_fdClients.end(); it++){
-				std::cout << RED << "fd =" << fd << RESET << std::endl;
-				std::cout << RED << "it = " << *it << RESET << std::endl;
-				if (*it == fd){
-					this->_fdClients.erase(it);
+		void																delClient(Client* ptr){
+			for (std::vector<Client *>::iterator it = this->_clients.begin(); it != this->_clients.end(); it++){
+				if (*it == ptr){
+					this->_clients.erase(it);
 					return ;
 				}
 			}
@@ -661,7 +660,7 @@ class VirtualServer
 		std::vector<std::string>											_methods;
 		std::string															_root;
 		std::string															_serverNames;
-		std::vector<int>													_fdClients;
+		std::vector<Client *>												_clients;
 };
 
 #endif
