@@ -282,6 +282,7 @@ class Execution
 					uri.push_back('/');
 					this->header->RedirectionHeaderFormat(this->req, uri);
 					this->header->basicHistory(this->vserv, this->req);
+					this->header->updateContent("Content-Length", "0");
 					this->header->sendHeader(this->req);
 					return (1);
 				}
