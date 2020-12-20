@@ -134,7 +134,7 @@ class Request{
 			std::string							tmpbuffer = std::string(this->_buffer);
 			std::string							ret;
 			size_t								lock = 0;
-			size_t								j = 0;
+			int									j = 0;
 
 			tmpbuffer = &tmpbuffer[(tmpbuffer.find("\n\r") + 3)];
 			for (size_t i = 0; i < tmpbuffer.size(); i++) {

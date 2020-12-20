@@ -169,7 +169,7 @@ class Execution
 				std::map<std::string, std::string> tmpmap = this->req->get_Parsing().getMap();
 				std::map<std::string, std::string>::iterator it = tmpmap.begin();
 
-				while (it != tmpmap.end()) {
+				while (it != tmpmap.end() || it->first == "\n\r") { // Deuxieme condition a vérifier
 					if (it->first != "First" && !it->first.empty())
 						args.insert(std::make_pair(("HTTP_" + it->first), it->second));
 					it++;
