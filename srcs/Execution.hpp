@@ -40,13 +40,16 @@ class Execution
 		std::string									getFullPath(void){
 			return (this->vserv->findRoot(this->req->get_uri()) + this->req->get_uri());
 		}
+		std::string									getFullPath(std::string path){
+			return (this->vserv->findRoot(path) + path);
+		}
 
 		/***************************************************
 		*******************    SEARCH    *******************
 		***************************************************/
 		int											searchIndex(void){
 			//If it's a folder
-				std::cout << YELLOW << this->getFullPath() << RESET << std::endl;
+				std::cout << YELLOW << this->req->get_uri() << RESET << std::endl;
 			if (folderIsOpenable(this->getFullPath())){
 				std::string					autoindex = "";
 				std::vector<std::string>	files;
@@ -59,7 +62,6 @@ class Execution
 				for (size_t i = 0; i < vec.size(); i++){
 					if ((index = searchInVec(vec[i], files)) != -1){//Compare index with files in Folder
 						this->req->setUri(this->req->get_uri() + files[index]); //Return new URI with the index
-						std::cout << GREEN << this->req->get_uri() << this->req->get_uri() << std::endl;
 						this->req->setPathInfo();
 						return (0);
 					}
@@ -116,11 +118,13 @@ class Execution
 			if (redir.empty()){
 				this->header->updateContent("Content-Length", "177");
 				this->header->sendHeader(this->req);
-				req->sendPacket("<html><head><title>405 Method Not Allowed</title></head><body bgcolor=\"white\"><center><h1>405 Method Not Allowed</h1></center><hr><center>Les Poldters Server Web</center></html>");
+				if (this->req->get_method() != "HEAD")
+					req->sendPacket("<html><head><title>405 Method Not Allowed</title></head><body bgcolor=\"white\"><center><h1>405 Method Not Allowed</h1></center><hr><center>Les Poldters Server Web</center></html>");
 			}
 			else{
 				this->header->sendHeader(this->req);
-				req->sendPacket(fileToString(redir));
+				if (this->req->get_method() != "HEAD")
+					req->sendPacket(fileToString(redir));
 			} 
 		}
 
@@ -153,6 +157,7 @@ class Execution
 			this->header->basicHeaderFormat(this->req);
 			this->header->basicHistory(this->vserv, this->req);
 			this->header->updateContent("Content-Length", NumberToString(getSizeFileBits(this->getFullPath())));
+			std::cout << YELLOW << NumberToString(getSizeFileBits(this->getFullPath())) << RESET << std::endl;
 			if (this->req->get_method() == "HEAD")
 				this->header->updateContent("Content-Length", "0");
 			this->header->sendHeader(this->req);
@@ -160,7 +165,7 @@ class Execution
 				if (this->req->get_method() != "HEAD") {
 					opfile.read(content, 4096);
 					size_content += strlen(content);
-					req->sendPacket(content, 4096);
+					req->sendPacket(content, getSizeFileBits(this->getFullPath()));
 				}
 			}
 			opfile.close();
@@ -278,7 +283,9 @@ class Execution
 		*****************    Operation    ******************
 		***************************************************/
 		int											needRedirection(void){
-			if (folderIsOpenable(this->getFullPath())) {
+				std::cout << this->getFullPath() + "/" << std::endl;
+			if (folderIsOpenable(this->getFullPath()) || folderIsOpenable(this->getFullPath(this->req->get_uri() + "/"))) {
+				std::cout << "IS OPENABLE" << std::endl;
 				std::string uri = this->req->get_uri();
 				if (uri.rfind('/') == uri.size() - 1)
 					return (0);
@@ -315,3 +322,4 @@ class Execution
 		char **				_envs;
 };
 #endif
+
