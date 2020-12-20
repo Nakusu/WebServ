@@ -43,6 +43,34 @@ class Execution
 		std::string									getFullPath(std::string path){
 			return (this->vserv->findRoot(path) + path);
 		}
+		std::string									get_fullPath(void){
+			return (this->_fullPath);
+		}
+		std::string									findFullPath(void){
+			std::vector<size_t> index = this->vserv->findLocationsAndSublocations(this->req->get_uri());
+			for (size_t i = 0; i < index.size(); i++){
+				if (!this->vserv->get_locations()[i]["root"].empty())
+					return (this->_fullPath = replaceStr(this->req->get_uri(), this->vserv->get_locations()[i]["key"][0], this->vserv->get_locations()[i]["root"][0]));
+			}
+			return (this->vserv->get_root() + this->req->get_uri());
+		}
+		std::string									findFullPath(std::string path){
+			std::vector<size_t> index = this->vserv->findLocationsAndSublocations(path);
+			if (!index.empty()){
+				for (size_t i = 0; i < index.size(); i++){
+					if (!this->vserv->get_locations()[index[i]]["root"].empty()){
+						std::cout << "Ca passe ici" << std::endl;
+						std::cout << "1 = " << path << std::endl;
+						std::cout << "1 = " << index[i] << std::endl;
+						std::cout << "2 = " << this->vserv->get_locations()[index[i]]["key"][0] << std::endl;
+						std::cout << "3 = " << this->vserv->get_locations()[index[i]]["root"][0] << std::endl;
+
+						return (this->_fullPath = replaceStr(path, this->vserv->get_locations()[index[i]]["key"][0], this->vserv->get_locations()[index[i]]["root"][0]));
+					}
+				}
+			}
+			return (this->vserv->get_root() + path);
+		}
 
 		/***************************************************
 		*******************    SEARCH    *******************
@@ -283,8 +311,10 @@ class Execution
 		*****************    Operation    ******************
 		***************************************************/
 		int											needRedirection(void){
-				std::cout << this->getFullPath() + "/" << std::endl;
-			if (folderIsOpenable(this->getFullPath()) || folderIsOpenable(this->getFullPath(this->req->get_uri() + "/"))) {
+			std::cout << this->findFullPath() << std::endl;
+			std::cout << this->findFullPath(this->req->get_uri() + "/") << std::endl;
+			
+			if (folderIsOpenable(this->findFullPath()) || folderIsOpenable(this->findFullPath(this->req->get_uri() + "/"))) {
 				std::cout << "IS OPENABLE" << std::endl;
 				std::string uri = this->req->get_uri();
 				if (uri.rfind('/') == uri.size() - 1)
@@ -319,6 +349,7 @@ class Execution
 		VirtualServer *		vserv;
 		Request * 			req;
 		HeaderRequest *		header;
+		std::string 		_fullPath;
 		char **				_envs;
 };
 #endif

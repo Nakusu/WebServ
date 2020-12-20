@@ -85,6 +85,19 @@ class VirtualServer
 			}
 			return (-1);
 		}
+		std::vector<size_t>													findLocationsAndSublocations(std::string uri){
+			std::vector<size_t> index;
+
+			while (uri.find('/') != SIZE_MAX){
+				for (size_t i = 0; i < this->_locations.size(); i++){
+					if (this->_locations[i]["key"][0] == uri)
+						index.push_back(i);
+				}
+				uri = uri.erase(uri.size() - 1);
+				uri = (uri.rfind('/') != SIZE_MAX) ? uri.substr(0,uri.rfind('/') + 1) : uri ;
+			}
+			return (index);
+		}
 		std::vector<std::string>											findOption(std::string option, std::string uri, std::vector<std::string> global){
 			size_t index;
 			std::vector<std::string> result;

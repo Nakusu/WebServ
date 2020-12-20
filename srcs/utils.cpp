@@ -167,3 +167,15 @@ std::string NumberToString(long int Number)
     ss << Number;
     return ss.str();
 }
+
+std::string replaceStr(std::string line, std::string s1, std::string s2)
+{
+    size_t i = 0;
+
+    while ((i = line.find(s1, i)) < line.length())
+    {
+         line.replace(i, s1.length(), s2);
+         i++;
+    }
+    return line;
+}

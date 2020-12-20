@@ -52,9 +52,9 @@ class Request{
 			std::cout << YELLOW << "Il passe dans init" << RESET << std::endl;
 			this->_request += buffer;
 			free(buffer);
-			std::cout << GREEN << "FIND \\r\\n\\r\\n = " << this->_request.find("\r\n\r\n") << RESET << std::endl;
 			if (this->_request.find("\r\n\r\n") == SIZE_MAX)
 				return (0);
+			std::cout << GREEN << "FIND \\r\\n\\r\\n = " << this->_request.find("\r\n\r\n") << RESET << std::endl;
 			if (this->_request.size() < 15)
 				return (-1);
 			std::cout << BLUE << this->_request << RESET << std::endl;
@@ -232,6 +232,7 @@ class Request{
 			this->_typeContent = "";
 			this->_typeContent = this->_parsing->getMap()["Accept"];
 		}
+
 
 		/***************************************************
 		******************    Parsing   ********************

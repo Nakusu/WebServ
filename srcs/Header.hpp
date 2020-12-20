@@ -65,5 +65,6 @@ char 									**mergeArrays(char **tab1, char **tab2, int freeOption);
 long int										getSizeFileBits(std::string filename);
 char									*ft_itoa(long int n);
 std::string								NumberToString(long int Number);
+std::string 							replaceStr(std::string line, std::string s1, std::string s2);
 
 #endif
