@@ -58,6 +58,7 @@ class Execution
 				for (size_t i = 0; i < vec.size(); i++){
 					if ((index = searchInVec(vec[i], files)) != -1){//Compare index with files in Folder
 						this->req->setUri(this->req->get_uri() + files[index]); //Return new URI with the index
+						std::cout << GREEN << this->req->get_uri() << this->req->get_uri() << std::endl;
 						this->req->setPathInfo();
 						return (0);
 					}
@@ -140,6 +141,7 @@ class Execution
 		}
 		int											binaryFile(void){
 			std::ifstream		opfile;
+			size_t				size_content = 0;
 			char 				*content = new char[4096];
 
 			std::string tmp = this->getFullPath();
@@ -149,10 +151,14 @@ class Execution
 				return (0);
 			this->header->basicHeaderFormat(this->req);
 			this->header->basicHistory(this->vserv, this->req);
+			this->header->updateContent("Content-Length", NumberToString(getSizeFileBits(this->getFullPath())));
+			if (this->req->get_method() == "HEAD")
+				this->header->updateContent("Content-Length", "0");
 			this->header->sendHeader(this->req);
 			while (!opfile.eof()) {
 				if (this->req->get_method() != "HEAD") {
-					opfile.read(content, 4096);  
+					opfile.read(content, 4096);
+					size_content += strlen(content);
 					req->sendPacket(content, 4096);
 				}
 			}
