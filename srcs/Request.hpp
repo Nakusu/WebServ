@@ -140,7 +140,7 @@ class Request{
 			return (this->_datas);
 		}
 		std::string								getDatas(void) {
-			std::string							tmpbuffer = std::string(this->_buffer);
+			std::string							tmpbuffer = this->_request;
 			std::string							ret;
 			size_t								lock = 0;
 			int									j = 0;
