@@ -18,6 +18,7 @@ class Request{
 		Request(int fd){
 			this->_fd = fd;
 			this->_request = "";
+			std::cout << "New request" << std::endl;
 			this->_uri = "";
 			this->_typeContent = "";
 			this->_authCredentials = "";
@@ -51,9 +52,11 @@ class Request{
 			std::cout << YELLOW << "Il passe dans init" << RESET << std::endl;
 			this->_request += buffer;
 			free(buffer);
-			std::cout << GREEN << "FIND \\r\\n\\r\\n = " << this->_request.find("\r\n\r\n") << RESET << std::endl;
 			if (this->_request.find("\r\n\r\n") == SIZE_MAX)
 				return (0);
+			std::cout << GREEN << "FIND \\r\\n\\r\\n = " << this->_request.find("\r\n\r\n") << RESET << std::endl;
+			if (this->_request.size() < 15)
+				return (-1);
 			std::cout << BLUE << this->_request << RESET << std::endl;
 
 			this->_method = this->set_method();
@@ -62,14 +65,14 @@ class Request{
 			this->_parsing->parsingMime();
 			this->_parsing->parseGet();
 			this->_extension = this->_parsing->getExtension();
-      this->_datas = "";
-
+			this->_datas = "";
 			this->findUri();
 			this->findTypeContent();
 			this->parsingMetasVars();
 			this->parsingAuthorizations();
 			this->setPathInfo();
 			this->getContentType();
+			std::cout << BLUE << "ICI" << RESET << std::endl;
 			return (1);
 		}
 		/***************************************************
@@ -220,13 +223,16 @@ class Request{
 		***************************************************/
 		void									findUri(void){
 			this->_uri = "";
-				this->_uri = this->_request.substr(this->_request.find("/"), (this->_request.find("HTTP") - 5));
-				this->_uri = cleanLine(this->_uri);
+			std::cout << GREEN << "avant uri : " << RESET << std::endl;
+			this->_uri = this->_request.substr(this->_request.find("/"), (this->_request.find("HTTP") - 5));
+			std::cout << GREEN << this->_uri << RESET << std::endl;
+			this->_uri = cleanLine(this->_uri);
 		}
 		void									findTypeContent(void){
 			this->_typeContent = "";
 			this->_typeContent = this->_parsing->getMap()["Accept"];
 		}
+
 
 		/***************************************************
 		******************    Parsing   ********************
