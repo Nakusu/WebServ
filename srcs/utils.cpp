@@ -146,9 +146,9 @@ std::string							getTime(){
 	return (ret);
 }
 
-long int									getSizeFileBits(std::string filename) {
+long long unsigned int									getSizeFileBits(std::string filename) {
 	std::ifstream opfile;
-	long int ret = 0;
+	long long unsigned int ret = 0;
 	
 	opfile.open(filename.c_str(), std::ios::in);
 	if (!opfile.is_open()) {
@@ -166,4 +166,24 @@ std::string NumberToString(long int Number)
 	std::ostringstream ss;
     ss << Number;
     return ss.str();
+}
+
+std::string replaceStr(std::string line, std::string s1, std::string s2)
+{
+    size_t i = 0;
+
+    while ((i = line.find(s1, i)) < line.length())
+    {
+         line.replace(i, s1.length(), s2);
+         i++;
+    }
+    return line;
+}
+std::string replaceStrStart(std::string line, std::string s1, std::string s2)
+{
+    if(line.find(s1, 0) == 0)
+    {
+         line.replace(0, s1.length() - 1, s2);
+    }
+    return line;
 }
