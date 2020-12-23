@@ -201,7 +201,7 @@ class Execution
 				std::map<std::string, std::string> tmpmap = this->req->get_Parsing()->getMap();
 				std::map<std::string, std::string>::iterator it = tmpmap.begin();
 
-				while (it != tmpmap.end() || it->first == "\n\r") { // Deuxieme condition a vérifier
+				while (it != tmpmap.end() && it->first == "\n\r") { // Deuxieme condition a vérifier
 					if (it->first != "First" && !it->first.empty())
 						args.insert(std::make_pair(("HTTP_" + it->first), it->second));
 					it++;
@@ -280,8 +280,9 @@ class Execution
 			free(tmp);
 		}
 		int											initCGI(void){
-			std::string path = this->vserv->findCGI(this->req->get_uri(), "." + this->req->getExtension(), this->req->get_method());
-			std::cout << "CHECK PATH" << path << std::endl;
+			std::string extension = (this->req->getExtension().find(".", 0) != SIZE_MAX) ? this->req->getExtension() : "." + this->req->getExtension();
+			std::string path = this->vserv->findCGI(this->req->get_uri(), extension, this->req->get_method());
+			std::cout << "CHECK PATH " << path << std::endl;
 			if (path != "bad_method" && path != "no_cgi"){
 				std::cout << "JUST BEFORE CGI" << std::endl;
 				if (fileIsOpenable(path)){
