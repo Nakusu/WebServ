@@ -223,9 +223,11 @@ class Request{
 		***************************************************/
 		void									findUri(void){
 			this->_uri = "";
+			std::vector<std::string> lineUri = split(this->_request, " \t");
 			std::cout << GREEN << "avant uri : " << RESET << std::endl;
-			this->_uri = this->_request.substr(this->_request.find("/"), (this->_request.find("HTTP") - 5));
-			std::cout << GREEN << this->_uri << RESET << std::endl;
+			this->_uri = lineUri[1];
+			//this->_uri = this->_request.substr(this->_request.find("/"), (this->_request.find("HTTP") - 5));
+			std::cout << GREEN << "uri = " << this->_uri << RESET << std::endl;
 			this->_uri = cleanLine(this->_uri);
 		}
 		void									findTypeContent(void){
