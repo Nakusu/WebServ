@@ -41,24 +41,18 @@ class Request{
 			int 	size;
 			char*	buffer;
 
-			std::cout << YELLOW << "Il passe dans init" << RESET << std::endl;
 			buffer = (char *)calloc(sizeof(char), 4096);
 			size = recv(this->_fd, buffer, 4096, MSG_DONTWAIT);
-			std::cout << YELLOW << size << RESET << std::endl;
 			if (size == 0)
 				return (-1);
 			if (size == -1)
 				return(0);
-			std::cout << YELLOW << "Il passe dans init" << RESET << std::endl;
 			this->_request += buffer;
 			free(buffer);
 			if (this->_request.find("\r\n\r\n") == SIZE_MAX)
 				return (0);
-			std::cout << GREEN << "FIND \\r\\n\\r\\n = " << this->_request.find("\r\n\r\n") << RESET << std::endl;
 			if (this->_request.size() < 15)
 				return (-1);
-			std::cout << BLUE << this->_request << RESET << std::endl;
-
 			this->_method = this->set_method();
 
 			this->_parsing->parsingMap((char *)this->_request.c_str());
@@ -72,7 +66,6 @@ class Request{
 			this->parsingAuthorizations();
 			this->setPathInfo();
 			this->getContentType();
-			std::cout << BLUE << "ICI" << RESET << std::endl;
 			return (1);
 		}
 		/***************************************************
@@ -206,15 +199,9 @@ class Request{
 		*******************    SEND   **********************
 		***************************************************/
 		void									sendPacket(std::string content){
-			std::cout << RED << "On envoi a : " << this->_fd << RESET << std::endl;
-			std::cout << RED << "Taille de l'envoi " << content.size() << RESET << std::endl;
-			std::cout << RED << "L'envoi : " << content << RESET << std::endl;
 			send(this->_fd, content.c_str(), content.size(), MSG_CONFIRM);
 		}
 		void									sendPacket(char *content, size_t len){
-			std::cout << RED <<  "On envoi a : " << this->_fd << RESET << std::endl;
-			std::cout << RED <<  "Taille de l'envoi " << len << RESET << std::endl;
-			std::cout << RED <<  "L'envoi : " << content << RESET << std::endl;
 			send(this->_fd, content, len, MSG_CONFIRM);
 		}
 
@@ -224,10 +211,8 @@ class Request{
 		void									findUri(void){
 			this->_uri = "";
 			std::vector<std::string> lineUri = split(this->_request, " \t");
-			std::cout << GREEN << "avant uri : " << RESET << std::endl;
 			this->_uri = lineUri[1];
 			//this->_uri = this->_request.substr(this->_request.find("/"), (this->_request.find("HTTP") - 5));
-			std::cout << GREEN << "uri = " << this->_uri << RESET << std::endl;
 			this->_uri = cleanLine(this->_uri);
 		}
 		void									findTypeContent(void){

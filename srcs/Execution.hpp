@@ -72,11 +72,8 @@ class Execution
 		***************************************************/
 		int											searchIndex(void){
 			//If it's a folder
-				std::cout << YELLOW << "this file = " << this->file << RESET << std::endl;
 			if (this->file == 1)
 				return (0);
-			
-				std::cout << YELLOW << this->_fullPath << RESET << std::endl;
 			if (folderIsOpenable(this->findFullPath())){
 				std::string					autoindex = "";
 				std::vector<std::string>	files;
@@ -87,7 +84,6 @@ class Execution
 				vec = this->vserv->findIndex(this->req->get_uri());
 				files = listFilesInFolder(this->findFullPath());
 				for (size_t i = 0; i < vec.size(); i++){
-					std::cout << vec[i] << std::endl;
 					if ((index = searchInVec(vec[i], files)) != -1){//Compare index with files in Folder
 						this->req->setUri(this->req->get_uri() + files[index]); //Return new URI with the index
 						this->req->setPathInfo();
@@ -184,7 +180,6 @@ class Execution
 			this->header->basicHeaderFormat(this->req);
 			this->header->basicHistory(this->vserv, this->req);
 			this->header->updateContent("Content-Length", NumberToString(size_file));
-			std::cout << YELLOW << NumberToString(size_file) << RESET << std::endl;
 			if (this->req->get_method() == "HEAD")
 				this->header->updateContent("Content-Length", "0");
 			this->header->sendHeader(this->req);
@@ -286,7 +281,9 @@ class Execution
 		}
 		int											initCGI(void){
 			std::string path = this->vserv->findCGI(this->req->get_uri(), "." + this->req->getExtension(), this->req->get_method());
+			std::cout << "CHECK PATH" << path << std::endl;
 			if (path != "bad_method" && path != "no_cgi"){
+				std::cout << "JUST BEFORE CGI" << std::endl;
 				if (fileIsOpenable(path)){
 					std::map<std::string, std::string> args = setMetaCGI(path);
 					char **tmpargs = swapMaptoChar(args);
@@ -315,7 +312,6 @@ class Execution
 			if (this->_fullPath.rfind("/", 0) != this->_fullPath .size() - 1)
 				this->_fullPath = this->findFullPath(this->req->get_uri() + "/");
 			if (folderIsOpenable(this->_fullPath)) {
-				std::cout << "IS OPENABLE" << std::endl;
 				std::string uri = this->req->get_uri();
 				if (uri.rfind('/') == uri.size() - 1)
 					return (0);

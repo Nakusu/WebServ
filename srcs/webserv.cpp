@@ -62,7 +62,6 @@ int			main(int argc, char **argv, char **env)
 
 			//Check les sockets master
 			if (FD_ISSET(serv->getVS(i)->get_fd(), serv->get_readfds()) && nb_activity){
-				std::cout << GREEN << "SERVER" << RESET << std::endl;
 				int addrlen = sizeof(serv->getVS(i)->get_address());
 				struct sockaddr_in * AddrVS = serv->getVS(i)->get_address();
 				
