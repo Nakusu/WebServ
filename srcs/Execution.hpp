@@ -303,11 +303,12 @@ class Execution
 		int											doPut(void) {
 			if (this->req->get_method() == "PUT") {
 				std::string path = this->get_fullPath();
+				std::string filename = getfilename(this->req->get_uri);
 				std::cout << "CHECK FULL PATH " << path << std::endl;
 				if (fileIsOpenable(path)) {
 					// UPDATE FILE
 				} else {
-					
+
 				}
 				return (1);
 			}

@@ -187,3 +187,9 @@ std::string replaceStrStart(std::string line, std::string s1, std::string s2)
     }
     return line;
 }
+std::string	getfilename(std::string uri) {
+	std::string ret;
+	for (size_t i = uri.length(); uri[i] && i >= 0 && uri[i] != '/'; i--)
+		ret.insert(0, uri[i]);
+	return (ret);
+}
