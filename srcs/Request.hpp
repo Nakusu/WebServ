@@ -240,6 +240,12 @@ class Request{
 			}
 		}
 
+		std::string									parsingPut(void) {
+			std::string content;
+			content = &this->_request[this->_request.find("\n\r") + 3];
+			return (content);
+		}
+
 private :
 		int													_fd;
 

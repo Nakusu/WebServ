@@ -301,15 +301,25 @@ class Execution
 			return (0);
 		}
 		int											doPut(void) {
+			
 			if (this->req->get_method() == "PUT") {
 				std::string path = this->get_fullPath();
-				std::string filename = getfilename(this->req->get_uri);
-				std::cout << "CHECK FULL PATH " << path << std::endl;
-				if (fileIsOpenable(path)) {
-					// UPDATE FILE
-				} else {
+				std::string newFileName = (path[path.length() - 1] == '/') ? path.substr(0, path.length() - 1) : path;
+				std::ofstream	newFile(newFileName.c_str());
+				std::string newFileContent = this->req->parsingPut();
 
-				}
+				if (newFile.fail())
+					return (0);
+				newFile << newFileContent;
+				std::string root = this->vserv->get_root();
+				std::string headerLoc = (path.find(root) != SIZE_MAX) ? &path[root.length()] : path;
+				if (!newFileContent.empty())
+					this->header->updateContent("HTTP/1.1", "201 Created");
+				else
+					this->header->updateContent("HTTP/1.1", "204 No Content");
+				this->header->updateContent("Content-Location", headerLoc);
+				this->header->updateContent("Content-Length", "0");
+				this->header->sendHeader(req);
 				return (1);
 			}
 			return (0);
