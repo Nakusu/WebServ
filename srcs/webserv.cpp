@@ -31,7 +31,7 @@ void		Exec(ServerWeb *serv, Client *client, int i, char **env){
 	if (!exec.checkMethod())
 		exec.searchError405();
 	if (!exec.needRedirection() && exec.checkMethod()){
-		if (!exec.doPut() && !exec.searchIndex() && !exec.initCGI() && !exec.binaryFile())
+		if (!exec.doDelete() && !exec.doPut() && !exec.searchIndex() && !exec.initCGI() && !exec.binaryFile())
 			exec.searchError404();	
 	}
 	delete header;

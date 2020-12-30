@@ -324,6 +324,30 @@ class Execution
 			}
 			return (0);
 		}
+
+		int											doDelete(void) {
+			if (this->req->get_method() == "DELETE") {
+				std::string path = this->get_fullPath();
+				std::string newFileName = (path[path.length() - 1] == '/') ? path.substr(0, path.length() - 1) : path;
+				std::string root = this->vserv->get_root();
+				std::string headerLoc = (path.find(root) != SIZE_MAX) ? &path[root.length()] : path;
+
+				if (!std::remove(newFileName .c_str())) {
+					this->header->updateContent("HTTP/1.1", "200 OK");
+					this->header->updateContent("Content-Location", headerLoc);
+					this->header->updateContent("Content-Length", "48");
+					this->header->sendHeader(req);
+					this->req->sendPacket("<html><body><h1>File deleted.</h1></body></html>");
+					return (1);
+				}
+				this->header->updateContent("HTTP/1.1", "204 No Content");
+				this->header->updateContent("Content-Location", headerLoc);
+				this->header->updateContent("Content-Length", "0");
+				this->header->sendHeader(req);
+				return (1);
+			}
+			return (0);
+		}
 		/***************************************************
 		*****************    Operation    ******************
 		***************************************************/
