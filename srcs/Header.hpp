@@ -67,5 +67,6 @@ char									*ft_itoa(long int n);
 std::string								NumberToString(long int Number);
 std::string 							replaceStr(std::string line, std::string s1, std::string s2);
 std::string 							replaceStrStart(std::string line, std::string s1, std::string s2);
+std::string								getfilename(std::string uri);
 
 #endif

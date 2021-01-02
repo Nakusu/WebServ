@@ -72,11 +72,8 @@ class Execution
 		***************************************************/
 		int											searchIndex(void){
 			//If it's a folder
-				std::cout << YELLOW << "this file = " << this->file << RESET << std::endl;
 			if (this->file == 1)
 				return (0);
-			
-				std::cout << YELLOW << this->_fullPath << RESET << std::endl;
 			if (folderIsOpenable(this->findFullPath())){
 				std::string					autoindex = "";
 				std::vector<std::string>	files;
@@ -87,7 +84,6 @@ class Execution
 				vec = this->vserv->findIndex(this->req->get_uri());
 				files = listFilesInFolder(this->findFullPath());
 				for (size_t i = 0; i < vec.size(); i++){
-					std::cout << vec[i] << std::endl;
 					if ((index = searchInVec(vec[i], files)) != -1){//Compare index with files in Folder
 						this->req->setUri(this->req->get_uri() + files[index]); //Return new URI with the index
 						this->req->setPathInfo();
@@ -184,7 +180,6 @@ class Execution
 			this->header->basicHeaderFormat(this->req);
 			this->header->basicHistory(this->vserv, this->req);
 			this->header->updateContent("Content-Length", NumberToString(size_file));
-			std::cout << YELLOW << NumberToString(size_file) << RESET << std::endl;
 			if (this->req->get_method() == "HEAD")
 				this->header->updateContent("Content-Length", "0");
 			this->header->sendHeader(this->req);
@@ -206,7 +201,7 @@ class Execution
 				std::map<std::string, std::string> tmpmap = this->req->get_Parsing()->getMap();
 				std::map<std::string, std::string>::iterator it = tmpmap.begin();
 
-				while (it != tmpmap.end() || it->first == "\n\r") { // Deuxieme condition a vérifier
+				while (it != tmpmap.end() && it->first == "\n\r") { // Deuxieme condition a vérifier
 					if (it->first != "First" && !it->first.empty())
 						args.insert(std::make_pair(("HTTP_" + it->first), it->second));
 					it++;
@@ -285,8 +280,11 @@ class Execution
 			free(tmp);
 		}
 		int											initCGI(void){
-			std::string path = this->vserv->findCGI(this->req->get_uri(), "." + this->req->getExtension(), this->req->get_method());
+			std::string extension = (this->req->getExtension().find(".", 0) != SIZE_MAX) ? this->req->getExtension() : "." + this->req->getExtension();
+			std::string path = this->vserv->findCGI(this->req->get_uri(), extension, this->req->get_method());
+			std::cout << "CHECK PATH " << path << std::endl;
 			if (path != "bad_method" && path != "no_cgi"){
+				std::cout << "JUST BEFORE CGI" << std::endl;
 				if (fileIsOpenable(path)){
 					std::map<std::string, std::string> args = setMetaCGI(path);
 					char **tmpargs = swapMaptoChar(args);
@@ -302,7 +300,54 @@ class Execution
 			}
 			return (0);
 		}
+		int											doPut(void) {
+			
+			if (this->req->get_method() == "PUT") {
+				std::string path = this->get_fullPath();
+				std::string newFileName = (path[path.length() - 1] == '/') ? path.substr(0, path.length() - 1) : path;
+				std::ofstream	newFile(newFileName.c_str());
+				std::string newFileContent = this->req->parsingPut();
 
+				if (newFile.fail())
+					return (0);
+				newFile << newFileContent;
+				std::string root = this->vserv->get_root();
+				std::string headerLoc = (path.find(root) != SIZE_MAX) ? &path[root.length()] : path;
+				if (!newFileContent.empty())
+					this->header->updateContent("HTTP/1.1", "201 Created");
+				else
+					this->header->updateContent("HTTP/1.1", "204 No Content");
+				this->header->updateContent("Content-Location", headerLoc);
+				this->header->updateContent("Content-Length", "0");
+				this->header->sendHeader(req);
+				return (1);
+			}
+			return (0);
+		}
+
+		int											doDelete(void) {
+			if (this->req->get_method() == "DELETE") {
+				std::string path = this->get_fullPath();
+				std::string newFileName = (path[path.length() - 1] == '/') ? path.substr(0, path.length() - 1) : path;
+				std::string root = this->vserv->get_root();
+				std::string headerLoc = (path.find(root) != SIZE_MAX) ? &path[root.length()] : path;
+
+				if (!std::remove(newFileName .c_str())) {
+					this->header->updateContent("HTTP/1.1", "200 OK");
+					this->header->updateContent("Content-Location", headerLoc);
+					this->header->updateContent("Content-Length", "48");
+					this->header->sendHeader(req);
+					this->req->sendPacket("<html><body><h1>File deleted.</h1></body></html>");
+					return (1);
+				}
+				this->header->updateContent("HTTP/1.1", "204 No Content");
+				this->header->updateContent("Content-Location", headerLoc);
+				this->header->updateContent("Content-Length", "0");
+				this->header->sendHeader(req);
+				return (1);
+			}
+			return (0);
+		}
 		/***************************************************
 		*****************    Operation    ******************
 		***************************************************/
@@ -315,7 +360,6 @@ class Execution
 			if (this->_fullPath.rfind("/", 0) != this->_fullPath .size() - 1)
 				this->_fullPath = this->findFullPath(this->req->get_uri() + "/");
 			if (folderIsOpenable(this->_fullPath)) {
-				std::cout << "IS OPENABLE" << std::endl;
 				std::string uri = this->req->get_uri();
 				if (uri.rfind('/') == uri.size() - 1)
 					return (0);

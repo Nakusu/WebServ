@@ -76,7 +76,7 @@ class ServerWeb
 			return (activity);
 		}
 		int																verifFdFDISSET(int fd){
-			// std::cout << YELLOW << "on test fd : " << fd << " result wr = " << FD_ISSET(fd, &this->_writefds) << FD_ISSET(fd, &this->_readfds) << std::endl;
+			// << YELLOW << "on test fd : " << fd << " result wr = " << FD_ISSET(fd, &this->_writefds) << FD_ISSET(fd, &this->_readfds) << std::endl;
 			return (FD_ISSET(fd, &this->_readfds) && FD_ISSET(fd, &this->_writefds));
 		}
 
