@@ -18,7 +18,7 @@ class Request{
 		Request(int fd){
 			this->_fd = fd;
 			this->_request = "";
-			std::cout << "New request" << std::endl;
+			std::cout << "New request" << fd << std::endl;
 			this->_uri = "";
 			this->_typeContent = "";
 			this->_authCredentials = "";
