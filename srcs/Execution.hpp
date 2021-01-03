@@ -54,20 +54,17 @@ class Execution
 				if (!this->vserv->get_locations()[index[i]]["root"].empty())
 					return (this->_fullPath = replaceStrStart(this->req->get_uri(), this->vserv->get_locations()[index[i]]["key"][0], this->vserv->get_locations()[index[i]]["root"][0]));
 			}
-			std::cout << "CHECK FULL PATH " << this->vserv->get_root() + this->req->get_uri() << std::endl;
-			std::cout << "CHECL URI " << this->req->get_uri() << std::endl;
 			return (this->vserv->get_root() + this->req->get_uri());
 		}
 		std::string									findFullPath(std::string path){
 			std::vector<size_t> index = this->vserv->findLocationsAndSublocations(path);
+			std::cout << YELLOW << path << RESET << std::endl;
 			if (!index.empty()){
 				for (size_t i = 0; i < index.size(); i++){
 					if (!this->vserv->get_locations()[index[i]]["root"].empty())
-						return (this->_fullPath = replaceStr(path, this->vserv->get_locations()[index[i]]["key"][0], this->vserv->get_locations()[index[i]]["root"][0]));
+						return (this->_fullPath = replaceStr(path, this->vserv->get_locations()[index[i]]["key"][0], this->vserv->get_locations()[index[i]]["root"][0] + '/'));
 				}
 			}
-			std::cout << "CHECK FULL PATH " << this->vserv->get_root() + path << std::endl;
-			std::cout << "CHECL URI " << this->req->get_uri() << std::endl;
 			return (this->vserv->get_root() + path);
 		}
 
@@ -87,10 +84,7 @@ class Execution
 				this->header->updateContent("Content-Type", "text/html");
 				vec = this->vserv->findIndex(this->req->get_uri());
 				files = listFilesInFolder(this->findFullPath());
-				std::cout << "CHECK FIND FULL PATH " << this->findFullPath() << std::endl;
 				for (size_t i = 0; i < vec.size(); i++){
-					std::cout << "COMPARE INDEX " << index << " TO FILE " << searchInVec(vec[i], files) << std::endl;
-					std::cout << "CHECK VEC " << vec[i] << std::endl; 
 					if ((index = searchInVec(vec[i], files)) != -1){//Compare index with files in Folder
 						this->req->setUri(this->req->get_uri() + files[index]); //Return new URI with the index
 						this->req->setPathInfo();
@@ -280,8 +274,6 @@ class Execution
 			}
 			if (buff.find("\r\n\r\n") != SIZE_MAX)
 				buff = &buff[buff.find("\r\n\r\n") + 4];
-			std::cout << GREEN << buff << RESET << std::endl;
-			std::cout << GREEN << buff.size() << RESET << std::endl;
 		}
 		void										processCGI(std::string cgi_path, char **args){
 			int  pfd[2];
@@ -294,7 +286,6 @@ class Execution
 
 			// int tmp_fd2 = open("./tmp/tmp.txt", O_CREAT | O_RDONLY);
 			// sendHeaderCGI(tmp_fd2);
-			std::cout << RED << get_fullPath() << RESET << std::endl;
 			if (pipe(pfd) == -1)
 				return ; // error gestion
 			if ((pid = fork()) < 0)
@@ -324,16 +315,11 @@ class Execution
 		int											initCGI(void){
 			std::string extension = (this->req->getExtension().find(".", 0) != SIZE_MAX) ? this->req->getExtension() : "." + this->req->getExtension();
 			std::string path = this->vserv->findCGI(this->req->get_uri(), extension, this->req->get_method());
-			std::cout << "CHECK PATH " << path << std::endl;
 			if (path != "bad_method" && path != "no_cgi"){
-				std::cout << "JUST BEFORE CGI" << std::endl;
 				if (fileIsOpenable(path)){
 					std::map<std::string, std::string> args = setMetaCGI(path);
 					char **tmpargs = swapMaptoChar(args);
-					std::cout << "youpi" << std::endl;
 					processCGI(path, tmpargs);
-					std::cout << "doupido" << std::endl;
-					
 					for (size_t i = 0; tmpargs[i]; i++){
 						free(tmpargs[i]);
 					}
@@ -401,8 +387,11 @@ class Execution
 			if (fileIsOpenable(this->_fullPath) && !folderIsOpenable(this->_fullPath))
 				return (0);
 			this->file = 0;
-			if (this->_fullPath.rfind("/", 0) != this->_fullPath .size() - 1)
+			std::cout << RED << this->_fullPath << RESET << std::endl;
+			std::cout << BLUE << this->req->get_uri() << RESET << std::endl;
+			if (this->_fullPath.rfind("/") != this->_fullPath .size() - 1)
 				this->_fullPath = this->findFullPath(this->req->get_uri() + "/");
+			std::cout << GREEN << this->_fullPath << RESET << std::endl;
 			if (folderIsOpenable(this->_fullPath)) {
 				std::string uri = this->req->get_uri();
 				if (uri.rfind('/') == uri.size() - 1)

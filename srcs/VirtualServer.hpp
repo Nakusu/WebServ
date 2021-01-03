@@ -103,7 +103,6 @@ class VirtualServer
 			std::vector<std::string> result;
 
 			indexs = findLocationsAndSublocations(uri);
-			std::cout << "CHECK URI " << uri << std::endl;
 			for (size_t i = 0; i < indexs.size(); i++) {
 				if (indexs[i] != SIZE_MAX && !this->_locations[indexs[i]][option].empty()) {
 					result = this->_locations[indexs[i]][option];
@@ -166,7 +165,6 @@ class VirtualServer
 		}
 		std::vector<std::string>											findIndex(std::string path){
 			std::vector<std::string> result;
-			std::cout << "CHECK PATH FIND INDEX " << path << std::endl;
 			result = this->findOption("index", path, this->get_index());
 			return (result);
 		}
