@@ -51,9 +51,9 @@ class Request{
 			free(buffer);
 			if (this->_request.find("\r\n\r\n") == SIZE_MAX)
 				return (0);
-			if (this->_request.size() < 15)
-				return (-1);
-			std::cout << "CHECK REQUEST " << std::endl << RED << this->_request << RESET << std::endl;
+			if (this->_request.rfind("\r\n\r\n") < 15)
+				return (0);
+			std::cout << RED << this->_request << RESET << std::endl;
 			this->_method = this->set_method();
 
 			this->_parsing->parsingMap((char *)this->_request.c_str());
@@ -115,14 +115,11 @@ class Request{
 				return (this->_userAgent);
 			}
 		std::string								set_method(void){
-				this->_method = "";
-				std::vector<std::string> lineUri = split(this->_request, " \t");
-				for (size_t i = 0; i < lineUri.size(); i++) {
-					if (lineUri[i].find("HTTP/1.1") != SIZE_MAX) {
-						this->_method = lineUri[i - 2];
-					}
-				}
-				return (this->_method);
+				char *tmp = (char *)this->_request.c_str();
+				std::string rep = "";
+				for (int i = 0; (tmp[i] &&tmp[i] != ' ') ; i++)
+					rep += tmp[i];
+				return (rep);
 			}
 		std::string								get_method(void) const{ 
 				return (this->_method);
@@ -215,13 +212,9 @@ class Request{
 		void									findUri(void){
 			this->_uri = "";
 			std::vector<std::string> lineUri = split(this->_request, " \t");
-			for (size_t i = 0; i < lineUri.size(); i++) {
-				if (lineUri[i].find("HTTP/1.1") != SIZE_MAX) {
-					this->_uri = lineUri[i - 1];
-					break;
-				}
-			}
-			std::cout << "CHECK URI " << this->_uri << std::endl;
+			this->_uri = lineUri[1];
+			//this->_uri = this->_request.substr(this->_request.find("/"), (this->_request.find("HTTP") - 5));
+			this->_uri = cleanLine(this->_uri);
 		}
 		void									findTypeContent(void){
 			this->_typeContent = "";
