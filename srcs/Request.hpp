@@ -8,6 +8,7 @@ class Request{
 	public:
 		Request(){
 			this->_fd = 0;
+			this->total = 0;
 			this->_request = "";
 			this->_uri = "";
 			this->_typeContent = "";
@@ -17,6 +18,7 @@ class Request{
 		}
 		Request(int fd){
 			this->_fd = fd;
+			this->total = 0;
 			this->_request = "";
 			std::cout << "New request" << fd << std::endl;
 			this->_uri = "";
@@ -41,8 +43,10 @@ class Request{
 			int 	size;
 			char*	buffer;
 
-			buffer = (char *)calloc(sizeof(char), 4096);
-			size = recv(this->_fd, buffer, 4096, MSG_DONTWAIT);
+			buffer = (char *)calloc(sizeof(char), 9999999);
+			size = recv(this->_fd, buffer, 9999999, MSG_DONTWAIT);
+			this->total += size; 
+			std::cout << YELLOW << this->total << RESET << std::endl;
 			if (size == 0)
 				return (-1);
 			if (size == -1)
@@ -53,12 +57,8 @@ class Request{
 				return (0);
 			if (this->_request.rfind("\r\n\r\n") < 15)
 				return (0);
-			std::cout << this->_request.find("Transfer-Encoding") << std::endl;
-			std::cout << this->_request.rfind("\r\n\r\n") << std::endl;
-			std::cout << this->_request.find("\r\n\r\n") << std::endl;
 			if (this->_request.find("Transfer-Encoding") != SIZE_MAX && this->_request.rfind("\r\n\r\n") == this->_request.find("\r\n\r\n"))
 				return (0);
-			std::cout << RED << this->_request << RESET << std::endl;
 			this->_method = this->set_method();
 
 			this->_parsing->parsingMap((char *)this->_request.c_str());
@@ -256,6 +256,7 @@ class Request{
 
 private :
 		int													_fd;
+		size_t												total;
 
 		std::string											_request;
 		std::string											_uri;
