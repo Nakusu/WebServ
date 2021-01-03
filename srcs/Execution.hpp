@@ -106,13 +106,8 @@ class Execution
 					this->header->sendHeader(this->req);
 					this->req->sendPacket(autoindex);
 				}
-				else{
-					this->header->updateContent("HTTP/1.1", "403");
-					this->header->basicHistory(this->vserv, this->req);
-					this->header->updateContent("Content-Length", "24");
-					this->header->sendHeader(this->req);
-					this->req->sendPacket("Interaction interdite..."); // SI IL N'Y A PAS D'INDEX DE BASE ET QUE L'AUTOINDEX EST SUR OFF
-				}
+				else
+					searchError404();
 				return (1);
 			}
 			return (0);
