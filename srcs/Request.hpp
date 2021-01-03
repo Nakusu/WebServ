@@ -53,6 +53,11 @@ class Request{
 				return (0);
 			if (this->_request.rfind("\r\n\r\n") < 15)
 				return (0);
+			std::cout << this->_request.find("Transfer-Encoding") << std::endl;
+			std::cout << this->_request.rfind("\r\n\r\n") << std::endl;
+			std::cout << this->_request.find("\r\n\r\n") << std::endl;
+			if (this->_request.find("Transfer-Encoding") != SIZE_MAX && this->_request.rfind("\r\n\r\n") == this->_request.find("\r\n\r\n"))
+				return (0);
 			std::cout << RED << this->_request << RESET << std::endl;
 			this->_method = this->set_method();
 
@@ -200,9 +205,11 @@ class Request{
 		*******************    SEND   **********************
 		***************************************************/
 		void									sendPacket(std::string content){
+			std::cout << GREEN << content << RESET << std::endl;
 			send(this->_fd, content.c_str(), content.size(), MSG_CONFIRM);
 		}
 		void									sendPacket(char *content, size_t len){
+			std::cout << GREEN << content << RESET << std::endl;
 			send(this->_fd, content, len, MSG_CONFIRM);
 		}
 
@@ -243,7 +250,7 @@ class Request{
 
 		std::string									parsingPut(void) {
 			std::string content;
-			content = &this->_request[this->_request.find("\n\r") + 3];
+			content = &this->_request[this->_request.find("\r\n\r\n") + 4];
 			return (content);
 		}
 
