@@ -99,11 +99,16 @@ class VirtualServer
 			return (index);
 		}
 		std::vector<std::string>											findOption(std::string option, std::string uri, std::vector<std::string> global){
-			size_t index;
+			std::vector<size_t> indexs;
 			std::vector<std::string> result;
-			index = findLocation(uri);
-			if (index != SIZE_MAX && !this->_locations[index][option].empty())
-				result = this->_locations[index][option];
+
+			indexs = findLocationsAndSublocations(uri);
+			for (size_t i = 0; i < indexs.size(); i++) {
+				if (indexs[i] != SIZE_MAX && !this->_locations[indexs[i]][option].empty()) {
+					result = this->_locations[indexs[i]][option];
+					return (result);
+				}
+			}
 			if (result.empty())
 				for (size_t i = 0; i < global.size(); i++)
 					result.push_back(global[i]);

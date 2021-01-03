@@ -190,6 +190,5 @@ std::string replaceStrStart(std::string line, std::string s1, std::string s2)
 std::string	getfilename(std::string uri) {
 	std::string ret;
 	ret = &uri[uri.find_last_of("/") + 1];
-	std::cout << CYAN <<  "RET = " << ret << RESET << std::endl;
 	return (ret);
 }
