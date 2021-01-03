@@ -19,12 +19,9 @@ class Client{
 			return (*this);
 		}
 		virtual ~Client(void){
-			std::cout << YELLOW << "Debut Suppression du client" << RESET << std::endl;
 			delete this->_req;
 			close(this->_fd);
-			std::cout << YELLOW << "Fin Suppression du client" << RESET << std::endl;
 		}
-
 		int										get_fd(void){
 			return (this->_fd);
 		}
@@ -35,8 +32,6 @@ class Client{
 			delete this->_req;
 			this->_req = new Request(this->_fd);
 		}
-
-
 private :
 	int					_fd;
 	Request *			_req;

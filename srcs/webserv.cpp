@@ -26,13 +26,12 @@ void		Exec(ServerWeb *serv, Client *client, int i, char **env){
 	HeaderRequest *header = new HeaderRequest();
 	Execution exec = Execution(serv, serv->getVS(i), req, header, env);
 	std::string Method = req->get_method();
-
 	if (Method == "POST")
 		req->getDatas();
 	if (!exec.checkMethod())
 		exec.searchError405();
 	if (!exec.needRedirection() && exec.checkMethod()){
-		if (!exec.searchIndex() && !exec.initCGI() && !exec.binaryFile())
+		if (!exec.doDelete() && !exec.doPut() && !exec.searchIndex() && !exec.initCGI() && !exec.binaryFile())
 			exec.searchError404();	
 	}
 	delete header;
@@ -62,7 +61,6 @@ int			main(int argc, char **argv, char **env)
 
 			//Check les sockets master
 			if (FD_ISSET(serv->getVS(i)->get_fd(), serv->get_readfds()) && nb_activity){
-				std::cout << GREEN << "SERVER" << RESET << std::endl;
 				int addrlen = sizeof(serv->getVS(i)->get_address());
 				struct sockaddr_in * AddrVS = serv->getVS(i)->get_address();
 				
