@@ -29,7 +29,8 @@ class Client{
 			return (this->_req);
 		}
 		void									new_req(void){
-			delete this->_req;
+			if (this->_req)
+				delete this->_req;
 			this->_req = new Request(this->_fd);
 		}
 private :

@@ -58,7 +58,6 @@ class Execution
 		}
 		std::string									findFullPath(std::string path){
 			std::vector<size_t> index = this->vserv->findLocationsAndSublocations(path);
-			std::cout << YELLOW << path << RESET << std::endl;
 			if (!index.empty()){
 				for (size_t i = 0; i < index.size(); i++){
 					if (!this->vserv->get_locations()[index[i]]["root"].empty())
@@ -387,11 +386,8 @@ class Execution
 			if (fileIsOpenable(this->_fullPath) && !folderIsOpenable(this->_fullPath))
 				return (0);
 			this->file = 0;
-			std::cout << RED << this->_fullPath << RESET << std::endl;
-			std::cout << BLUE << this->req->get_uri() << RESET << std::endl;
 			if (this->_fullPath.rfind("/") != this->_fullPath .size() - 1)
 				this->_fullPath = this->findFullPath(this->req->get_uri() + "/");
-			std::cout << GREEN << this->_fullPath << RESET << std::endl;
 			if (folderIsOpenable(this->_fullPath)) {
 				std::string uri = this->req->get_uri();
 				if (uri.rfind('/') == uri.size() - 1)
@@ -402,6 +398,7 @@ class Execution
 					this->header->basicHistory(this->vserv, this->req);
 					this->header->updateContent("Content-Length", "0");
 					this->header->sendHeader(this->req);
+					std::cout << "CHECK URI AFTER REDIRECT " << uri << std::endl;
 					return (1);
 				}
 			}
