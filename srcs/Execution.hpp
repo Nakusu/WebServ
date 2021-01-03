@@ -246,26 +246,58 @@ class Execution
 			tmpargs[i] = 0;
 			return (tmpargs);
 		}
+		void										sendHeaderCGI(int fd){
+			std::string buff = "";
+			char line[2048];
+			int ret;
+
+			while ((ret = read(fd, &line, 2046)) > 0){
+				line[ret] = '\0';
+				buff += std::string(line);
+			}
+			if (buff.find("\r\n\r\n") != SIZE_MAX)
+				buff = &buff[buff.find("\r\n\r\n") + 4];
+			this->header->basicHeaderFormat(this->req);
+			this->header->updateContent("Content-Length", NumberToString(buff.size()));
+			this->header->sendHeader(this->req);
+			this->req->sendPacket(buff);
+		}
+		void										sendHeaderCGItest(int fd){
+			std::string buff = "";
+			char line[2048];
+			int ret;
+
+			while ((ret = read(fd, &line, 2046)) > 0){
+				line[ret] = '\0';
+				buff += std::string(line);
+			}
+			if (buff.find("\r\n\r\n") != SIZE_MAX)
+				buff = &buff[buff.find("\r\n\r\n") + 4];
+			std::cout << GREEN << buff << RESET << std::endl;
+			std::cout << GREEN << buff.size() << RESET << std::endl;
+		}
 		void										processCGI(std::string cgi_path, char **args){
 			int  pfd[2];
 			int  pid;
 			char **env = mergeArrays(args, this->_envs, 0);
 			int status;
-
 			char **tmp = (char**)malloc(sizeof(char*) * 1);
+
 			tmp[0] = strdup(cgi_path.c_str());
 
-			this->header->basicHeaderFormat(this->req);
-			this->header->sendHeader(this->req);
+			// int tmp_fd2 = open("./tmp/tmp.txt", O_CREAT | O_RDONLY);
+			// sendHeaderCGI(tmp_fd2);
+			std::cout << RED << get_fullPath() << RESET << std::endl;
 			if (pipe(pfd) == -1)
 				return ; // error gestion
 			if ((pid = fork()) < 0)
 				return ; // error gestion
 			if (pid == 0) {
 				close(pfd[1]);
-				pfd[0] = open(std::string(this->vserv->get_root() + this->req->get_uri()).c_str(), O_RDONLY);
+				pfd[0] = open(this->get_fullPath().c_str(), O_RDONLY);
 				dup2(pfd[0], 0); // ici en entrée mettre le body
-				dup2(this->req->getfd(), 1);
+				int tmp_fd = open("./tmp/tmp.txt", O_CREAT | O_WRONLY);
+				dup2(tmp_fd, 1);
 				errno = 0;
 				if (execve(cgi_path.c_str(), tmp, env) == -1){
 					std::cerr << "Error with CGI: " << strerror(errno) << std::endl;
@@ -276,6 +308,9 @@ class Execution
 				close(pfd[0]);
 				waitpid(pid, &status,0);
 			}
+			int tmp_fd2 = open("./tmp/tmp.txt", O_CREAT | O_RDONLY);
+			sendHeaderCGI(tmp_fd2);
+			close(tmp_fd2);
 			free(tmp[0]);
 			free(tmp);
 		}
@@ -288,7 +323,9 @@ class Execution
 				if (fileIsOpenable(path)){
 					std::map<std::string, std::string> args = setMetaCGI(path);
 					char **tmpargs = swapMaptoChar(args);
+					std::cout << "youpi" << std::endl;
 					processCGI(path, tmpargs);
+					std::cout << "doupido" << std::endl;
 					
 					for (size_t i = 0; tmpargs[i]; i++){
 						free(tmpargs[i]);
