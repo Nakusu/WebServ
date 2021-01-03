@@ -54,6 +54,8 @@ class Execution
 				if (!this->vserv->get_locations()[index[i]]["root"].empty())
 					return (this->_fullPath = replaceStrStart(this->req->get_uri(), this->vserv->get_locations()[index[i]]["key"][0], this->vserv->get_locations()[index[i]]["root"][0]));
 			}
+			std::cout << "CHECK FULL PATH " << this->vserv->get_root() + this->req->get_uri() << std::endl;
+			std::cout << "CHECL URI " << this->req->get_uri() << std::endl;
 			return (this->vserv->get_root() + this->req->get_uri());
 		}
 		std::string									findFullPath(std::string path){
@@ -64,6 +66,8 @@ class Execution
 						return (this->_fullPath = replaceStr(path, this->vserv->get_locations()[index[i]]["key"][0], this->vserv->get_locations()[index[i]]["root"][0]));
 				}
 			}
+			std::cout << "CHECK FULL PATH " << this->vserv->get_root() + path << std::endl;
+			std::cout << "CHECL URI " << this->req->get_uri() << std::endl;
 			return (this->vserv->get_root() + path);
 		}
 
@@ -83,7 +87,10 @@ class Execution
 				this->header->updateContent("Content-Type", "text/html");
 				vec = this->vserv->findIndex(this->req->get_uri());
 				files = listFilesInFolder(this->findFullPath());
+				std::cout << "CHECK FIND FULL PATH " << this->findFullPath() << std::endl;
 				for (size_t i = 0; i < vec.size(); i++){
+					std::cout << "COMPARE INDEX " << index << " TO FILE " << searchInVec(vec[i], files) << std::endl;
+					std::cout << "CHECK VEC " << vec[i] << std::endl; 
 					if ((index = searchInVec(vec[i], files)) != -1){//Compare index with files in Folder
 						this->req->setUri(this->req->get_uri() + files[index]); //Return new URI with the index
 						this->req->setPathInfo();
