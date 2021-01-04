@@ -15,6 +15,7 @@ class Request{
 			this->_authCredentials = "";
 			this->_authType = "";
 			this->_parsing = new ParsingRequest();
+			this->_putSize = 0;
 		}
 		Request(int fd){
 			this->_fd = fd;
@@ -25,6 +26,7 @@ class Request{
 			this->_typeContent = "";
 			this->_authCredentials = "";
 			this->_authType = "";
+			this->_putSize = 0;
 			this->_parsing = new ParsingRequest();
 		}
 
@@ -46,7 +48,7 @@ class Request{
 			buffer = (char *)calloc(sizeof(char), 9999999);
 			size = recv(this->_fd, buffer, 9999999, MSG_DONTWAIT);
 			this->total += size; 
-			std::cout << YELLOW << this->total << RESET << std::endl;
+			//std::cout << YELLOW << this->total << RESET << std::endl;
 			if (size == 0)
 				return (-1);
 			if (size == -1)
@@ -147,7 +149,9 @@ class Request{
 			size_t								lock = 0;
 			int									j = 0;
 
+			std::cout << this->_request << std::endl;
 			tmpbuffer = &tmpbuffer[(tmpbuffer.find("\n\r") + 3)];
+			//std::cout << "TMPBUFFER SIZE - " << tmpbuffer.size() << std::endl;
 			for (size_t i = 0; i < tmpbuffer.size(); i++) {
 				if (tmpbuffer[i] == '=')
 					lock = 1;
@@ -179,6 +183,10 @@ class Request{
 			return (this->_mimesTypes[extension]);
 		}
 
+		size_t								getPutSize(void){
+			return (this->_putSize);
+		}
+
 		/***************************************************
 		********************    SET   **********************
 		***************************************************/
@@ -205,11 +213,9 @@ class Request{
 		*******************    SEND   **********************
 		***************************************************/
 		void									sendPacket(std::string content){
-			std::cout << GREEN << content << RESET << std::endl;
 			send(this->_fd, content.c_str(), content.size(), MSG_CONFIRM);
 		}
 		void									sendPacket(char *content, size_t len){
-			std::cout << GREEN << content << RESET << std::endl;
 			send(this->_fd, content, len, MSG_CONFIRM);
 		}
 
@@ -253,8 +259,12 @@ class Request{
 			if (this->_request.find("\n\r") != SIZE_MAX)
 				content = &this->_request[this->_request.find("\n\r") + 3];
 			if (this->_request.find("\n") != SIZE_MAX)
+			{
+				std::string strSize = this->_request.substr(0, this->_request.find("\n"));
+				this->_putSize = std::strtol(strSize.c_str(), NULL, 16);
 				content = &this->_request[this->_request.find("\n") + 1];
-			content = content.substr(0, content.size() - 2);
+			}
+			content = (content.size() < this->_putSize) ? content.substr(0, content.size() - 2) : content.substr(0, this->_putSize);
 			return (content);
 		}
 
@@ -278,6 +288,7 @@ private :
 		std::string											_extension;
 		std::string											_datas;
 		std::map<std::string, std::string> 					_mimesTypes;
+		size_t												_putSize;
 };
 
 #endif
