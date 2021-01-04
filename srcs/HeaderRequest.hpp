@@ -9,7 +9,9 @@ class HeaderRequest {
 		HeaderRequest() {
 			this->addContent("HTTP/1.1", "200 OK");
 		}
-		virtual	~HeaderRequest() {}
+		virtual	~HeaderRequest() {
+			return ;
+		}
 
 		/***************************************************
 		*****************    Operations    *****************
@@ -50,8 +52,8 @@ class HeaderRequest {
 		void											basicHistory(VirtualServer *vserv, Request *req){
 			if (vserv->get_history((req->get_IpClient() + req->get_userAgent())) != "")
 				this->updateContent("Referer", vserv->get_history((req->get_IpClient() + req->get_userAgent())));
-			if (!folderIsOpenable((vserv->findRoot(req->get_uri()))))
-				this->updateContent("Content-Length", NumberToString(getSizeFileBits(vserv->findRoot(req->get_uri()))));
+			if (!folderIsOpenable((vserv->findRoot(req->get_uri()) + req->get_uri())))
+				this->updateContent("Content-Length", NumberToString(getSizeFileBits(vserv->findRoot(req->get_uri()) + req->get_uri())));
 		}
 		void											Error405HeaderFormat(Request *req, std::string allowMethods){
 			this->basicHeaderFormat(req);

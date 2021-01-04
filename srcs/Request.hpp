@@ -8,70 +8,53 @@ class Request{
 	public:
 		Request(){
 			this->_fd = 0;
-			this->total = 0;
-			this->_request = "";
 			this->_uri = "";
 			this->_typeContent = "";
 			this->_authCredentials = "";
 			this->_authType = "";
-			this->_parsing = new ParsingRequest();
-			this->_putSize = 0;
 		}
 		Request(int fd){
 			this->_fd = fd;
-			this->total = 0;
-			this->_request = "";
-			std::cout << "New request" << fd << std::endl;
-			this->_uri = "";
-			this->_typeContent = "";
-			this->_authCredentials = "";
-			this->_authType = "";
-			this->_putSize = 0;
-			this->_parsing = new ParsingRequest();
 		}
 
 		virtual ~Request(){
-			delete this->_parsing;
+			close(this->_fd);
+			return ; 
 		}
-		Request(Request const &cpy){
-			operator=(cpy);
-		}
-		Request &								operator=( Request const &cpy){
-			if (this != &cpy){
-			}
-			return (*this);
-		}
+
 		int										init(void){
-			int 	size;
-			char*	buffer;
+			int size;
+			std::string tmp;
+			this->_buffer = (char *)calloc(sizeof(char), 4096);
+			std::cout << "AVANT RECV" << std::endl;
+			// size = read(this->_fd , this->_buffer, 1024);
+			size = recv(this->_fd, this->_buffer, 4096, MSG_DONTWAIT);
+			std::cout << RED << "size = " << size << RESET << std::endl;
+				if (size == 0 || size == -1){
+					return (0);
+				}
+			// size = recv(this->_fd, this->_buffer, sizeof(this->_buffer), 0);
+			std::cout << GREEN << size << RESET << std::endl;
+			std::cout << BLUE << this->_buffer << RESET << std::endl;
 
-			buffer = (char *)calloc(sizeof(char), 9999999);
-			size = recv(this->_fd, buffer, 9999999, MSG_DONTWAIT);
-			this->total += size; 
-			//std::cout << YELLOW << this->total << RESET << std::endl;
-			if (size == 0)
-				return (-1);
-			if (size == -1)
-				return(0);
-			this->_request += buffer;
-			free(buffer);
-			if (this->_request.find("\r\n\r\n") == SIZE_MAX)
-				return (0);
-			if (this->_request.rfind("\r\n\r\n") < 15)
-				return (0);
-			if (this->_request.find("Transfer-Encoding") != SIZE_MAX && this->_request.rfind("\r\n\r\n") == this->_request.find("\r\n\r\n"))
-				return (0);
-			if (this->_request.find("Content-Length") != SIZE_MAX && this->_request.rfind("\r\n\r\n") == this->_request.find("\r\n\r\n"))
-				return (0);
-			this->_request = CleanBody(this->_request);
-			// std::cout << RED << this->_request << RESET << std::endl;
+
+			// while ((size = recv(this->_fd, this->_buffer, sizeof(this->_buffer), 0)) != 1){
+
+			// 		std::cout << RED << size << RESET << std::endl;
+			// 	if (size == 0){
+			// 		std::cout << RED << "size 0" << RESET << std::endl;
+			// 		return (0);
+			// 	}
+			// 	tmp += this->_buffer;
+			// }
+			// this->_buffer = strdup(tmp.c_str());
+
+
 			this->_method = this->set_method();
-
-			this->_parsing->parsingMap((char *)this->_request.c_str());
-			this->_parsing->parsingMime();
-			this->_parsing->parseGet();
-			this->_extension = this->_parsing->getExtension();
-			this->_datas = "";
+			this->_parsing.parsingMap(this->_buffer);
+			this->_parsing.parsingMime();
+			this->_parsing.parseGet();
+			this->_extension = this->_parsing.getExtension();
 			this->findUri();
 			this->findTypeContent();
 			this->parsingMetasVars();
@@ -88,9 +71,12 @@ class Request{
 		}
 		std::string								getContentLength(void) const{
 			std::string notFounded = "0";
-			if (this->_parsing->getMap()["Content-Length"].empty())
+			if (this->_parsing.getMap()["Content-Length"].empty())
 				return (notFounded);
-			return (this->_parsing->getMap()["Content-Length"]);
+			return (this->_parsing.getMap()["Content-Length"]);
+		}
+		char *									getBuffer(void){
+			return (this->_buffer);
 		}
 		std::string								getTypeContent(void) const{ 
 			return (this->_typeContent);
@@ -102,12 +88,12 @@ class Request{
 			return (this->_fd);
 		}
 		std::string								getContentMimes(void) const{
-			return (this->_parsing->getMap().find("Content-Type") != this->_parsing->getMap().end() ? this->_parsing->getMap()["Content-Type"] : "");
+			return (this->_parsing.getMap().find("Content-Type") != this->_parsing.getMap().end() ? this->_parsing.getMap()["Content-Type"] : "");
 		}
 		std::string								getQueryString(void) const{
 			return (this->_queryString);
 		}
-		ParsingRequest *						get_Parsing(void) const{
+		ParsingRequest							get_Parsing(void) const{
 			return (this->_parsing);
 		}
 		std::string								get_authType(void) const{
@@ -126,10 +112,9 @@ class Request{
 				return (this->_userAgent);
 			}
 		std::string								set_method(void){
-				char *tmp = (char *)this->_request.c_str();
 				std::string rep = "";
-				for (int i = 0; (tmp[i] &&tmp[i] != ' ') ; i++)
-					rep += tmp[i];
+				for (int i = 0; (this->_buffer[i] && this->_buffer[i] != ' ') ; i++)
+					rep += this->_buffer[i];
 				return (rep);
 			}
 		std::string								get_method(void) const{ 
@@ -143,30 +128,6 @@ class Request{
 		}
 		std::string								get_url(void) const{
 			return (("http://" + this->get_host() + ":" + this->get_port() + this->get_uri()));
-		}
-		std::string								get_datas(void) const{
-			return (this->_datas);
-		}
-		std::string								getDatas(void) {
-			std::string							tmpbuffer = this->_request;
-			std::string							ret;
-			size_t								lock = 0;
-			int									j = 0;
-
-			std::cout << this->_request << std::endl;
-			tmpbuffer = &tmpbuffer[(tmpbuffer.find("\n\r") + 3)];
-			//std::cout << "TMPBUFFER SIZE - " << tmpbuffer.size() << std::endl;
-			for (size_t i = 0; i < tmpbuffer.size(); i++) {
-				if (tmpbuffer[i] == '=')
-					lock = 1;
-				else if (tmpbuffer[i] == '&')
-					lock = 0;
-				if (lock == 1)
-					j++;
-				if (j < atoi(this->getContentLength().c_str()) && lock == 1)
-					ret += tmpbuffer[i];
-			}
-			return (ret);
 		}
 		void									getContentType(void){
 			std::string line;
@@ -185,10 +146,6 @@ class Request{
 		}
 		std::string								getMimeType(std::string extension){
 			return (this->_mimesTypes[extension]);
-		}
-
-		size_t								getPutSize(void){
-			return (this->_putSize);
 		}
 
 		/***************************************************
@@ -217,7 +174,7 @@ class Request{
 		*******************    SEND   **********************
 		***************************************************/
 		void									sendPacket(std::string content){
-			send(this->_fd, content.c_str(), content.size(), MSG_CONFIRM);
+			send(this->_fd, content.c_str(), strlen(content.c_str()), MSG_CONFIRM);
 		}
 		void									sendPacket(char *content, size_t len){
 			send(this->_fd, content, len, MSG_CONFIRM);
@@ -228,27 +185,25 @@ class Request{
 		***************************************************/
 		void									findUri(void){
 			this->_uri = "";
-			std::vector<std::string> lineUri = split(this->_request, " \t");
-			this->_uri = lineUri[1];
-			//this->_uri = this->_request.substr(this->_request.find("/"), (this->_request.find("HTTP") - 5));
+			std::string string(this->_buffer);
+			this->_uri = strndup(&this->_buffer[string.find("/")], (string.find("HTTP") - 5));
 			this->_uri = cleanLine(this->_uri);
 		}
 		void									findTypeContent(void){
 			this->_typeContent = "";
-			this->_typeContent = this->_parsing->getMap()["Accept"];
+			this->_typeContent = this->_parsing.getMap()["Accept"];
 		}
-
 
 		/***************************************************
 		******************    Parsing   ********************
 		***************************************************/
 		void									parsingMetasVars(void){
-			this->_hostName = this->_parsing->getMap()["Host"].substr(0, this->_parsing->getMap()["Host"].find_first_of(":"));
-			this->_hostPort = &this->_parsing->getMap()["Host"][this->_parsing->getMap()["Host"].find_first_of(":") + 1];
-			this->_userAgent = this->_parsing->getMap()["User-Agent"];
+			this->_hostName = this->_parsing.getMap()["Host"].substr(0, this->_parsing.getMap()["Host"].find_first_of(":"));
+			this->_hostPort = &this->_parsing.getMap()["Host"][this->_parsing.getMap()["Host"].find_first_of(":") + 1];
+			this->_userAgent = this->_parsing.getMap()["User-Agent"];
 		}
 		void									parsingAuthorizations(void){
-			std::string iss = this->_parsing->getMap()["Authorization"];
+			std::string iss = this->_parsing.getMap()["Authorization"];
 			iss = convertInSpaces(iss);
 			iss = cleanLine(iss);
 			std::vector<std::string> results = split(iss, " ");
@@ -258,30 +213,12 @@ class Request{
 			}
 		}
 
-		std::string									parsingPut(void) {
-			std::string content;
-			content = &this->_request[this->_request.find("\r\n\r\n") + 4];
-			std::string content = "";
-			if (this->_request.find("\n\r") != SIZE_MAX)
-				content = &this->_request[this->_request.find("\n\r") + 3];
-			if (this->_request.find("\n") != SIZE_MAX)
-			{
-				std::string strSize = this->_request.substr(0, this->_request.find("\n"));
-				this->_putSize = std::strtol(strSize.c_str(), NULL, 16);
-				content = &this->_request[this->_request.find("\n") + 1];
-			}
-			content = (content.size() < this->_putSize) ? content.substr(0, content.size() - 2) : content.substr(0, this->_putSize);
-			return (content);
-		}
 
-private :
 		int													_fd;
-		size_t												total;
-
-		std::string											_request;
+		char*												_buffer;
 		std::string											_uri;
 		std::string											_typeContent;
-		ParsingRequest *									_parsing;
+		ParsingRequest										_parsing;
 		std::string											_method;
 		std::string											_hostName;
 		std::string											_hostPort;
@@ -292,9 +229,7 @@ private :
 		std::string											_queryString;
 		std::string 										_pathInfo;
 		std::string											_extension;
-		std::string											_datas;
 		std::map<std::string, std::string> 					_mimesTypes;
-		size_t												_putSize;
 };
 
 #endif

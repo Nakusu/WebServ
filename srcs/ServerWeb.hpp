@@ -33,29 +33,22 @@ class ServerWeb
 		int																get_fdmax(void){
 			return (this->_fdmax);
 		}
-		fd_set *														get_readfds(void){
-			return (&this->_readfds);
-		}
-		fd_set *														get_writefds(void){
-			return (&this->_writefds);
-		}
+
 		/***************************************************
 		********************    SET   **********************
 		***************************************************/
 		void															setAllFDSET_fdmax(void){
-			
-			FD_SET(STDIN_FILENO, &this->_readfds);
 			for (size_t i = 0; i < this->_VServs.size(); i++){
-				FD_SET(this->_VServs[i]->get_fd(), &this->_readfds);
-				FD_SET(this->_VServs[i]->get_fd() , &this->_writefds);
+				FD_SET(this->_VServs[i]->get_fd() , &this->_readfds);
+				// FD_SET(this->_VServs[i]->get_fd() , &this->_writefds);
 				if (this->_fdmax < this->_VServs[i]->get_fd())
 					this->_fdmax = this->_VServs[i]->get_fd();
-				for (size_t j = 0; j < this->_VServs[i]->get_clients().size(); j++){
-					FD_SET(this->_VServs[i]->get_client(j)->get_fd(), &this->_readfds);
-					FD_SET(this->_VServs[i]->get_client(j)->get_fd(), &this->_writefds);
-					if (this->_fdmax < this->_VServs[i]->get_client(j)->get_fd())
-						this->_fdmax = this->_VServs[i]->get_client(j)->get_fd();
-				}
+				// for (size_t j = 0; j < this->_VServs[i]->get_fdClients().size(); j++){
+				// 	FD_SET(this->_VServs[i]->get_fdClients(j), &this->_readfds);
+				// 	// FD_SET(this->_VServs[i]->get_fdClients(j), &this->_writefds);
+				// 	if (this->_fdmax < this->_VServs[i]->get_fdClients(j))
+				// 		this->_fdmax = this->_VServs[i]->get_fdClients(j);
+				// }
 			}
 		}
 
@@ -68,16 +61,18 @@ class ServerWeb
 
 			timeout.tv_sec = 10;
 			timeout.tv_usec = 0;
-			// this->_writefds = this->_readfds;
-			while ((activity = select(this->_fdmax + 1, &this->_readfds , &this->_writefds , NULL , NULL)) == -1){
+
+			while ((activity = select(this->_fdmax + 1, &this->_readfds , NULL , NULL , NULL)) == -1){
 			}
+				std::cout << "activity = " << activity << std::endl;
 			if ((activity < 0) && (errno != EINTR))  
 				printf("select error");
 			return (activity);
 		}
 		int																verifFdFDISSET(int fd){
-			// << YELLOW << "on test fd : " << fd << " result wr = " << FD_ISSET(fd, &this->_writefds) << FD_ISSET(fd, &this->_readfds) << std::endl;
-			return (FD_ISSET(fd, &this->_readfds) && FD_ISSET(fd, &this->_writefds));
+			std::cout << GREEN << FD_ISSET(fd, &this->_writefds) << std::endl;
+			std::cout << FD_ISSET(fd, &this->_readfds) << RESET << std::endl;
+			return (FD_ISSET(fd, &this->_readfds));
 		}
 
 		/***************************************************
@@ -85,7 +80,7 @@ class ServerWeb
 		***************************************************/
 		void															createVServs(void){
 			//Find configuration and create VSERV
-			std::vector<std::string>	Conf;
+			std::vector<std::string> Conf;
 
 			for (unsigned int i = 0; i < this->_file.size(); i++){
 				unsigned int cpt = 0;
@@ -123,8 +118,7 @@ class ServerWeb
 		}
 		void															clearFd(void){
 			FD_ZERO(&this->_readfds);
-			FD_ZERO(&this->_writefds);
-			this->_fdmax = 0;
+			// FD_ZERO(&this->_writefds);
 		}
 
 	private:
