@@ -249,8 +249,12 @@ class Request{
 		}
 
 		std::string									parsingPut(void) {
-			std::string content;
-			content = &this->_request[this->_request.find("\r\n\r\n") + 4];
+			std::string content = "";
+			if (this->_request.find("\n\r") != SIZE_MAX)
+				content = &this->_request[this->_request.find("\n\r") + 3];
+			if (this->_request.find("\n") != SIZE_MAX)
+				content = &this->_request[this->_request.find("\n") + 1];
+			content = content.substr(0, content.size() - 2);
 			return (content);
 		}
 
