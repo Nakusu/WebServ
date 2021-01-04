@@ -275,7 +275,7 @@ class Execution
 			char **env = mergeArrays(args, this->_envs, 0);
 			int status;
 			char **tmp = (char**)malloc(sizeof(char*) * 1);
-
+			std::cout << "Bonjouuuuuuuuuuur" << std::endl;
 			tmp[0] = strdup(cgi_path.c_str());
 
 			// int tmp_fd2 = open("./tmp/tmp.txt", O_CREAT | O_RDONLY);
@@ -313,6 +313,7 @@ class Execution
 				if (fileIsOpenable(path)){
 					std::map<std::string, std::string> args = setMetaCGI(path);
 					char **tmpargs = swapMaptoChar(args);
+					std::cout << "youoooooooooooooo" << std::endl;
 					processCGI(path, tmpargs);
 					for (size_t i = 0; tmpargs[i]; i++){
 						free(tmpargs[i]);
@@ -348,7 +349,6 @@ class Execution
 			}
 			return (0);
 		}
-
 		int											doDelete(void) {
 			if (this->req->get_method() == "DELETE") {
 				std::string path = this->get_fullPath();
