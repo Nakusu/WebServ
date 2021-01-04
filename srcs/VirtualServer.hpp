@@ -3,6 +3,7 @@
 
 #include "./Header.hpp"
 #include "Request.hpp"
+#include "Client.hpp"
 
 class VirtualServer
 {
@@ -61,7 +62,7 @@ class VirtualServer
 		}
 		int																	initFd(int domain, int type, int protocol){
 			int opt = TRUE;
-			if( (this->_fd = socket(domain , type , protocol)) == 0){
+			if( (this->_fd = socket(domain , type , protocol)) < 0){
 				perror("socket failed");
 				exit(EXIT_FAILURE);
 			}
@@ -84,12 +85,30 @@ class VirtualServer
 			}
 			return (-1);
 		}
+		std::vector<size_t>													findLocationsAndSublocations(std::string uri){
+			std::vector<size_t> index;
+
+			while (uri.find('/') != SIZE_MAX){
+				for (size_t i = 0; i < this->_locations.size(); i++){
+					if (this->_locations[i]["key"][0] == uri)
+						index.push_back(i);
+				}
+				uri = uri.erase(uri.size() - 1);
+				uri = (uri.rfind('/') != SIZE_MAX) ? uri.substr(0,uri.rfind('/') + 1) : uri ;
+			}
+			return (index);
+		}
 		std::vector<std::string>											findOption(std::string option, std::string uri, std::vector<std::string> global){
-			size_t index;
+			std::vector<size_t> indexs;
 			std::vector<std::string> result;
-			index = findLocation(uri);
-			if (index != SIZE_MAX && !this->_locations[index][option].empty())
-				result = this->_locations[index][option];
+
+			indexs = findLocationsAndSublocations(uri);
+			for (size_t i = 0; i < indexs.size(); i++) {
+				if (indexs[i] != SIZE_MAX && !this->_locations[indexs[i]][option].empty()) {
+					result = this->_locations[indexs[i]][option];
+					return (result);
+				}
+			}
 			if (result.empty())
 				for (size_t i = 0; i < global.size(); i++)
 					result.push_back(global[i]);
@@ -225,6 +244,9 @@ class VirtualServer
 			}
 			return ("");
 		}
+		std::vector<Client *>												get_clients(void){
+			return (this->_clients);
+		}
 		std::vector<std::string>											get_errorPage(void){
 			return (this->_errorPage);
 		}
@@ -233,12 +255,6 @@ class VirtualServer
 		}
 		int																	get_fd(void){
 			return (this->_fd);
-		}
-		std::vector<int>													get_fdClients(void){
-			return (this->_fdClients);
-		}
-		int																	get_fdClients(int i){
-			return (this->_fdClients[i]);
 		}
 		std::map<std::string, std::string>									get_history(void){
 			return (this->_history);
@@ -267,6 +283,9 @@ class VirtualServer
 		std::string															get_serverNames(void){
 			return (this->_serverNames);
 		}
+		Client *															get_client(int i){
+			return (this->_clients[i]);
+		}
 
 		/***************************************************
 		********************    SET   **********************
@@ -274,17 +293,19 @@ class VirtualServer
 		void																setHistory(std::string user, std::string url){
 			this->_history[user] = url;
 		}
-		void																set_fdClients(int i){
-			return (this->_fdClients.push_back(i));
+		void																setClient(Client *client){
+			return (this->_clients.push_back(client));
 		}
 
 		/***************************************************
 		********************    DEL   **********************
 		***************************************************/
-		void																del_fdClients(int i){
-			for (std::vector<int>::iterator it = this->_fdClients.begin(); it != this->_fdClients.end(); it++){
-				if (*it == i)
-					this->_fdClients.erase(it);
+		void																delClient(Client* ptr){
+			for (std::vector<Client *>::iterator it = this->_clients.begin(); it != this->_clients.end(); it++){
+				if (*it == ptr){
+					this->_clients.erase(it);
+					return ;
+				}
 			}
 		}
 		/***************************************************
@@ -657,7 +678,7 @@ class VirtualServer
 		std::vector<std::string>											_methods;
 		std::string															_root;
 		std::string															_serverNames;
-		std::vector<int>													_fdClients;
+		std::vector<Client *>												_clients;
 };
 
 #endif
