@@ -212,11 +212,9 @@ class Request{
 		*******************    SEND   **********************
 		***************************************************/
 		void									sendPacket(std::string content){
-			std::cout << GREEN << content << RESET << std::endl;
 			send(this->_fd, content.c_str(), content.size(), MSG_CONFIRM);
 		}
 		void									sendPacket(char *content, size_t len){
-			std::cout << GREEN << content << RESET << std::endl;
 			send(this->_fd, content, len, MSG_CONFIRM);
 		}
 
