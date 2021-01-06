@@ -6,7 +6,7 @@
 #    By: cbertola <cbertola@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/09/21 15:12:58 by cbertola          #+#    #+#              #
-#    Updated: 2020/12/03 18:58:07 by cbertola         ###   ########.fr        #
+#    Updated: 2021/01/06 18:07:24 by cbertola         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -55,9 +55,12 @@ fclean:		clean
 re:			fclean all
 
 git:		fclean
+			rm -rf tmp/*
+			rm -f res.txt
 			git add -A
 			git add *
 			git commit -u -m "$(LOGFILE) $(MSG)"
 			git push
+
 
 .PHONY:		all clean fclean re git
