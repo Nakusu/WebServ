@@ -62,7 +62,7 @@ class Request{
 			if (this->_request.find("Content-Length") != SIZE_MAX && this->_request.rfind("\r\n\r\n") == this->_request.find("\r\n\r\n"))
 				return (0);
 			this->_request = CleanBody(this->_request);
-			// std::cout << RED << this->_request << RESET << std::endl;
+			std::cout << RED << this->_request << RESET << std::endl;
 			this->_method = this->set_method();
 
 			this->_parsing->parsingMap((char *)this->_request.c_str());
@@ -165,7 +165,7 @@ class Request{
 		// 	return (ret);
 		// }
 		void							getDatas(void) {
-			this->_datas = this->_request.substr(this->_request.find("\r\n\r\n"), this->_request.size() - this->_request.find("\r\n\r\n"));
+			this->_datas = this->_request.substr(this->_request.find("\r\n\r\n") + 4, this->_request.size());
 		}
 		void									getContentType(void){
 			std::string line;

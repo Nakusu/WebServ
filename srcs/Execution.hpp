@@ -183,6 +183,7 @@ class Execution
 				req->sendPacket(content, size_file);
 			}
 			opfile.close();
+			free(content);
 			return (1);
 		}
 
@@ -212,10 +213,10 @@ class Execution
 			else
 				args["CONTENT_TYPE"] = req->getContentMimes();
 			args["CONTENT_LENGTH"] = req->getContentLength();
+			if (this->req->get_method() == "POST")
+				args["CONTENT_LENGTH"] = NumberToString(this->req->get_datas().size()) ;
 			if (req->getQueryString() != "")
 				args["QUERY_STRING"] = req->getQueryString();
-			else if (req->get_datas() != "")
-				args["QUERY_STRING"] = req->get_datas();
 			else
 				args["QUERY_STRING"];
 			args["SERVER_NAME"] = this->req->get_host();
@@ -229,6 +230,9 @@ class Execution
 			args["REMOTE_IDENT"] = this->req->get_authCredential();
 			args["PATH_INFO"] = this->req->get_uri();
 			args["PATH_TRANSLATED"] = "./" + this->vserv->get_root() + this->req->get_uri();
+			for (std::map<std::string, std::string>::iterator i = args.begin(); i != args.end(); i++){
+				std::cout << BLUE << i->first << " " << i->second << RESET << std::endl;
+			}
 			return (args);
 		}
 		char **										swapMaptoChar(std::map<std::string, std::string> args){
@@ -241,7 +245,7 @@ class Execution
 			tmpargs[i] = 0;
 			return (tmpargs);
 		}
-		void										sendHeaderCGI(int fd){
+		void										sendHeaderCGI(int fd, int i){
 			std::string buff = "";
 			char line[2048];
 			int ret;
@@ -252,9 +256,11 @@ class Execution
 			}
 			if (buff.find("\r\n\r\n") != SIZE_MAX)
 				buff = &buff[buff.find("\r\n\r\n") + 4];
-			this->header->basicHeaderFormat(this->req);
-			this->header->updateContent("Content-Length", NumberToString(buff.size()));
-			this->header->sendHeader(this->req);
+			if (i == 0){
+				this->header->basicHeaderFormat(this->req);
+				this->header->updateContent("Content-Length", NumberToString(buff.size()));
+				this->header->sendHeader(this->req);
+			}
 			this->req->sendPacket(buff);
 		}
 		void										sendHeaderCGItest(int fd){
@@ -286,9 +292,17 @@ class Execution
 				return ; // error gestion
 			if (pid == 0) {
 				close(pfd[1]);
-				pfd[0] = open(this->get_fullPath().c_str(), O_RDONLY);
-				dup2(pfd[0], 0); // ici en entrée mettre le body
-				int tmp_fd = open("./tmp/tmp.txt", O_CREAT | O_WRONLY);
+				if (this->req->get_method() == "POST"){
+					int fdtest = open("./tmp/tmp2.txt", O_CREAT | O_WRONLY, 0777);
+					write(fdtest, this->req->get_datas().c_str(), this->req->get_datas().size());
+					close (fdtest);
+					pfd[0]= open("./tmp/tmp2.txt", O_CREAT | O_RDONLY, 0777);
+					dup2(pfd[0], 0); // ici en entrée mettre le body
+				}else{
+					pfd[0] = open(this->get_fullPath().c_str(), O_RDONLY, 0777);
+					dup2(pfd[0], 0); // ici en entrée mettre le body
+				}
+				int tmp_fd = open("./tmp/tmp.txt", O_CREAT | O_WRONLY, 0777);
 				dup2(tmp_fd, 1);
 				errno = 0;
 				if (execve(cgi_path.c_str(), tmp, env) == -1){
@@ -301,11 +315,11 @@ class Execution
 				waitpid(pid, &status,0);
 			}
 			int tmp_fd2 = open("./tmp/tmp.txt", O_CREAT | O_RDONLY);
-			if (i == 0)
-				sendHeaderCGI(tmp_fd2);
+			sendHeaderCGI(tmp_fd2, i);
 			close(tmp_fd2);
 			free(tmp[0]);
 			free(tmp);
+			free(env);
 		}
 		int											initCGI(int i){
 			std::string extension = (this->req->getExtension().find(".", 0) != SIZE_MAX) ? this->req->getExtension() : "." + this->req->getExtension();
@@ -355,7 +369,8 @@ class Execution
 				this->req->getDatas();
 				std::cout << "LA" << std::endl;
 				this->header->basicHeaderFormat(req);
-				this->header->updateContent("HTTP/1.1", "201 Created");
+				this->header->updateContent("HTTP/1.1", "200 OK");
+				this->header->updateContent("Content-Length", NumberToString(this->req->get_datas().size()));
 				this->header->sendHeader(req);
 				initCGI(1);
 				return (1);

@@ -200,7 +200,8 @@ std::string							CleanBody(std::string request){
 			else
 				body.erase(premier, (second - premier) + 2);
 		}
-		request.replace(request.find("\r\n\r\n") + 4, request.rfind("\r\n\r\n") + 4, body);
+		request.replace(request.find("\r\n\r\n") + 4, request.rfind("\r\n\r\n"), body);
+		request = request.substr(0, request.rfind("\r\n\r\n"));
 	}
 		// std::cout << "REQUEST AFTER CLEAN" << std::endl << request << std::endl;
 	return (request);
