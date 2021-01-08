@@ -23,7 +23,7 @@ int			checkArgs(int argc, char **argv, std::string *defaultConf, ServerWeb *serv
 
 void		Exec(ServerWeb *serv, Client *client, int i, char **env){
 	Request *req = client->get_req();
-	HeaderRequest *header = new HeaderRequest(serv);
+	HeaderRequest *header = new HeaderRequest(serv->get_MimesTypes());
 	Execution exec = Execution(serv, serv->getVS(i), req, header, env);
 	std::string Method = req->get_method();
 	if (!exec.needRedirection() && exec.checkMethod() && !exec.doPost() && !exec.doDelete() && !exec.doPut() && !exec.searchIndex() && !exec.initCGI(0) && !exec.binaryFile())

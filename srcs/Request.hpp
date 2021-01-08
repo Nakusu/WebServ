@@ -75,7 +75,6 @@ class Request{
 			this->parsingMetasVars();
 			this->parsingAuthorizations();
 			this->setPathInfo();
-			this->getContentType();
 			return (1);
 		}
 		/***************************************************

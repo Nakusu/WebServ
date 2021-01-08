@@ -39,7 +39,7 @@ class ServerWeb
 		fd_set *														get_writefds(void){
 			return (&this->_writefds);
 		}
-						void											getContentType(void){
+		void															getContentType(void){
 			std::string line;
 			std::ifstream	ifs("srcs/mime.types");
 			std::vector<std::string> res;
@@ -54,8 +54,8 @@ class ServerWeb
 			}
 			(ifs).close();
 		}
-		std::string														getMimeType(std::string extension){
-			return (this->_mimesTypes[extension]);
+		std::map<std::string, std::string>														get_MimesTypes(void){
+			return (this->_mimesTypes);
 		}
 		/***************************************************
 		********************    SET   **********************
