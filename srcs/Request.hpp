@@ -172,16 +172,6 @@ class Request{
 		// 	}
 		// 	return (ret);
 		// }
-		void							getCustomHeader(void) {
-			std::vector<std::string> lines = split(this->_request, " \r\n");
-
-			for (size_t i = 0; i < lines.size() && lines[i] == "\r\n\r\n"; i++) {
-				if (lines[i][0] == 'X' && lines[i][0] == '-') {
-					std::vector<std::string>	tmp = split(&lines[i][2], ":");
-					this->_customHeader.insert(std::make_pair(tmp[0], tmp[1]));
-				}
-			}
-		}
 		void							getDatas(void) {
 			this->_datas = this->_requestBody;
 		}
@@ -299,7 +289,6 @@ private :
 		std::string											_extension;
 		std::string											_datas;
 		std::map<std::string, std::string> 					_mimesTypes;
-		std::map<std::string, std::string>					_customHeader;
 };
 
 #endif
