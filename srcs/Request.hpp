@@ -84,6 +84,9 @@ class Request{
 		/***************************************************
 		********************    GET   **********************
 		***************************************************/
+		std::map<std::string, std::string>		get_customHeader(void) const {
+			return (this->_customHeader);
+		}
 		std::string								get_uri(void) const{
 			return (this->_uri);
 		}
