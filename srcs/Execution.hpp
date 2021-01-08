@@ -236,7 +236,6 @@ class Execution
 			char	**tmpargs = (char**)malloc(sizeof(char*) * (args.size() + 1));
 			size_t	i = 0;
 			tmpargs[args.size()] = 0;
-
 			for (std::map<std::string, std::string>::iterator it = args.begin(); it != args.end(); it++)
 				tmpargs[i++] = strdup((it->first + "=" + it->second).c_str());
 			tmpargs[i] = 0;
