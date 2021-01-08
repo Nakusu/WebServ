@@ -174,24 +174,6 @@ class Request{
 		void							getDatas(void) {
 			this->_datas = this->_requestBody;
 		}
-		void									getContentType(void){
-			std::string line;
-			std::ifstream	ifs("srcs/mime.types");
-			std::vector<std::string> res;
-			if (ifs.fail()){
-				std::cerr << "Reading Error 3" << std::endl;
-				return;
-			}
-			while (std::getline(ifs, line)){
-				line = cleanLine(line);
-				res = split(line, " ");
-				this->_mimesTypes[res[1]] = res[0];
-			}
-			(ifs).close();
-		}
-		std::string								getMimeType(std::string extension){
-			return (this->_mimesTypes[extension]);
-		}
 
 		/***************************************************
 		********************    SET   **********************
