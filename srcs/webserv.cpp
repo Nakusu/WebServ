@@ -26,8 +26,7 @@ void		Exec(ServerWeb *serv, Client *client, int i, char **env){
 	HeaderRequest *header = new HeaderRequest();
 	Execution exec = Execution(serv, serv->getVS(i), req, header, env);
 	std::string Method = req->get_method();
-	if (!exec.checkMethod())
-		exec.searchError405();
+
 	if (!exec.needRedirection() && exec.checkMethod()){
 		if (!exec.doPost() && !exec.doDelete() && !exec.doPut() && !exec.searchIndex() && !exec.initCGI(0) && !exec.binaryFile())
 			exec.searchError404();	

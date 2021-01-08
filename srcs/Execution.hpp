@@ -445,9 +445,16 @@ class Execution
 			return (ret);
 		}
 		bool										checkMethod(void){
-			if (this->vserv->findCGI(this->req->get_uri(), this->req->getExtension(), this->req->get_method()) == "bad_method")
-				return (false);
-			return (this->vserv->findMethod(this->req->get_uri(), this->req->get_method()));
+			if (!fileIsOpenable(this->get_fullPath()) && this->req->get_method() != "POST" && this->req->get_method() != "PUT"){
+				this->searchError404();
+				return 0;
+			}
+			if (this->vserv->findCGI(this->req->get_uri(), this->req->getExtension(), this->req->get_method()) == "bad_method" ||
+			!this->vserv->findMethod(this->req->get_uri(), this->req->get_method())){
+				this->searchError405();
+				return 0;
+			}
+			return 1;
 		}
 
 	private:
