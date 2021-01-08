@@ -39,6 +39,24 @@ class ServerWeb
 		fd_set *														get_writefds(void){
 			return (&this->_writefds);
 		}
+						void											getContentType(void){
+			std::string line;
+			std::ifstream	ifs("srcs/mime.types");
+			std::vector<std::string> res;
+			if (ifs.fail()){
+				std::cerr << "Reading Error" << std::endl;
+				return;
+			}
+			while (std::getline(ifs, line)){
+				line = cleanLine(line);
+				res = split(line, " ");
+				this->_mimesTypes[res[1]] = res[0];
+			}
+			(ifs).close();
+		}
+		std::string														getMimeType(std::string extension){
+			return (this->_mimesTypes[extension]);
+		}
 		/***************************************************
 		********************    SET   **********************
 		***************************************************/
@@ -133,6 +151,7 @@ class ServerWeb
 		int																_fdmax;
 		fd_set		 													_readfds;
 		fd_set		 													_writefds;
+		std::map<std::string, std::string>								_mimesTypes;
 };
 
 #endif
