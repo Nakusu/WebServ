@@ -419,6 +419,21 @@ class Execution
 			}
 			return (0);
 		}
+
+		int											doOptions(void) {
+			
+			if (this->req->get_method() == "OPTIONS") {
+				if (this->req->get_url() == "*")
+					this->header->updateContent("Allow", "GET, POST, PUT, CONNECT, OPTIONS, HEAD, TRACE");
+				else
+					this->header->updateContent("Allow", getAllowMethods());
+				this->header->updateContent("Content-Length", "0");
+				this->header->sendHeader(req);
+				return (1);
+			}
+			return (0);
+		}
+	
 		/***************************************************
 		*****************    Operation    ******************
 		***************************************************/

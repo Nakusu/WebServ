@@ -6,8 +6,9 @@
 
 class HeaderRequest {
 	public:
-		HeaderRequest() {
+		HeaderRequest(std::map<std::string, std::string> mineTypes) {
 			this->addContent("HTTP/1.1", "200 OK");
+			this->_mimeTypes = mineTypes;
 		}
 		virtual	~HeaderRequest() {}
 
@@ -44,8 +45,8 @@ class HeaderRequest {
 			this->addContent("Server", "webserv");
 			this->addContent("Date", getTime());
 			this->updateContent("Content-Type", "text/html");
-			if (req->getMimeType(req->getExtension()) != "")
-				this->updateContent("Content-Type", req->getMimeType(req->getExtension()));
+			if (this->_mimeTypes[req->getExtension()] != "")
+				this->updateContent("Content-Type", this->_mimeTypes[req->getExtension()]);
 			this->updateContent("Accept-Charset", "utf-8");
 		}
 		void											basicHistory(VirtualServer *vserv, Request *req){
@@ -86,6 +87,7 @@ class HeaderRequest {
 	private:
 		std::map<std::string, std::string>				_content;
 		size_t											_size;
+		std::map<std::string, std::string>				_mimeTypes;
 };
 
 #endif
