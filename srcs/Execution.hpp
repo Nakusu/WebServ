@@ -34,7 +34,7 @@ class Execution
 				this->req = rhs.req;
 			}
 			return (*this);
-		}
+		}Resolving conflicts between CberT-code:master and Nakusu:master and committing changes CberT-code:master
 
 		/***************************************************
 		*********************    GET    ********************
@@ -239,7 +239,7 @@ class Execution
 			char	**tmpargs = (char**)malloc(sizeof(char*) * (args.size() + 1));
 			size_t	i = 0;
 			tmpargs[args.size()] = 0;
-
+Resolving conflicts between CberT-code:master and Nakusu:master and committing changes CberT-code:master
 			for (std::map<std::string, std::string>::iterator it = args.begin(); it != args.end(); it++)
 				tmpargs[i++] = strdup((it->first + "=" + it->second).c_str());
 			tmpargs[i] = 0;
@@ -275,34 +275,42 @@ class Execution
 			if (buff.find("\r\n\r\n") != SIZE_MAX)
 				buff = &buff[buff.find("\r\n\r\n") + 4];
 		}
+		void										CreateTmpRequestCGI(std::string tmp_in){
+			std::ofstream in (tmp_in.c_str());
+			if (this->req->get_method() == "POST")
+				in << this->req->get_datas();
+			std::ifstream fichier (this->get_fullPath().c_str());
+			std::string contenu;
+			while (getline(fichier, contenu))
+				in << contenu;
+			fichier.close();
+			in.close();
+		}
 		void										processCGI(std::string cgi_path, char **args, int i){
 			int  pfd[2];
 			int  pid;
 			char **env = mergeArrays(args, this->_envs, 0);
 			int status;
-			char **tmp = (char**)malloc(sizeof(char*) * 1);
 
+			char **tmp = (char**)malloc(sizeof(char*) * 1);
 			tmp[0] = strdup(cgi_path.c_str());
 
-			// int tmp_fd2 = open("./tmp/tmp.txt", O_CREAT | O_RDONLY);
-			// sendHeaderCGI(tmp_fd2);
+			std::string tmp_in = "./tmp/tmp_in_" + NumberToString(this->vserv->get_fd()) + ".txt";
+			std::string tmp_out = "./tmp/tmp_out_" + NumberToString(this->vserv->get_fd()) + ".txt";
+
+
 			if (pipe(pfd) == -1)
-				return ; // error gestion
+				return ; // error pipe
 			if ((pid = fork()) < 0)
-				return ; // error gestion
-			if (pid == 0) {
+				return ; // error fork
+			if (pid == 0) { // in the fork child
 				close(pfd[1]);
-				if (this->req->get_method() == "POST"){
-					int fdtest = open("./tmp/tmp2.txt", O_CREAT | O_WRONLY, 0777);
-					write(fdtest, this->req->get_datas().c_str(), this->req->get_datas().size());
-					close (fdtest);
-					pfd[0]= open("./tmp/tmp2.txt", O_CREAT | O_RDONLY, 0777);
-					dup2(pfd[0], 0); // ici en entrée mettre le body
-				}else{
-					pfd[0] = open(this->get_fullPath().c_str(), O_RDONLY, 0777);
-					dup2(pfd[0], 0); // ici en entrée mettre le body
-				}
-				int tmp_fd = open("./tmp/tmp.txt", O_CREAT | O_WRONLY, 0777);
+				CreateTmpRequestCGI(tmp_in);
+				//Open and send request to EXEC
+				pfd[0]= open(tmp_in.c_str(), O_CREAT | O_RDONLY, 0777);
+				dup2(pfd[0], 0); // ici en entrée mettre le body
+				//Create a receive request in EXEC
+				int tmp_fd = open(tmp_out.c_str(), O_CREAT | O_WRONLY, 0777);
 				dup2(tmp_fd, 1);
 				errno = 0;
 				if (execve(cgi_path.c_str(), tmp, env) == -1){
@@ -314,14 +322,14 @@ class Execution
 				close(pfd[0]);
 				waitpid(pid, &status,0);
 			}
-			int tmp_fd2 = open("./tmp/tmp.txt", O_CREAT | O_RDONLY);
+			int tmp_fd2 = open(tmp_out.c_str(), O_CREAT | O_RDONLY);
 			sendHeaderCGI(tmp_fd2, i);
 			close(tmp_fd2);
 			free(tmp[0]);
 			free(tmp);
 			free(env);
-			remove("./tmp/tmp.txt");
-			remove("./tmp/tmp2.txt");
+			remove(tmp_in.c_str());
+			remove(tmp_out.c_str());
 		}
 		int											initCGI(int i){
 			std::string extension = (this->req->getExtension().find(".", 0) != SIZE_MAX) ? this->req->getExtension() : "." + this->req->getExtension();
@@ -357,9 +365,9 @@ class Execution
 				if (!newFileContent.empty())
 					this->header->updateContent("HTTP/1.1", "201 Created");
 				else
-					this->header->updateContent("HTTP/1.1", "204 No Content");
+					this->header->updateContent("HTTP/1.1", "204 No Content");Resolving conflicts between CberT-code:master and Nakusu:master and committing changes CberT-code:master
 				this->header->updateContent("Content-Location", headerLoc);
-				this->header->updateContent("Content-Length", "0");
+				this->header->updateContent("Content-Length", "0");Resolving conflicts between CberT-code:master and Nakusu:master and committing changes CberT-code:master
 				this->header->sendHeader(req);
 				return (1);
 			}
@@ -374,7 +382,7 @@ class Execution
 				this->header->updateContent("HTTP/1.1", "200 OK");
 				this->header->updateContent("Content-Length", NumberToString(this->req->get_datas().size()));
 				this->header->sendHeader(req);
-				initCGI(1);
+				initCGI(1);Resolving conflicts between CberT-code:master and Nakusu:master and committing changes CberT-code:master
 				return (1);
 			}
 			return (0);
@@ -405,7 +413,7 @@ class Execution
 		}
 		/***************************************************
 		*****************    Operation    ******************
-		***************************************************/
+		***************************************************/Resolving conflicts between CberT-code:master and Nakusu:master and committing changes CberT-code:master
 		int											needRedirection(void){
 
 			this->_fullPath = this->findFullPath();

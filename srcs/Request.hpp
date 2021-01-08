@@ -62,23 +62,25 @@ class Request{
 				return (0);
 
 			std::cout << "DEBUT CLEANBODY" << std::endl;
-			this->_request = CleanBody(this->_request);
+			this->_requestBody = CleanBody(this->_request);
+			this->_requestHeader = this->_request.substr(0, this->_request.find("\r\n\r\n") + 4);
 			std::cout << "FIN CLEANBODY" << std::endl;
-			//std::cout << RED << this->_request << RESET << std::endl;
 			this->_method = this->set_method();
 
-			this->_parsing->parsingMap((char *)this->_request.c_str());
+			std::cout << "1" << std::endl;
+			this->_parsing->parsingMap((char *)this->_requestHeader.c_str());
 			this->_parsing->parsingMime();
 			this->_parsing->parseGet();
 			this->_extension = this->_parsing->getExtension();
 			this->_datas = "";
+			std::cout << "2" << std::endl;
 			this->findUri();
 			this->findTypeContent();
 			this->parsingMetasVars();
 			this->parsingAuthorizations();
 			this->setPathInfo();
 			this->getContentType();
-			this->getCustomHeader();
+			//this->getCustomHeader();
 			return (1);
 		}
 		/***************************************************
@@ -119,7 +121,7 @@ class Request{
 		}
 		std::string								get_authCredential(void) const{
 			return (this->_authCredentials);
-		}
+		}Resolving conflicts between CberT-code:master and Nakusu:master and committing changes CberT-code:master
 		std::string								get_host(void) const{
 				return (this->_hostName);
 			}
@@ -130,7 +132,7 @@ class Request{
 				return (this->_userAgent);
 			}
 		std::string								set_method(void){
-				char *tmp = (char *)this->_request.c_str();
+				char *tmp = (char *)this->_requestHeader.c_str();
 				std::string rep = "";
 				for (int i = 0; (tmp[i] &&tmp[i] != ' ') ; i++)
 					rep += tmp[i];
@@ -181,7 +183,7 @@ class Request{
 			}
 		}
 		void							getDatas(void) {
-			this->_datas = this->_request.substr(this->_request.find("\r\n\r\n") + 4, this->_request.size());
+			this->_datas = this->_requestBody;
 		}
 		void									getContentType(void){
 			std::string line;
@@ -239,7 +241,7 @@ class Request{
 		***************************************************/
 		void									findUri(void){
 			this->_uri = "";
-			std::vector<std::string> lineUri = split(this->_request, " \t");
+			std::vector<std::string> lineUri = split(this->_requestHeader, " \t");
 			this->_uri = lineUri[1];
 			//this->_uri = this->_request.substr(this->_request.find("/"), (this->_request.find("HTTP") - 5));
 			this->_uri = cleanLine(this->_uri);
@@ -271,7 +273,7 @@ class Request{
 
 		std::string									parsingPut(void) {
 			std::string content;
-			content = &this->_request[this->_request.find("\r\n\r\n") + 4];
+			content = &this->_requestHeader[this->_requestHeader.find("\r\n\r\n") + 4];
 			return (content);
 		}
 
@@ -280,6 +282,8 @@ private :
 		size_t												total;
 
 		std::string											_request;
+		std::string											_requestHeader;
+		std::string											_requestBody;
 		std::string											_uri;
 		std::string											_typeContent;
 		ParsingRequest *									_parsing;
