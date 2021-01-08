@@ -197,7 +197,7 @@ class Execution
 				std::map<std::string, std::string> tmpmap = this->req->get_Parsing()->getMap();
 				std::map<std::string, std::string>::iterator it = tmpmap.begin();
 
-				while (it != tmpmap.end() && it->first == "\n\r") { // Deuxieme condition a vérifier
+				while (it != tmpmap.end()) { // Deuxieme condition a vérifier
 					if (it->first != "First" && !it->first.empty())
 						args.insert(std::make_pair(("HTTP_" + it->first), it->second));
 					it++;
@@ -230,9 +230,6 @@ class Execution
 			args["REMOTE_IDENT"] = this->req->get_authCredential();
 			args["PATH_INFO"] = this->req->get_uri();
 			args["PATH_TRANSLATED"] = "./" + this->vserv->get_root() + this->req->get_uri();
-			for (std::map<std::string, std::string>::iterator i = args.begin(); i != args.end(); i++){
-				std::cout << BLUE << i->first << " " << i->second << RESET << std::endl;
-			}
 			return (args);
 		}
 		char **										swapMaptoChar(std::map<std::string, std::string> args){
@@ -337,6 +334,8 @@ class Execution
 				if (fileIsOpenable(path)){
 					std::map<std::string, std::string> args = setMetaCGI(path);
 					char **tmpargs = swapMaptoChar(args);
+					for (size_t i = 0; tmpargs[i]; i++)
+						std::cout << GREEN << "CHECK INFORMATION : " << tmpargs[i] << RESET << std::endl;
 					processCGI(path, tmpargs, i);
 					for (size_t i = 0; tmpargs[i]; i++){
 						free(tmpargs[i]);
