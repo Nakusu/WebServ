@@ -180,28 +180,46 @@ std::string							getfilename(std::string uri) {
 	ret = &uri[uri.find_last_of("/") + 1];
 	return (ret);
 }
+// std::string							CleanBody(std::string request){
+// 	std::string body;
+
+// 	if (request.find("\r\n\r\n") != request.rfind("\r\n\r\n")){
+// 		body = request.substr(request.find("\r\n\r\n") + 2, request.rfind("\r\n\r\n") + 4);
+
+// 		size_t premier;
+// 		size_t second;
+// 		size_t fin;
+
+// 		while (body.find("\r\n\r\n") != body.find("\r\n")){
+// 			premier = body.find("\r\n");
+// 			second = body.find("\r\n", body.find("\r\n") + 2);
+// 			fin = body.find("\r\n\r\n");
+
+// 			if (second == fin)
+// 				body.erase(premier, second - premier);
+// 			else
+// 				body.erase(premier, (second - premier) + 2);
+// 		}
+// 		request.replace(request.find("\r\n\r\n") + 4, request.rfind("\r\n\r\n"), body);
+// 		request = request.substr(0, request.rfind("\r\n\r\n"));
+// 	}
+// 		// std::cout << "REQUEST AFTER CLEAN" << std::endl << request << std::endl;
+// 	return (request);
+// }
 std::string							CleanBody(std::string request){
 	std::string body;
 
 	if (request.find("\r\n\r\n") != request.rfind("\r\n\r\n")){
-		body = request.substr(request.find("\r\n\r\n") + 2, request.rfind("\r\n\r\n") + 4);
-
-		size_t premier;
-		size_t second;
-		size_t fin;
-
-		while (body.find("\r\n\r\n") != body.find("\r\n")){
-			premier = body.find("\r\n");
-			second = body.find("\r\n", body.find("\r\n") + 2);
-			fin = body.find("\r\n\r\n");
-
-			if (second == fin)
-				body.erase(premier, second - premier);
-			else
-				body.erase(premier, (second - premier) + 2);
+		body = request.substr(request.find("\r\n\r\n") + 2, request.rfind("\r\n\r\n"));
+		std::vector<std::string> bodyvec = split(body, "\r\n");
+		body = "";
+		for (size_t i = 1; i < bodyvec.size(); i += 2)
+		{
+			body += bodyvec[i];
 		}
-		request.replace(request.find("\r\n\r\n") + 4, request.rfind("\r\n\r\n"), body);
-		request = request.substr(0, request.rfind("\r\n\r\n"));
+		
+		request.replace(request.find("\r\n\r\n") + 4, request.rfind("\r\n\r\n") + 4, body);
+		// request = request.substr(0, request.rfind("\r\n\r\n"));
 	}
 		// std::cout << "REQUEST AFTER CLEAN" << std::endl << request << std::endl;
 	return (request);

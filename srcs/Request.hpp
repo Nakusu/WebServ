@@ -27,7 +27,6 @@ class Request{
 			this->_authType = "";
 			this->_parsing = new ParsingRequest();
 		}
-
 		virtual ~Request(){
 			delete this->_parsing;
 		}
@@ -61,7 +60,10 @@ class Request{
 				return (0);
 			if (this->_request.find("Content-Length") != SIZE_MAX && this->_request.rfind("\r\n\r\n") == this->_request.find("\r\n\r\n"))
 				return (0);
+
+			std::cout << "DEBUT CLEANBODY" << std::endl;
 			this->_request = CleanBody(this->_request);
+			std::cout << "FIN CLEANBODY" << std::endl;
 			std::cout << RED << this->_request << RESET << std::endl;
 			this->_method = this->set_method();
 
