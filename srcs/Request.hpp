@@ -64,7 +64,7 @@ class Request{
 			std::cout << "DEBUT CLEANBODY" << std::endl;
 			this->_request = CleanBody(this->_request);
 			std::cout << "FIN CLEANBODY" << std::endl;
-			std::cout << RED << this->_request << RESET << std::endl;
+			//std::cout << RED << this->_request << RESET << std::endl;
 			this->_method = this->set_method();
 
 			this->_parsing->parsingMap((char *)this->_request.c_str());
@@ -78,6 +78,7 @@ class Request{
 			this->parsingAuthorizations();
 			this->setPathInfo();
 			this->getContentType();
+			this->getCustomHeader();
 			return (1);
 		}
 		/***************************************************
@@ -166,6 +167,16 @@ class Request{
 		// 	}
 		// 	return (ret);
 		// }
+		void							getCustomHeader(void) {
+			std::vector<std::string> lines = split(this->_request, " \r\n");
+
+			for (size_t i = 0; i < lines.size() && lines[i] == "\r\n\r\n"; i++) {
+				if (lines[i][0] == 'X' && lines[i][0] == '-') {
+					std::vector<std::string>	tmp = split(&lines[i][2], ":");
+					this->_customHeader.insert(std::make_pair(tmp[0], tmp[1]));
+				}
+			}
+		}
 		void							getDatas(void) {
 			this->_datas = this->_request.substr(this->_request.find("\r\n\r\n") + 4, this->_request.size());
 		}
@@ -281,6 +292,7 @@ private :
 		std::string											_extension;
 		std::string											_datas;
 		std::map<std::string, std::string> 					_mimesTypes;
+		std::map<std::string, std::string>					_customHeader;
 };
 
 #endif

@@ -320,6 +320,8 @@ class Execution
 			free(tmp[0]);
 			free(tmp);
 			free(env);
+			remove("./tmp/tmp.txt");
+			remove("./tmp/tmp2.txt");
 		}
 		int											initCGI(int i){
 			std::string extension = (this->req->getExtension().find(".", 0) != SIZE_MAX) ? this->req->getExtension() : "." + this->req->getExtension();
