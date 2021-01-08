@@ -14,7 +14,7 @@ int			checkArgs(int argc, char **argv, std::string *defaultConf, ServerWeb *serv
 		*defaultConf = std::string(argv[1]);
 	std::ifstream	ifs((*defaultConf).c_str());
 	if (ifs.fail()){
-		std::cerr << "Reading Error" << std::endl;
+		std::cerr << "Reading Error 1" << std::endl;
 		return (0);
 	}
 	serv->fileToVectorAndClean(&ifs);
@@ -58,7 +58,8 @@ int			main(int argc, char **argv, char **env)
 				int addrlen = sizeof(serv->getVS(i)->get_address());
 				struct sockaddr_in * AddrVS = serv->getVS(i)->get_address();
 
-				fdClient = accept(serv->getVS(i)->get_fd(), (struct sockaddr *)AddrVS, (socklen_t *)&addrlen);
+				if ((fdClient = accept(serv->getVS(i)->get_fd(), (struct sockaddr *)AddrVS, (socklen_t *)&addrlen)) == -1)
+					break;
 				client = new Client(fdClient);
 				serv->getVS(i)->setClient(client);
 				if (client->get_req()->init())

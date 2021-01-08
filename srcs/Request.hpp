@@ -20,7 +20,7 @@ class Request{
 			this->_fd = fd;
 			this->total = 0;
 			this->_request = "";
-			std::cout << "New request" << fd << std::endl;
+			std::cout << "New request" << fd;
 			this->_uri = "";
 			this->_typeContent = "";
 			this->_authCredentials = "";
@@ -179,7 +179,7 @@ class Request{
 			std::ifstream	ifs("srcs/mime.types");
 			std::vector<std::string> res;
 			if (ifs.fail()){
-				std::cerr << "Reading Error" << std::endl;
+				std::cerr << "Reading Error 3" << std::endl;
 				return;
 			}
 			while (std::getline(ifs, line)){

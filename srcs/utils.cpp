@@ -34,7 +34,7 @@ std::string							fileToString(std::string file){
 std::ifstream	ifs(file.c_str());
 
 	if (ifs.fail()){
-		std::cerr << "Reading Error" << std::endl;
+		std::cerr << "Reading Error 2" << std::endl;
 		return (fileToString);
 	}
 	while (std::getline(ifs, line)){
