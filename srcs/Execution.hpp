@@ -334,8 +334,8 @@ class Execution
 				if (fileIsOpenable(path)){
 					std::map<std::string, std::string> args = setMetaCGI(path);
 					char **tmpargs = swapMaptoChar(args);
-					for (size_t i = 0; tmpargs[i]; i++)
-						std::cout << GREEN << "CHECK INFORMATION : " << tmpargs[i] << RESET << std::endl;
+					// for (size_t i = 0; tmpargs[i]; i++)
+						// std::cout << GREEN << "CHECK INFORMATION : " << tmpargs[i] << RESET << std::endl;
 					processCGI(path, tmpargs, i);
 					for (size_t i = 0; tmpargs[i]; i++){
 						free(tmpargs[i]);
@@ -373,14 +373,24 @@ class Execution
 		}
 		int											doPost(void) {
 			if (this->req->get_method() == "POST") {
-				std::cout << "ICI" << std::endl;
+				// std::cout << "ICI" << std::endl;
 				this->req->getDatas();
-				std::cout << "LA" << std::endl;
+				// std::cout << "LA" << std::endl;
 				this->header->basicHeaderFormat(req);
 				this->header->updateContent("HTTP/1.1", "200 OK");
-				this->header->updateContent("Content-Length", NumberToString(this->req->get_datas().size()));
+
+				std::string maxbody = this->vserv->findOption("maxBody", this->req->get_uri(), this->vserv->get_maxBody());
+				if (!maxbody.empty() && std::strtoul(maxbody.c_str(), NULL, 10) < this->req->get_datas().size()){
+					this->header->updateContent("HTTP/1.1", "413 Request Entity Too Large");
+					this->header->updateContent("Content-Length", "0");
+					this->header->sendHeader(req);
+					return (1);
+				}
+				else
+					this->header->updateContent("Content-Length", NumberToString(this->req->get_datas().size()));
 				this->header->sendHeader(req);
-				initCGI(1);
+				if (initCGI(1) == 0)
+					this->req->sendPacket(this->req->get_requestBody());
 				return (1);
 			}
 			return (0);
@@ -441,12 +451,8 @@ class Execution
 					return (0);
 				else{
 					uri.push_back('/');
-					this->header->RedirectionHeaderFormat(this->req, uri);
-					this->header->basicHistory(this->vserv, this->req);
-					this->header->updateContent("Content-Length", "0");
-					this->header->sendHeader(this->req);
-					std::cout << "CHECK URI AFTER REDIRECT " << uri << std::endl;
-					return (1);
+					this->req->setUri(uri);
+					return (0);
 				}
 			}
 			return (0);
@@ -460,9 +466,16 @@ class Execution
 			return (ret);
 		}
 		bool										checkMethod(void){
-			if (this->vserv->findCGI(this->req->get_uri(), this->req->getExtension(), this->req->get_method()) == "bad_method")
-				return (false);
-			return (this->vserv->findMethod(this->req->get_uri(), this->req->get_method()));
+			if (!fileIsOpenable(this->get_fullPath()) && this->req->get_method() != "POST" && this->req->get_method() != "PUT"){
+				this->searchError404();
+				return 0;
+			}
+			if (this->vserv->findCGI(this->req->get_uri(), this->req->getExtension(), this->req->get_method()) == "bad_method" ||
+			!this->vserv->findMethod(this->req->get_uri(), this->req->get_method())){
+				this->searchError405();
+				return 0;
+			}
+			return 1;
 		}
 
 	private:

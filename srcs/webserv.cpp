@@ -14,7 +14,7 @@ int			checkArgs(int argc, char **argv, std::string *defaultConf, ServerWeb *serv
 		*defaultConf = std::string(argv[1]);
 	std::ifstream	ifs((*defaultConf).c_str());
 	if (ifs.fail()){
-		std::cerr << "Reading Error" << std::endl;
+		std::cerr << "Reading Error 1" << std::endl;
 		return (0);
 	}
 	serv->fileToVectorAndClean(&ifs);
@@ -26,12 +26,8 @@ void		Exec(ServerWeb *serv, Client *client, int i, char **env){
 	HeaderRequest *header = new HeaderRequest(serv);
 	Execution exec = Execution(serv, serv->getVS(i), req, header, env);
 	std::string Method = req->get_method();
-	if (!exec.checkMethod())
-		exec.searchError405();
-	if (!exec.needRedirection() && exec.checkMethod()){
-		if (!exec.doPost() && !exec.doDelete() && !exec.doPut() && !exec.doOptions() && !exec.searchIndex() && !exec.initCGI(0) && !exec.binaryFile())
-			exec.searchError404();	
-	}
+	if (!exec.needRedirection() && exec.checkMethod() && !exec.doPost() && !exec.doDelete() && !exec.doPut() && !exec.searchIndex() && !exec.initCGI(0) && !exec.binaryFile())
+		exec.searchError404();	
 	delete header;
 	client->new_req();
 }
@@ -61,8 +57,9 @@ int			main(int argc, char **argv, char **env)
 			if (FD_ISSET(serv->getVS(i)->get_fd(), serv->get_readfds()) && nb_activity){
 				int addrlen = sizeof(serv->getVS(i)->get_address());
 				struct sockaddr_in * AddrVS = serv->getVS(i)->get_address();
-				
-				fdClient = accept(serv->getVS(i)->get_fd(), (struct sockaddr *)AddrVS, (socklen_t *)&addrlen);
+
+				if ((fdClient = accept(serv->getVS(i)->get_fd(), (struct sockaddr *)AddrVS, (socklen_t *)&addrlen)) == -1)
+					break;
 				client = new Client(fdClient);
 				serv->getVS(i)->setClient(client);
 				if (client->get_req()->init())
