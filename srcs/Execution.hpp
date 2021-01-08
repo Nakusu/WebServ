@@ -281,11 +281,11 @@ class Execution
 			char **env = mergeArrays(args, this->_envs, 0);
 			int status;
 			char **tmp = (char**)malloc(sizeof(char*) * 1);
+			std::string tmp_in = "./tmp/tmp_in_" + NumberToString(this->vserv->get_fd()) + ".txt";
+			std::string tmp_out = "./tmp/tmp_out_" + NumberToString(this->vserv->get_fd()) + ".txt";
 
 			tmp[0] = strdup(cgi_path.c_str());
 
-			// int tmp_fd2 = open("./tmp/tmp.txt", O_CREAT | O_RDONLY);
-			// sendHeaderCGI(tmp_fd2);
 			if (pipe(pfd) == -1)
 				return ; // error gestion
 			if ((pid = fork()) < 0)
@@ -293,16 +293,17 @@ class Execution
 			if (pid == 0) {
 				close(pfd[1]);
 				if (this->req->get_method() == "POST"){
-					int fdtest = open("./tmp/tmp2.txt", O_CREAT | O_WRONLY, 0777);
+					int fdtest = open(tmp_in.c_str(), O_CREAT | O_WRONLY, 0777);
 					write(fdtest, this->req->get_datas().c_str(), this->req->get_datas().size());
 					close (fdtest);
-					pfd[0]= open("./tmp/tmp2.txt", O_CREAT | O_RDONLY, 0777);
+					
+					pfd[0]= open(tmp_in.c_str(), O_CREAT | O_RDONLY, 0777);
 					dup2(pfd[0], 0); // ici en entrée mettre le body
 				}else{
 					pfd[0] = open(this->get_fullPath().c_str(), O_RDONLY, 0777);
 					dup2(pfd[0], 0); // ici en entrée mettre le body
 				}
-				int tmp_fd = open("./tmp/tmp.txt", O_CREAT | O_WRONLY, 0777);
+				int tmp_fd = open(tmp_out.c_str(), O_CREAT | O_WRONLY, 0777);
 				dup2(tmp_fd, 1);
 				errno = 0;
 				if (execve(cgi_path.c_str(), tmp, env) == -1){
@@ -314,12 +315,14 @@ class Execution
 				close(pfd[0]);
 				waitpid(pid, &status,0);
 			}
-			int tmp_fd2 = open("./tmp/tmp.txt", O_CREAT | O_RDONLY);
+			int tmp_fd2 = open(tmp_out.c_str(), O_CREAT | O_RDONLY);
 			sendHeaderCGI(tmp_fd2, i);
 			close(tmp_fd2);
 			free(tmp[0]);
 			free(tmp);
 			free(env);
+			remove(tmp_in.c_str());
+			remove(tmp_out.c_str());
 		}
 		int											initCGI(int i){
 			std::string extension = (this->req->getExtension().find(".", 0) != SIZE_MAX) ? this->req->getExtension() : "." + this->req->getExtension();
