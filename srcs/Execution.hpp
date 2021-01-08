@@ -275,34 +275,41 @@ class Execution
 			if (buff.find("\r\n\r\n") != SIZE_MAX)
 				buff = &buff[buff.find("\r\n\r\n") + 4];
 		}
+		void										CreateTmpRequestCGI(std::string tmp_in){
+			std::ofstream in (tmp_in.c_str());
+			if (this->req->get_method() == "POST")
+				in << this->req->get_datas();
+			std::ifstream fichier (this->get_fullPath().c_str());
+			std::string contenu;
+			while (getline(fichier, contenu))
+				in << contenu;
+			fichier.close();
+			in.close();
+		}
 		void										processCGI(std::string cgi_path, char **args, int i){
 			int  pfd[2];
 			int  pid;
 			char **env = mergeArrays(args, this->_envs, 0);
 			int status;
+
 			char **tmp = (char**)malloc(sizeof(char*) * 1);
+			tmp[0] = strdup(cgi_path.c_str());
+
 			std::string tmp_in = "./tmp/tmp_in_" + NumberToString(this->vserv->get_fd()) + ".txt";
 			std::string tmp_out = "./tmp/tmp_out_" + NumberToString(this->vserv->get_fd()) + ".txt";
 
-			tmp[0] = strdup(cgi_path.c_str());
 
 			if (pipe(pfd) == -1)
-				return ; // error gestion
+				return ; // error pipe
 			if ((pid = fork()) < 0)
-				return ; // error gestion
-			if (pid == 0) {
+				return ; // error fork
+			if (pid == 0) { // in the fork child
 				close(pfd[1]);
-				if (this->req->get_method() == "POST"){
-					int fdtest = open(tmp_in.c_str(), O_CREAT | O_WRONLY, 0777);
-					write(fdtest, this->req->get_datas().c_str(), this->req->get_datas().size());
-					close (fdtest);
-					
-					pfd[0]= open(tmp_in.c_str(), O_CREAT | O_RDONLY, 0777);
-					dup2(pfd[0], 0); // ici en entrée mettre le body
-				}else{
-					pfd[0] = open(this->get_fullPath().c_str(), O_RDONLY, 0777);
-					dup2(pfd[0], 0); // ici en entrée mettre le body
-				}
+				CreateTmpRequestCGI(tmp_in);
+				//Open and send request to EXEC
+				pfd[0]= open(tmp_in.c_str(), O_CREAT | O_RDONLY, 0777);
+				dup2(pfd[0], 0); // ici en entrée mettre le body
+				//Create a receive request in EXEC
 				int tmp_fd = open(tmp_out.c_str(), O_CREAT | O_WRONLY, 0777);
 				dup2(tmp_fd, 1);
 				errno = 0;
