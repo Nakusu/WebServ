@@ -213,14 +213,9 @@ std::string							CleanBody(std::string request){
 		body = request.substr(request.find("\r\n\r\n") + 2, request.rfind("\r\n\r\n"));
 		std::vector<std::string> bodyvec = split(body, "\r\n");
 		body = "";
-		for (size_t i = 1; i < bodyvec.size(); i += 2)
-		{
+		for (size_t i = 1; i < bodyvec.size(); i += 2){
 			body += bodyvec[i];
 		}
-		
-		// request.replace(request.find("\r\n\r\n") + 4, request.rfind("\r\n\r\n") + 4, body);
-		// request = request.substr(0, request.rfind("\r\n\r\n"));
 	}
-		// std::cout << "REQUEST AFTER CLEAN" << std::endl << request << std::endl;
 	return (body);
 }

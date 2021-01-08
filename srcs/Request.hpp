@@ -45,7 +45,7 @@ class Request{
 			buffer = (char *)calloc(sizeof(char), 9999999);
 			size = recv(this->_fd, buffer, 9999999, MSG_DONTWAIT);
 			this->total += size; 
-			std::cout << YELLOW << this->total << RESET << std::endl;
+			// std::cout << YELLOW << this->total << RESET << std::endl;
 			if (size == 0)
 				return (-1);
 			if (size == -1)
@@ -61,19 +61,15 @@ class Request{
 			if (this->_request.find("Content-Length") != SIZE_MAX && this->_request.rfind("\r\n\r\n") == this->_request.find("\r\n\r\n"))
 				return (0);
 
-			std::cout << "DEBUT CLEANBODY" << std::endl;
 			this->_requestBody = CleanBody(this->_request);
 			this->_requestHeader = this->_request.substr(0, this->_request.find("\r\n\r\n") + 4);
-			std::cout << "FIN CLEANBODY" << std::endl;
+			// std::cout << RED << this->_requestHeader << RESET << std::endl;
 			this->_method = this->set_method();
-
-			std::cout << "1" << std::endl;
 			this->_parsing->parsingMap((char *)this->_requestHeader.c_str());
 			this->_parsing->parsingMime();
 			this->_parsing->parseGet();
 			this->_extension = this->_parsing->getExtension();
 			this->_datas = "";
-			std::cout << "2" << std::endl;
 			this->findUri();
 			this->findTypeContent();
 			this->parsingMetasVars();
@@ -119,27 +115,33 @@ class Request{
 			return (this->_authCredentials);
 		}
 		std::string								get_host(void) const{
-				return (this->_hostName);
-			}
+			return (this->_hostName);
+		}
 		std::string								get_port(void) const{
-				return (this->_hostPort);
-			}
+			return (this->_hostPort);
+		}
 		std::string								get_userAgent(void) const{
-				return (this->_userAgent);
-			}
+			return (this->_userAgent);
+		}
+		std::string								get_requestHeader(void) const{
+			return (this->_requestHeader);
+		}
+		std::string								get_requestBody(void) const{
+			return (this->_requestBody);
+		}
 		std::string								set_method(void){
-				char *tmp = (char *)this->_requestHeader.c_str();
-				std::string rep = "";
-				for (int i = 0; (tmp[i] &&tmp[i] != ' ') ; i++)
-					rep += tmp[i];
-				return (rep);
-			}
+			char *tmp = (char *)this->_requestHeader.c_str();
+			std::string rep = "";
+			for (int i = 0; (tmp[i] &&tmp[i] != ' ') ; i++)
+				rep += tmp[i];
+			return (rep);
+		}
 		std::string								get_method(void) const{ 
-				return (this->_method);
-			}
+			return (this->_method);
+		}
 		std::string								get_IpClient(void) const{
-				return (this->_IPClient);
-			}
+			return (this->_IPClient);
+		}
 		std::string								get_PathInfo(void) const{
 			return (this->_pathInfo);
 		}

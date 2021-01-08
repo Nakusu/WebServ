@@ -19,7 +19,7 @@ class VirtualServer
 			initAddr(AF_INET, INADDR_ANY, htons(atoi(this->_listen.c_str())));
 			initFd(AF_INET , SOCK_STREAM , 0);
 			initLink();
-			initListen(4);
+			initListen(100);
 		}
 		VirtualServer(VirtualServer const &rhs){
 			operator=(rhs);
@@ -282,6 +282,9 @@ class VirtualServer
 		}
 		std::string															get_serverNames(void){
 			return (this->_serverNames);
+		}
+		std::string															get_maxBody(void){
+			return (this->_maxBody);
 		}
 		Client *															get_client(int i){
 			return (this->_clients[i]);
