@@ -34,7 +34,7 @@ class Execution
 				this->req = rhs.req;
 			}
 			return (*this);
-		}Resolving conflicts between CberT-code:master and Nakusu:master and committing changes CberT-code:master
+		}
 
 		/***************************************************
 		*********************    GET    ********************
@@ -197,7 +197,7 @@ class Execution
 				std::map<std::string, std::string> tmpmap = this->req->get_Parsing()->getMap();
 				std::map<std::string, std::string>::iterator it = tmpmap.begin();
 
-				while (it != tmpmap.end() && it->first == "\n\r") { // Deuxieme condition a vérifier
+				while (it != tmpmap.end()) { // Deuxieme condition a vérifier
 					if (it->first != "First" && !it->first.empty())
 						args.insert(std::make_pair(("HTTP_" + it->first), it->second));
 					it++;
@@ -230,16 +230,13 @@ class Execution
 			args["REMOTE_IDENT"] = this->req->get_authCredential();
 			args["PATH_INFO"] = this->req->get_uri();
 			args["PATH_TRANSLATED"] = "./" + this->vserv->get_root() + this->req->get_uri();
-			for (std::map<std::string, std::string>::iterator i = args.begin(); i != args.end(); i++){
-				std::cout << BLUE << i->first << " " << i->second << RESET << std::endl;
-			}
 			return (args);
 		}
 		char **										swapMaptoChar(std::map<std::string, std::string> args){
 			char	**tmpargs = (char**)malloc(sizeof(char*) * (args.size() + 1));
 			size_t	i = 0;
 			tmpargs[args.size()] = 0;
-Resolving conflicts between CberT-code:master and Nakusu:master and committing changes CberT-code:master
+
 			for (std::map<std::string, std::string>::iterator it = args.begin(); it != args.end(); it++)
 				tmpargs[i++] = strdup((it->first + "=" + it->second).c_str());
 			tmpargs[i] = 0;
@@ -338,6 +335,8 @@ Resolving conflicts between CberT-code:master and Nakusu:master and committing c
 				if (fileIsOpenable(path)){
 					std::map<std::string, std::string> args = setMetaCGI(path);
 					char **tmpargs = swapMaptoChar(args);
+					for (size_t i = 0; tmpargs[i]; i++)
+						std::cout << GREEN << "CHECK INFORMATION : " << tmpargs[i] << RESET << std::endl;
 					processCGI(path, tmpargs, i);
 					for (size_t i = 0; tmpargs[i]; i++){
 						free(tmpargs[i]);
@@ -365,9 +364,9 @@ Resolving conflicts between CberT-code:master and Nakusu:master and committing c
 				if (!newFileContent.empty())
 					this->header->updateContent("HTTP/1.1", "201 Created");
 				else
-					this->header->updateContent("HTTP/1.1", "204 No Content");Resolving conflicts between CberT-code:master and Nakusu:master and committing changes CberT-code:master
+					this->header->updateContent("HTTP/1.1", "204 No Content");
 				this->header->updateContent("Content-Location", headerLoc);
-				this->header->updateContent("Content-Length", "0");Resolving conflicts between CberT-code:master and Nakusu:master and committing changes CberT-code:master
+				this->header->updateContent("Content-Length", "0");
 				this->header->sendHeader(req);
 				return (1);
 			}
@@ -382,7 +381,7 @@ Resolving conflicts between CberT-code:master and Nakusu:master and committing c
 				this->header->updateContent("HTTP/1.1", "200 OK");
 				this->header->updateContent("Content-Length", NumberToString(this->req->get_datas().size()));
 				this->header->sendHeader(req);
-				initCGI(1);Resolving conflicts between CberT-code:master and Nakusu:master and committing changes CberT-code:master
+				initCGI(1);
 				return (1);
 			}
 			return (0);
@@ -413,7 +412,7 @@ Resolving conflicts between CberT-code:master and Nakusu:master and committing c
 		}
 		/***************************************************
 		*****************    Operation    ******************
-		***************************************************/Resolving conflicts between CberT-code:master and Nakusu:master and committing changes CberT-code:master
+		***************************************************/
 		int											needRedirection(void){
 
 			this->_fullPath = this->findFullPath();

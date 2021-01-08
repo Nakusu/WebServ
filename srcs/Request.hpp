@@ -121,7 +121,7 @@ class Request{
 		}
 		std::string								get_authCredential(void) const{
 			return (this->_authCredentials);
-		}Resolving conflicts between CberT-code:master and Nakusu:master and committing changes CberT-code:master
+		}
 		std::string								get_host(void) const{
 				return (this->_hostName);
 			}
