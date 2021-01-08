@@ -426,12 +426,8 @@ class Execution
 					return (0);
 				else{
 					uri.push_back('/');
-					this->header->RedirectionHeaderFormat(this->req, uri);
-					this->header->basicHistory(this->vserv, this->req);
-					this->header->updateContent("Content-Length", "0");
-					this->header->sendHeader(this->req);
-					std::cout << "CHECK URI AFTER REDIRECT " << uri << std::endl;
-					return (1);
+					this->req->setUri(uri);
+					return (0);
 				}
 			}
 			return (0);
