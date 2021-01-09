@@ -63,7 +63,7 @@ class Request{
 
 			this->_requestBody = CleanBody(this->_request);
 			this->_requestHeader = this->_request.substr(0, this->_request.find("\r\n\r\n") + 4);
-			// std::cout << RED << this->_requestHeader << RESET << std::endl;
+			std::cout << RED << this->_requestHeader << RESET << std::endl;
 			this->_method = this->set_method();
 			this->_parsing->parsingMap((char *)this->_requestHeader.c_str());
 			this->_parsing->parsingMime();
@@ -239,12 +239,6 @@ class Request{
 				this->_authType = results[0];
 				this->_authCredentials = results[1];
 			}
-		}
-
-		std::string									parsingPut(void) {
-			std::string content;
-			content = &this->_requestHeader[this->_requestHeader.find("\r\n\r\n") + 4];
-			return (content);
 		}
 
 private :

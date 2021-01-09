@@ -36,7 +36,9 @@ class HeaderRequest {
 			rep.erase(rep.size() - 1);
 			rep.erase(rep.size() - 1);
 			rep += "\n\n";
-			// std::cout << YELLOW << rep << RESET << std::endl;
+
+			std::cout << BLUE << req->get_uri() << RESET << std::endl;
+			std::cout << YELLOW << rep << RESET << std::endl;
 			req->sendPacket(rep.c_str());
 		}
 		void											basicHeaderFormat(Request *req){

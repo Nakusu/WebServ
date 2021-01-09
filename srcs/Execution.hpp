@@ -355,7 +355,7 @@ class Execution
 				std::string path = this->get_fullPath();
 				std::string newFileName = (path[path.length() - 1] == '/') ? path.substr(0, path.length() - 1) : path;
 				std::ofstream	newFile(newFileName.c_str());
-				std::string newFileContent = this->req->parsingPut();
+				std::string newFileContent = this->req->get_requestBody();
 
 				if (newFile.fail())
 					return (0);
@@ -470,15 +470,16 @@ class Execution
 		}
 		bool										checkMethod(void){
 			if (!fileIsOpenable(this->get_fullPath()) && this->req->get_method() != "POST" && this->req->get_method() != "PUT"){
+				std::cout << "TU NOUS FAIS CHIER DANS LA METHOD!!!!" << std::endl;
 				this->searchError404();
-				return 0;
+				return 1;
 			}
 			if (this->vserv->findCGI(this->req->get_uri(), this->req->getExtension(), this->req->get_method()) == "bad_method" ||
 			!this->vserv->findMethod(this->req->get_uri(), this->req->get_method())){
 				this->searchError405();
-				return 0;
+				return 1;
 			}
-			return 1;
+			return 0;
 		}
 
 	private:
