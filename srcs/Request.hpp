@@ -20,7 +20,7 @@ class Request{
 			this->_fd = fd;
 			this->total = 0;
 			this->_request = "";
-			std::cout << "New request" << fd << std::endl;
+			//std::cout << "New request" << fd << std::endl;
 			this->_uri = "";
 			this->_typeContent = "";
 			this->_authCredentials = "";

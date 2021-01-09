@@ -58,21 +58,11 @@ int			main(int argc, char **argv, char **env)
 			if (FD_ISSET(serv->getVS(i)->get_fd(), serv->get_readfds()) && nb_activity){
 				int addrlen = sizeof(serv->getVS(i)->get_address());
 				struct sockaddr_in * AddrVS = serv->getVS(i)->get_address();
-				if ((fdClient = accept(serv->getVS(i)->get_fd(), (struct sockaddr *)AddrVS, (socklen_t *)&addrlen)) == -1){
-					std::cerr << "Error with Socket: " << strerror(errno) << std::endl;
-					std::cout << serv->get_fdmax() << std::endl;
-					//std::cout << RED << "BREAK" << RESET << std::endl;
-					break;
-				}
+				fdClient = accept(serv->getVS(i)->get_fd(), (struct sockaddr *)AddrVS, (socklen_t *)&addrlen);
 				client = new Client(fdClient);
 				serv->getVS(i)->setClient(client);
-				int ret = client->get_req()->init();
-				if (ret > 0)
+				if (client->get_req()->init())
 					Exec(serv, client, i, env);
-				else if (ret == -1){
-					serv->getVS(i)->delClient(client);
-					delete client;
-				}
 				nb_activity--;
 			}
 

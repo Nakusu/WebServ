@@ -291,8 +291,8 @@ class Execution
 			char **tmp = (char**)malloc(sizeof(char*) * 1);
 			tmp[0] = strdup(cgi_path.c_str());
 
-			std::string tmp_in = "./tmp/tmp_in_" + NumberToString(this->vserv->get_fd()) + ".txt";
-			std::string tmp_out = "./tmp/tmp_out_" + NumberToString(this->vserv->get_fd()) + ".txt";
+			std::string tmp_in = "./tmp/tmp_in_" + NumberToString(this->req->getfd()) + ".txt";
+			std::string tmp_out = "./tmp/tmp_out_" + NumberToString(this->req->getfd()) + ".txt";
 
 
 			if (pipe(pfd) == -1)
@@ -369,6 +369,7 @@ class Execution
 				this->header->updateContent("Content-Location", headerLoc);
 				this->header->updateContent("Content-Length", "0");
 				this->header->sendHeader(req);
+				newFile.close();
 				return (1);
 			}
 			return (0);

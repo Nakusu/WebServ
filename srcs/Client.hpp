@@ -20,6 +20,7 @@ class Client{
 		}
 		virtual ~Client(void){
 			delete this->_req;
+			std::cout << RED << "close fd : " << this->_fd << RESET << std::endl;
 			close(this->_fd);
 		}
 		int										get_fd(void){

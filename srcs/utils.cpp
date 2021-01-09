@@ -97,6 +97,7 @@ std::vector<std::string>			listFilesInFolder(std::string repos){
 			ret.push_back(entry->d_name);
 		} 
 	}
+	closedir(folder);
 	return (ret);
 }
 char 								**mergeArrays(char **tab1, char **tab2, int freeOption){
@@ -141,10 +142,8 @@ long long unsigned int				getSizeFileBits(std::string filename) {
 	long long unsigned int ret = 0;
 	
 	opfile.open(filename.c_str(), std::ios::in);
-	if (!opfile.is_open()) {
-		opfile.close();
+	if (!opfile.is_open())
 		return (0);
-	}
 	opfile.seekg(0, std::ios::end);
 	ret = opfile.tellg();
 	opfile.close();
