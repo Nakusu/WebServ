@@ -59,7 +59,7 @@ int			main(int argc, char **argv, char **env)
 				int addrlen = sizeof(serv->getVS(i)->get_address());
 				struct sockaddr_in * AddrVS = serv->getVS(i)->get_address();
 				fdClient = accept(serv->getVS(i)->get_fd(), (struct sockaddr *)AddrVS, (socklen_t *)&addrlen);
-				std::cout << GREEN << fdClient << RESET << std::endl;
+
 				client = new Client(fdClient);
 				serv->getVS(i)->setClient(client);
 				int ret = client->get_req()->init();
@@ -70,10 +70,12 @@ int			main(int argc, char **argv, char **env)
 					delete client;
 				}
 				nb_activity--;
+				// std::cout << "------------------------------------------------------ END ---------------------------------------------------- " << fdClient << std::endl;
 			}
 
 			//check les clients
 			for (size_t j = 0; j < serv->getVS(i)->get_clients().size() && nb_activity; j++){
+				// std::cout << "------------------------------------------------------ START ---------------------------------------------------- " << fdClient << std::endl;
 				client = serv->getVS(i)->get_client(j);
 				if (serv->verifFdFDISSET(client->get_fd())){
 					int ret = client->get_req()->init();
@@ -84,6 +86,7 @@ int			main(int argc, char **argv, char **env)
 						delete client;
 					}
 					nb_activity--;
+				// std::cout << "------------------------------------------------------ END ---------------------------------------------------- " << fdClient << std::endl;
 				}
 			}
 		}

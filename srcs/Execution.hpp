@@ -288,8 +288,11 @@ class Execution
 			char **env = mergeArrays(args, this->_envs, 0);
 			int status;
 
-			char **tmp = (char**)malloc(sizeof(char*) * 1);
+			char **tmp = (char**)malloc(sizeof(char*) * 3);
 			tmp[0] = strdup(cgi_path.c_str());
+			tmp[1] = NULL;
+			tmp[2] = NULL;
+
 
 			std::string tmp_in = "./tmp/tmp_in_" + NumberToString(this->req->getfd()) + ".txt";
 			std::string tmp_out = "./tmp/tmp_out_" + NumberToString(this->req->getfd()) + ".txt";
@@ -470,7 +473,7 @@ class Execution
 		}
 		bool										checkMethod(void){
 			if (!fileIsOpenable(this->get_fullPath()) && this->req->get_method() != "POST" && this->req->get_method() != "PUT"){
-				std::cout << "TU NOUS FAIS CHIER DANS LA METHOD!!!!" << std::endl;
+				// std::cout << "TU NOUS FAIS CHIER DANS LA METHOD!!!!" << std::endl;
 				this->searchError404();
 				return 1;
 			}

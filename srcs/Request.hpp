@@ -20,7 +20,6 @@ class Request{
 			this->_fd = fd;
 			this->total = 0;
 			this->_request = "";
-			//std::cout << "New request" << fd << std::endl;
 			this->_uri = "";
 			this->_typeContent = "";
 			this->_authCredentials = "";
@@ -45,11 +44,11 @@ class Request{
 			buffer = (char *)calloc(sizeof(char), 9999999);
 			size = recv(this->_fd, buffer, 9999999, MSG_DONTWAIT);
 			this->total += size; 
-			// std::cout << YELLOW << this->total << RESET << std::endl;
+
 			if (size == 0)
 				return (-1);
-			if (size == -1)
-				return(-1);
+			// if (size == -1)
+			// 	return(-1);
 			this->_request += buffer;
 			free(buffer);
 			if (this->_request.find("\r\n\r\n") == SIZE_MAX)
@@ -63,7 +62,8 @@ class Request{
 
 			this->_requestBody = CleanBody(this->_request);
 			this->_requestHeader = this->_request.substr(0, this->_request.find("\r\n\r\n") + 4);
-			std::cout << RED << this->_requestHeader << RESET << std::endl;
+			// std::cout << "--------------REQUEST HEADER--------------" << std::endl << this->_requestHeader << std::endl;
+			// std::cout << "-------------- END REQUEST HEADER--------------" << std::endl << std::endl;
 			this->_method = this->set_method();
 			this->_parsing->parsingMap((char *)this->_requestHeader.c_str());
 			this->_parsing->parsingMime();
@@ -200,6 +200,7 @@ class Request{
 		*******************    SEND   **********************
 		***************************************************/
 		void									sendPacket(std::string content){
+			// std::cout << "SIZE ========= " << content.size() << std::endl;
 			send(this->_fd, content.c_str(), content.size(), MSG_CONFIRM);
 		}
 		void									sendPacket(char *content, size_t len){

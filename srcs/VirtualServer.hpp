@@ -66,6 +66,7 @@ class VirtualServer
 				perror("socket failed");
 				exit(EXIT_FAILURE);
 			}
+			// std::cout << "VIRTUAL SERVER SOCKET FD = " << this->_fd << std::endl;
 			if( setsockopt(this->_fd, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0 ){
 				perror("setsockopt");
 				exit(EXIT_FAILURE);
