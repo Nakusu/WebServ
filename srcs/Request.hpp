@@ -20,7 +20,7 @@ class Request{
 			this->_fd = fd;
 			this->total = 0;
 			this->_request = "";
-			std::cout << "New request" << fd;
+			std::cout << "New request" << fd << std::endl;
 			this->_uri = "";
 			this->_typeContent = "";
 			this->_authCredentials = "";
@@ -49,7 +49,7 @@ class Request{
 			if (size == 0)
 				return (-1);
 			if (size == -1)
-				return(0);
+				return(-1);
 			this->_request += buffer;
 			free(buffer);
 			if (this->_request.find("\r\n\r\n") == SIZE_MAX)

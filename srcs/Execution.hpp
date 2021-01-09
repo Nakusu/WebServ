@@ -313,6 +313,8 @@ class Execution
 					std::cerr << "Error with CGI: " << strerror(errno) << std::endl;
 					exit(1);
 				}
+				close(pfd[0]);
+				close(tmp_fd);
 			}
 			else {
 				close(pfd[0]);

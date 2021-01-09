@@ -19,7 +19,7 @@ class VirtualServer
 			initAddr(AF_INET, INADDR_ANY, htons(atoi(this->_listen.c_str())));
 			initFd(AF_INET , SOCK_STREAM , 0);
 			initLink();
-			initListen(INT32_MAX);
+			initListen(256);
 		}
 		VirtualServer(VirtualServer const &rhs){
 			operator=(rhs);
