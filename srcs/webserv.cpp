@@ -4,7 +4,6 @@
 #include "ServerWeb.hpp" 
 #include "VirtualServer.hpp" 
 #include "Request.hpp" 
-#include "HeaderRequest.hpp" 
 #include "Execution.hpp" 
 
 int			checkArgs(int argc, char **argv, std::string *defaultConf, ServerWeb *serv){
@@ -24,13 +23,13 @@ int			checkArgs(int argc, char **argv, std::string *defaultConf, ServerWeb *serv
 
 void		Exec(ServerWeb *serv, Client *client, int i, char **env){
 	Request *req = client->get_req();
-	HeaderRequest *header = new HeaderRequest(serv->get_MimesTypes());
-	Execution exec = Execution(serv, serv->getVS(i), req, header, env);
+	Execution exec = Execution(serv, serv->getVS(i), req, env);
 	std::string Method = req->get_method();
-	if (!exec.needRedirection() && !exec.checkMethod() && !exec.doPost() && !exec.doDelete() && !exec.doPut() && !exec.searchIndex() && !exec.initCGI(0) && !exec.binaryFile())
-		exec.searchError404();	
-	delete header;
-	client->new_req();
+	if (!exec.needRedirection() && !exec.checkMethod() && !exec.doPost() && !exec.doDelete() && !exec.doPut() && !exec.searchIndex() && !exec.initCGI() && !exec.binaryFile())
+		exec.searchError404();
+	if (!client->CGIIsRunning()){
+		client->new_req();
+	}
 }
 
 int			main(int argc, char **argv, char **env)
@@ -60,7 +59,7 @@ int			main(int argc, char **argv, char **env)
 				struct sockaddr_in * AddrVS = serv->getVS(i)->get_address();
 				fdClient = accept(serv->getVS(i)->get_fd(), (struct sockaddr *)AddrVS, (socklen_t *)&addrlen);
 
-				client = new Client(fdClient);
+				client = new Client(fdClient, serv->get_mimesTypes());
 				serv->getVS(i)->setClient(client);
 				int ret = client->get_req()->init();
 				if (ret > 0)
@@ -70,12 +69,10 @@ int			main(int argc, char **argv, char **env)
 					delete client;
 				}
 				nb_activity--;
-				// std::cout << "------------------------------------------------------ END ---------------------------------------------------- " << fdClient << std::endl;
 			}
 
 			//check les clients
 			for (size_t j = 0; j < serv->getVS(i)->get_clients().size() && nb_activity; j++){
-				// std::cout << "------------------------------------------------------ START ---------------------------------------------------- " << fdClient << std::endl;
 				client = serv->getVS(i)->get_client(j);
 				if (serv->verifFdFDISSET(client->get_fd())){
 					int ret = client->get_req()->init();
@@ -86,9 +83,9 @@ int			main(int argc, char **argv, char **env)
 						delete client;
 					}
 					nb_activity--;
-				// std::cout << "------------------------------------------------------ END ---------------------------------------------------- " << fdClient << std::endl;
 				}
 			}
+			serv->checkEndCGI();
 		}
 	}
 	return 0;

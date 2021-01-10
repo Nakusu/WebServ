@@ -2,7 +2,6 @@
 #define VIRTUALSERVER_HPP
 
 #include "./Header.hpp"
-#include "Request.hpp"
 #include "Client.hpp"
 
 class VirtualServer

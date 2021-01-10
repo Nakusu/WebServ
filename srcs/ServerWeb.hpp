@@ -39,6 +39,9 @@ class ServerWeb
 		fd_set *														get_writefds(void){
 			return (&this->_writefds);
 		}
+		std::map<std::string, std::string>								get_mimesTypes(void){
+			return (this->_mimesTypes);
+		}
 		void															getContentType(void){
 			std::string line;
 			std::ifstream	ifs("srcs/mime.types");
@@ -69,10 +72,12 @@ class ServerWeb
 				if (this->_fdmax < this->_VServs[i]->get_fd())
 					this->_fdmax = this->_VServs[i]->get_fd();
 				for (size_t j = 0; j < this->_VServs[i]->get_clients().size(); j++){
-					FD_SET(this->_VServs[i]->get_client(j)->get_fd(), &this->_readfds);
-					FD_SET(this->_VServs[i]->get_client(j)->get_fd(), &this->_writefds);
-					if (this->_fdmax < this->_VServs[i]->get_client(j)->get_fd())
-						this->_fdmax = this->_VServs[i]->get_client(j)->get_fd();
+					if (!this->_VServs[i]->get_client(j)->CGIIsRunning()){
+						FD_SET(this->_VServs[i]->get_client(j)->get_fd(), &this->_readfds);
+						FD_SET(this->_VServs[i]->get_client(j)->get_fd(), &this->_writefds);
+						if (this->_fdmax < this->_VServs[i]->get_client(j)->get_fd())
+							this->_fdmax = this->_VServs[i]->get_client(j)->get_fd();
+					}
 				}
 			}
 		}
@@ -144,6 +149,20 @@ class ServerWeb
 			FD_ZERO(&this->_writefds);
 			this->_fdmax = 0;
 		}
+		void															checkEndCGI(void){
+			for (size_t i = 0; i < this->_VServs.size(); i++){
+				for (size_t j = 0; j < this->_VServs[i]->get_clients().size(); j++){
+					if (this->_VServs[i]->get_client(j)->CGIIsRunning()){
+						if (waitpid(this->_VServs[i]->get_client(j)->get_req()->get_PID(), this->_VServs[i]->get_client(j)->get_req()->get_Status() , WNOHANG) != 0){
+							this->_VServs[i]->get_client(j)->get_req()->sendForCGI();
+							this->_VServs[i]->get_client(j)->get_req()->setCGI(0);
+							this->_VServs[i]->get_client(j)->new_req();
+						}
+					}
+				}
+			}
+		}
+
 
 	private:
 		std::vector<std::string> 										_file;

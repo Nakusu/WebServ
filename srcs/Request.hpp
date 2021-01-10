@@ -8,6 +8,7 @@ class Request{
 	public:
 		Request(){
 			this->_fd = 0;
+			this->_CGI = 0;
 			this->total = 0;
 			this->_request = "";
 			this->_uri = "";
@@ -16,8 +17,9 @@ class Request{
 			this->_authType = "";
 			this->_parsing = new ParsingRequest();
 		}
-		Request(int fd){
+		Request(int fd, std::map<std::string, std::string> mineTypes){
 			this->_fd = fd;
+			this->_CGI = 0;
 			this->total = 0;
 			this->_request = "";
 			this->_uri = "";
@@ -25,6 +27,8 @@ class Request{
 			this->_authCredentials = "";
 			this->_authType = "";
 			this->_parsing = new ParsingRequest();
+			this->addContent("HTTP/1.1", "200 OK");
+			this->_mimeTypes = mineTypes;
 		}
 		virtual ~Request(){
 			delete this->_parsing;
@@ -80,6 +84,9 @@ class Request{
 		/***************************************************
 		********************    GET   **********************
 		***************************************************/
+		int										get_CGI(void) const{
+			return (this->_CGI);
+		}
 		std::string								get_uri(void) const{
 			return (this->_uri);
 		}
@@ -150,6 +157,24 @@ class Request{
 		std::string								get_datas(void) const{
 			return (this->_datas);
 		}
+		int										get_headerSended(void){
+			return (this->headerSended);
+		}
+		pid_t									get_PID(void){
+			return (this->pid);
+		}
+		int *									get_Status(void){
+			return (&this->status);
+		}
+		size_t									getSize(void) const{
+			return (this->_content.size());
+		}
+		std::map<std::string, std::string>		getContent(void) const{
+			return (this->_content);
+		}
+		std::string								getContent(std::string key){
+			return (this->_content[key]);
+		}
 		// std::string								getDatas(void) {
 		// 	std::string							tmpbuffer = this->_request;
 		// 	std::string							ret;
@@ -170,21 +195,32 @@ class Request{
 		// 	return (ret);
 		// }
 
-		void							getDatas(void) {
+		void									getDatas(void) {
 			this->_datas = this->_requestBody;
 		}
-
 		/***************************************************
 		********************    SET   **********************
 		***************************************************/
 		void									setQueryString(void){
 			this->_queryString = (this->_uri.find("?") != SIZE_MAX) ? &this->_uri[this->_uri.find("?") + 1] : "";
 		}
+		void									setCGI(int i){
+			this->_CGI = i;
+		}
 		void									setfd(int fd){
 			this->_fd = fd;
 		}
 		void									setUri(std::string uri){
 			this->_uri = uri;
+		}
+		void									setheaderSended(int i){
+			this->headerSended = i;
+		}
+		void									setPID(pid_t i){
+			this->pid = i;
+		}
+		void									setStatus(int i){
+			this->status = i;
 		}
 		void									setIPClient(char * pIPClient){
 			this->_IPClient = (std::string)pIPClient;
@@ -242,8 +278,117 @@ class Request{
 			}
 		}
 
+		/***************************************************
+		*****************    Operations    *****************
+		***************************************************/
+		void									addContent(std::string key, std::string content){
+			this->_content.insert(std::pair<std::string, std::string>(key, (content + "\r\n")));
+			this->_size += 1;
+		}
+		void									updateContent(std::string key, std::string content){
+			if (this->_content.find(key) == this->_content.end()) {
+				this->addContent(key, content);
+				return ;
+			}
+			this->_content[key] = (content + "\r\n");
+		}
+		void									sendHeader(){
+			std::string										rep;
+			rep = "HTTP/1.1 " + this->_content["HTTP/1.1"];
+			for (std::map<std::string, std::string>::iterator i = this->_content.begin(); i != this->_content.end(); i++) {
+				if (i->first != "HTTP/1.1")
+					rep += i->first + ": " + i->second;
+			}
+			rep.erase(rep.size() - 1);
+			rep.erase(rep.size() - 1);
+			rep += "\n\n";
+
+			// std::cout << "---------- REQUEST URI ------------    "<< req->get_uri() << std::endl;
+			// std::cout << "---------- REPONSE HEADER----------" << std::endl << rep << std::endl;
+			// std::cout << "---------- FIN REPONSE HEADER----------" << std::endl;
+			sendPacket(rep.c_str());
+		}
+		void									basicHeaderFormat(){
+			this->addContent("Host", (get_host() + ":" + get_port()));
+			this->updateContent("Content-Location", get_uri());
+			this->addContent("Server", "webserv");
+			this->addContent("Date", getTime());
+			this->updateContent("Content-Type", "text/html");
+			if (this->_mimeTypes[getExtension()] != "")
+				this->updateContent("Content-Type", this->_mimeTypes[getExtension()]);
+			this->updateContent("Accept-Charset", "utf-8");
+		}
+		void									basicHistory(VirtualServer *vserv){
+			if (vserv->get_history((get_IpClient() + get_userAgent())) != "")
+				this->updateContent("Referer", vserv->get_history((get_IpClient() + get_userAgent())));
+			if (!folderIsOpenable((vserv->findRoot(get_uri()))))
+				this->updateContent("Content-Length", NumberToString(getSizeFileBits(vserv->findRoot(get_uri()))));
+		}
+		void									Error405HeaderFormat(std::string allowMethods){
+			this->basicHeaderFormat();
+			this->updateContent("HTTP/1.1", "405 Method Not Allowed");
+			this->updateContent("Content-Type", "text/html");
+			this->addContent("Allow", allowMethods);
+		}
+		void									RedirectionHeaderFormat(std::string uri){
+			this->basicHeaderFormat();
+			this->updateContent("HTTP/1.1", "301 Moved Permanently");
+			this->updateContent("Content-Type", "text/html");
+			this->updateContent("Location", uri);
+			this->updateContent("Retry-After", "1");
+			this->updateContent("Connection", "keep-alive");
+		}
+		void									sendForCGI(void){
+			std::string buff = "";
+			char line[2048];
+			int ret;
+			std::string tmp_out = "./tmp/tmp_out_" + NumberToString(this->_fd) + ".txt";
+			int fd = open(tmp_out.c_str(), O_CREAT | O_RDONLY);
+
+			while ((ret = read(fd, &line, 2046)) > 0){
+				line[ret] = '\0';
+				buff += std::string(line);
+			}
+			if (buff.find("\r\n\r\n") != SIZE_MAX)
+				buff = &buff[buff.find("\r\n\r\n") + 4];
+			if (this->headerSended == 0){
+				basicHeaderFormat();
+				updateContent("Content-Length", NumberToString(buff.size()));
+				sendHeader();
+			}
+			sendPacket(buff);
+			close(fd);
+		}
+
+		/***************************************************
+		*********************    GET   *********************
+		***************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 private :
 		int													_fd;
+		int													_CGI;
 		size_t												total;
 
 		std::string											_request;
@@ -264,6 +409,12 @@ private :
 		std::string											_extension;
 		std::string											_datas;
 		std::map<std::string, std::string> 					_mimesTypes;
+		int													headerSended;
+		pid_t												pid;
+		int													status;
+		std::map<std::string, std::string>					_content;
+		size_t												_size;
+		std::map<std::string, std::string>					_mimeTypes;
 };
 
 #endif
