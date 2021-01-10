@@ -102,7 +102,8 @@ class VirtualServer
 		std::vector<std::string>											findOption(std::string option, std::string uri, std::vector<std::string> global){
 			std::vector<size_t> indexs;
 			std::vector<std::string> result;
-
+			if (uri.rfind('/') != uri.size() - 1)
+				uri.push_back('/');
 			indexs = findLocationsAndSublocations(uri);
 			for (size_t i = 0; i < indexs.size(); i++) {
 				if (indexs[i] != SIZE_MAX && !this->_locations[indexs[i]][option].empty()) {
@@ -118,7 +119,8 @@ class VirtualServer
 		std::string															findOption(std::string option, std::string uri, std::string global){
 			size_t index;
 			std::string result;
-
+			if (uri.rfind('/') != uri.size() - 1)
+				uri.push_back('/');
 			index = findLocation(uri);
 			if (index != SIZE_MAX && !this->_locations[index][option].empty()) //If we find the option, we split in vector
 				result = this->_locations[index][option][0];
@@ -173,7 +175,10 @@ class VirtualServer
 			return (findIndex(path)[number]);
 		}
 		std::vector<std::string>											findMethod(std::string path){
+			if (path.rfind('/') != path.size() - 1)
+				path.push_back('/');
 			std::vector<std::string> result;
+			std::cout << "Check path = " << path << std::endl;
 			result = this->findOption("method", path, this->get_method());
 			return (result);
 		}
@@ -181,15 +186,22 @@ class VirtualServer
 			return (findMethod(path)[number]);
 		}
 		bool																findMethod(std::string path, std::string method){
+			if (path.rfind('/') != path.size() - 1)
+					path.push_back('/');
 			std::vector<std::string> vec = findMethod(path);
 			if (!vec.empty())
 			{
 				for (size_t i = 0; i < vec.size(); i++){
-					if (vec[i] == method)
+						std::cout << vec[i] << "diff de " << method << std::endl;
+					if (vec[i] == method){
+						std::cout << "ici" << std::endl;
 						return (true);
+					}
 				}
+				std::cout << "la" << std::endl;
 				return (false);
 			}
+			std::cout << "ici la" << std::endl;
 			return (true);
 		}
 		std::vector<std::string>											findCGI(std::string path, std::string extension){

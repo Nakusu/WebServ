@@ -321,7 +321,8 @@ class Execution
 			}
 			else {
 				close(pfd[0]);
-				waitpid(pid, &status,0);
+				waitpid(pid, &status, WNOHANG);
+				waitpid(pid, &status, 0);
 			}
 			int tmp_fd2 = open(tmp_out.c_str(), O_CREAT | O_RDONLY);
 			sendHeaderCGI(tmp_fd2, i);
