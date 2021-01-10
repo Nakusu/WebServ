@@ -318,12 +318,12 @@ class Request{
 				this->updateContent("Content-Type", this->_mimeTypes[getExtension()]);
 			this->updateContent("Accept-Charset", "utf-8");
 		}
-		void									basicHistory(VirtualServer *vserv){
-			if (vserv->get_history((get_IpClient() + get_userAgent())) != "")
-				this->updateContent("Referer", vserv->get_history((get_IpClient() + get_userAgent())));
-			if (!folderIsOpenable((vserv->findRoot(get_uri()))))
-				this->updateContent("Content-Length", NumberToString(getSizeFileBits(vserv->findRoot(get_uri()))));
-		}
+		// void									basicHistory(VirtualServer *vserv){
+		// 	if (vserv->get_history((get_IpClient() + get_userAgent())) != "")
+		// 		this->updateContent("Referer", vserv->get_history((get_IpClient() + get_userAgent())));
+		// 	if (!folderIsOpenable((vserv->findRoot(get_uri()))))
+		// 		this->updateContent("Content-Length", NumberToString(getSizeFileBits(vserv->findRoot(get_uri()))));
+		// }
 		void									Error405HeaderFormat(std::string allowMethods){
 			this->basicHeaderFormat();
 			this->updateContent("HTTP/1.1", "405 Method Not Allowed");
