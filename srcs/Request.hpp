@@ -248,6 +248,36 @@ class Request{
 			this->_typeContent = "";
 			this->_typeContent = this->_parsing->getMap()["Accept"];
 		}
+		void									findAcceptLanguage(void){
+			std::string cleanedLanguages = cleanLine(this->_parsing->getMap()["Accept-Language"]);
+			std::vector<std::vector<std::string> > all;
+			std::vector<std::string> firstParsing = split(cleanedLanguages, ";");
+			size_t min;
+
+			// Récupération de toute les langues et de leur priorite dans un vecteur
+			
+			for (size_t i = 0; i < firstParsing.size(); i++) {
+				all.push_back(split(firstParsing[i], ","));
+				if (all[i].size() > 1) {
+					if (all[i][1].find("=") != SIZE_MAX)
+						all[i][1] = &all[i][i][all[i][1].find("=") + 1];
+					else
+						all[i].push_back("1");
+				}
+			}
+			// Tri des langue par ordre de priorite
+			for (size_t i = 0; i < all.size() - 1; i++)
+			{
+				min = i;
+				for (size_t j = i + 1; j < all.size(); j++)
+					if (std::atof(all[j][1].c_str()) < std::atof(all[min][1].c_str()))
+						min = j;
+				if (min != i)
+					std::swap(all[i], all[min]);
+			}
+			for (size_t k = 0; k < all.size(); k++)
+				this->_acceptLanguage.push_back(all[k][0]);
+		}
 
 
 		/***************************************************
@@ -350,26 +380,6 @@ class Request{
 		}
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 private :
 		int													_fd;
 		int													_CGI;
@@ -402,6 +412,7 @@ private :
 		time_t												_time;
 		size_t												findend;
 		size_t												endHeader;
+		std::vector<std::string>							_acceptLanguage;
 
 };
 

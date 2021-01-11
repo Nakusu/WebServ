@@ -36,10 +36,24 @@ class Client{
 			delete this->_req;
 			this->_req = new Request(this->_fd, this->_mimesTypes);
 		}
+		std::map<std::string, std::string>									get_history(void){
+			return (this->_history);
+		}
+		std::string															get_history(std::string user){
+			return (this->_history[user]);
+		}
+		void																setHistory(std::string user, std::string url){
+			this->_history[user] = url;
+		}
+		void									basicHistory(Client *client){
+			if (client->get_history((this->_req->get_IpClient() + this->_req->get_userAgent())) != "")
+				this->_req->updateContent("Referer", client->get_history((this->_req->get_IpClient() + this->_req->get_userAgent())));
+		}
 private :
 	int										_fd;
 	Request *								_req;
 	std::map<std::string, std::string>		_mimesTypes;
+	std::map<std::string, std::string> 		_history;
 };
 
 #endif
