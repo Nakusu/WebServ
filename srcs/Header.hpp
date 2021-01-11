@@ -69,5 +69,6 @@ std::string 							replaceStr(std::string line, std::string s1, std::string s2);
 std::string 							replaceStrStart(std::string line, std::string s1, std::string s2);
 std::string								getfilename(std::string uri);
 std::string								CleanBody(std::string request);
+std::string								decode64(const std::string &in);
 
 #endif

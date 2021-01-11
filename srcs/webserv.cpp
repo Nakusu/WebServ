@@ -25,7 +25,7 @@ void		Exec(ServerWeb *serv, Client *client, int i, char **env){
 	Request *req = client->get_req();
 	Execution exec = Execution(serv, serv->getVS(i), req, env);
 	std::string Method = req->get_method();
-	if (!exec.needRedirection() && !exec.checkMethod() && !exec.doPost() && !exec.doDelete() && !exec.doPut() && !exec.searchIndex() && !exec.initCGI() && !exec.binaryFile())
+	if (!exec.needRedirection() && !exec.doAuthenticate() && !exec.checkMethod() && !exec.doPost() && !exec.doDelete() && !exec.doPut() && !exec.searchIndex() && !exec.initCGI() && !exec.binaryFile())
 		exec.searchError404();
 	if (!client->CGIIsRunning()){
 		client->new_req();

@@ -295,6 +295,11 @@ class Request{
 			rep += "\n\n";
 			sendPacket(rep.c_str());
 		}
+		void									basicAuthentificate(std::string type, std::string realm){
+			this->basicHeaderFormat();
+			this->updateContent("HTTP/1.1", "401 Unauthorized");
+			this->updateContent("www-Authenticate", std::string(type + " " + realm));
+		}
 		void									basicHeaderFormat(){
 			this->addContent("Host", (get_host() + ":" + get_port()));
 			this->updateContent("Content-Location", get_uri());

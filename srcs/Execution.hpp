@@ -316,6 +316,31 @@ class Execution
 			}
 			return (0);
 		}
+		int											doAuthenticate(void) {
+			std::vector<std::string> global;
+			std::vector<std::string> option = this->vserv->findOption("Authenticate", this->req->get_uri(), global);
+			
+			if (!option.empty() && option.size() == 4) {
+				std::cout << "CHECK OPTION 1 " << option[0] << std::endl;
+				std::cout << "CHECK OPTION 2 " << option[1] << std::endl;
+				std::cout << "TEST " << decode64(std::string("c2FsdXQ=")) << " to salut" << std::endl;
+				if (!this->req->get_authType().empty() && !this->req->get_authCredential().empty()) {
+					if (this->req->get_authType() == option[0]) {
+						std::string tmp = decode64(this->req->get_authCredential());
+						std::vector<std::string> elements = split(tmp, ":");
+						if (elements.size() == 2 && elements[0] == option[2] && elements[1] == option[3]) {
+							return (0);
+						}
+					}
+				}
+				this->req->basicAuthentificate(option[0], option[1]);
+				this->req->updateContent("Content-Length", "80");
+				this->req->sendHeader();
+				this->req->sendPacket("<html><head><title>Unauthorized</title></head><body><h1>Unauthorized</h1></body>");
+				return (1);
+			}
+			return (0);
+		}
 		int											doPut(void) {
 			if (this->req->get_method() == "PUT") {
 				std::string path = this->get_fullPath();
