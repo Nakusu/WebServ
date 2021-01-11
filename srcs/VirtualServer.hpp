@@ -177,7 +177,7 @@ class VirtualServer
 			if (path.rfind('/') != path.size() - 1)
 				path.push_back('/');
 			std::vector<std::string> result;
-			std::cout << "Check path = " << path << std::endl;
+			//std::cout << "Check path = " << path << std::endl;
 			result = this->findOption("method", path, this->get_method());
 			return (result);
 		}
@@ -191,16 +191,16 @@ class VirtualServer
 			if (!vec.empty())
 			{
 				for (size_t i = 0; i < vec.size(); i++){
-						std::cout << vec[i] << "diff de " << method << std::endl;
+						//std::cout << vec[i] << "diff de " << method << std::endl;
 					if (vec[i] == method){
-						std::cout << "ici" << std::endl;
+						//std::cout << "ici" << std::endl;
 						return (true);
 					}
 				}
-				std::cout << "la" << std::endl;
+				//std::cout << "la" << std::endl;
 				return (false);
 			}
-			std::cout << "ici la" << std::endl;
+			//std::cout << "ici la" << std::endl;
 			return (true);
 		}
 		std::vector<std::string>											findCGI(std::string path, std::string extension){

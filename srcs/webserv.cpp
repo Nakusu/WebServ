@@ -40,6 +40,9 @@ int			main(int argc, char **argv, char **env)
 	int			nb_activity;
 	int 		fdClient;
 	Client 		*client;
+	time_t time1 = time(NULL);
+	time_t time2 = time(NULL);
+	time_t time3 = time(NULL);
 
 
 	defaultConf = checkArgs(argc, argv, &defaultConf, serv);
@@ -50,7 +53,10 @@ int			main(int argc, char **argv, char **env)
 	{
 		serv->clearFd();
 		serv->setAllFDSET_fdmax();
+		// std::cout << "debut select" << std::endl;
 		nb_activity = serv->waitForSelect();
+		time1 = time(NULL);
+		// std::cout << "fin select" << std::endl;
 		for (size_t i = 0; i < serv->getVSsize() && nb_activity; i++){
 
 			//Check les sockets master
@@ -72,21 +78,35 @@ int			main(int argc, char **argv, char **env)
 			}
 
 			//check les clients
+		time2 = time(NULL);
 			for (size_t j = 0; j < serv->getVS(i)->get_clients().size() && nb_activity; j++){
 				client = serv->getVS(i)->get_client(j);
 				if (serv->verifFdFDISSET(client->get_fd())){
+		time3 = time(NULL);
+					// std::cout << "Start Init" << std::endl;
 					int ret = client->get_req()->init();
-					if (ret > 0)
+					// std::cout << "END INIT" << std::endl;
+					if (ret > 0){
+						// std::cout << "Start EXEC" << std::endl;
 						Exec(serv, client, i, env);
+						// std::cout << "END EXEC" << std::endl;
+					}
 					else if (ret == -1){
 						serv->getVS(i)->delClient(client);
 						delete client;
 					}
 					nb_activity--;
+		std::cout << BLUE << "Temps pour finir FOR " << difftime(time(NULL), time3) << RESET << std::endl;
+
 				}
 			}
-			serv->checkEndCGI();
+		std::cout << GREEN << "Temps pour finir FOR " << difftime(time(NULL), time2) << RESET << std::endl;
+			// std::cout << "Retour" << std::endl;
 		}
+		// std::cout << "START CHECKENDCGI" << std::endl;
+		serv->checkEndCGI();
+		// std::cout << "END CHECKENDCGI" << std::endl;
+		std::cout << RED << "Temps pour finir WHILE " << difftime(time(NULL), time1) << RESET << std::endl;
 	}
 	return 0;
 }

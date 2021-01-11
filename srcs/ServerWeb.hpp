@@ -72,6 +72,7 @@ class ServerWeb
 				if (this->_fdmax < this->_VServs[i]->get_fd())
 					this->_fdmax = this->_VServs[i]->get_fd();
 				for (size_t j = 0; j < this->_VServs[i]->get_clients().size(); j++){
+					// std::cout << this->_VServs[i]->get_client(j)->CGIIsRunning() << std::endl;
 					if (!this->_VServs[i]->get_client(j)->CGIIsRunning()){
 						FD_SET(this->_VServs[i]->get_client(j)->get_fd(), &this->_readfds);
 						FD_SET(this->_VServs[i]->get_client(j)->get_fd(), &this->_writefds);
@@ -89,10 +90,11 @@ class ServerWeb
 			int activity;
 			struct timeval			timeout;
 
-			timeout.tv_sec = 10;
-			timeout.tv_usec = 0;
+			timeout.tv_sec = 0;
+			timeout.tv_usec = 5000;
 			// this->_writefds = this->_readfds;
-			while ((activity = select(this->_fdmax + 1, &this->_readfds , &this->_writefds , NULL , NULL)) == -1){
+
+			while ((activity = select(this->_fdmax + 1, &this->_readfds , &this->_writefds , NULL , &timeout)) == -1){
 			}
 			if ((activity < 0) && (errno != EINTR))  
 				printf("select error");
@@ -150,14 +152,22 @@ class ServerWeb
 			this->_fdmax = 0;
 		}
 		void															checkEndCGI(void){
+			// std::cout << GREEN << "Check end CGI" << RESET << std::endl;
 			for (size_t i = 0; i < this->_VServs.size(); i++){
 				for (size_t j = 0; j < this->_VServs[i]->get_clients().size(); j++){
 					if (this->_VServs[i]->get_client(j)->CGIIsRunning()){
-						if (waitpid(this->_VServs[i]->get_client(j)->get_req()->get_PID(), this->_VServs[i]->get_client(j)->get_req()->get_Status() , WNOHANG) != 0){
+
+						// std::cout << GREEN << "Found one runing" << RESET << std::endl;
+						if (waitpid(this->_VServs[i]->get_client(j)->get_req()->get_PID(), this->_VServs[i]->get_client(j)->get_req()->get_Status(), WNOHANG) == this->_VServs[i]->get_client(j)->get_req()->get_PID()){
+
+						std::cout <<  GREEN << "SEND CGI" << RESET << std::endl;
+						//std::cout <<  GREEN << this->_VServs[i]->get_client(j)->get_req()->get_headerSended() << RESET << std::endl;
+						
 							this->_VServs[i]->get_client(j)->get_req()->sendForCGI();
 							this->_VServs[i]->get_client(j)->get_req()->setCGI(0);
 							this->_VServs[i]->get_client(j)->new_req();
 						}
+						// std::cout << GREEN << "end" << RESET << std::endl;
 					}
 				}
 			}

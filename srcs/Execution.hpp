@@ -100,7 +100,7 @@ class Execution
 						autoindex += "</pre><hr>";
 						autoindex += "</body></html>";
 					this->req->basicHeaderFormat();
-					this->req->basicHistory(this->vserv);
+					// this->req->basicHistory(this->vserv);
 					this->req->updateContent("Content-Length", NumberToString(autoindex.size()));
 					this->req->sendHeader();
 					this->req->sendPacket(autoindex);
@@ -116,7 +116,7 @@ class Execution
 
 			this->req->updateContent("HTTP/1.1", "404 Not Found");
 			this->req->updateContent("Content-Type", "text/html");
-			this->req->basicHistory(this->vserv);
+			// this->req->basicHistory(this->vserv);
 			if (redir.empty()){
 				this->req->updateContent("Content-Length", "159");
 				this->req->sendHeader();
@@ -132,7 +132,7 @@ class Execution
 			std::string redir = this->vserv->findErrorPage(this->req->get_uri(), "405");
 		
 			this->req->Error405HeaderFormat(this->getAllowMethods());
-			this->req->basicHistory(this->vserv);
+			// this->req->basicHistory(this->vserv);
 			if (redir.empty()){
 				this->req->updateContent("Content-Length", "177");
 				this->req->sendHeader();
@@ -172,7 +172,7 @@ class Execution
 			long long unsigned int size_file = getSizeFileBits(tmp);
 			char *content = (char *)calloc(sizeof(char), size_file + 1);
 			this->req->basicHeaderFormat();
-			this->req->basicHistory(this->vserv);
+			// this->req->basicHistory(this->vserv);
 			this->req->updateContent("Content-Length", NumberToString(size_file));
 			if (this->req->get_method() == "HEAD")
 				this->req->updateContent("Content-Length", "0");
@@ -259,6 +259,7 @@ class Execution
 			tmp[0] = strdup(cgi_path.c_str());
 			tmp[1] = NULL;
 			tmp[2] = NULL;
+			
 
 
 
@@ -268,10 +269,11 @@ class Execution
 
 			if (pipe(pfd) == -1)
 				return ; // error pipe
-				this->req->setPID(fork());
-			if (this->req->get_PID() < 0)
+			pid_t pid = fork();
+				
+			if (pid < 0)
 				return ; // error fork
-			if (this->req->get_PID() == 0) { // in the fork child
+			if (pid == 0) { // in the fork child
 				close(pfd[1]);
 				CreateTmpRequestCGI(tmp_in);
 				//Open and send request to EXEC
@@ -290,15 +292,20 @@ class Execution
 			}
 			else {
 				close(pfd[0]);
-				waitpid(this->req->get_PID(),this->req->get_Status(), WNOHANG);
+				this->req->setPID(pid);
+				// if (waitpid(this->req->get_PID(), this->req->get_Status(), WNOHANG) == this->req->get_PID()){
+				// 	this->req->sendForCGI();
+				// 	this->req->setCGI(0);
+				// }
 				// waitpid(pid, &status, 0);
 			}
 
 			free(tmp[0]);
 			free(tmp);
 			free(env);
-			remove(tmp_in.c_str());
-			remove(tmp_out.c_str());
+			// remove(tmp_in.c_str());
+			// remove(tmp_out.c_str());
+			std::cout << RED << "FIN CGI" << RESET << std::endl;
 		}
 		int											initCGI(void){
 			std::string extension = (this->req->getExtension().find(".", 0) != SIZE_MAX) ? this->req->getExtension() : "." + this->req->getExtension();

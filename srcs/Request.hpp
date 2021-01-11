@@ -16,6 +16,10 @@ class Request{
 			this->_authCredentials = "";
 			this->_authType = "";
 			this->_parsing = new ParsingRequest();
+			this->headerSended = 0;
+			this->pid = 0;
+			this->status = 0;
+			this->_time = 0;
 		}
 		Request(int fd, std::map<std::string, std::string> mineTypes){
 			this->_fd = fd;
@@ -29,6 +33,10 @@ class Request{
 			this->_parsing = new ParsingRequest();
 			this->addContent("HTTP/1.1", "200 OK");
 			this->_mimeTypes = mineTypes;
+			this->headerSended = 0;
+			this->pid = 0;
+			this->status = 0;
+			this->_time = 0;
 		}
 		virtual ~Request(){
 			delete this->_parsing;
@@ -44,7 +52,9 @@ class Request{
 		int										init(void){
 			int 	size;
 			char*	buffer;
-
+			time_t tete = time(NULL);
+			if (this->_time == 0)
+				time(&this->_time);
 			buffer = (char *)calloc(sizeof(char), 9999999);
 			size = recv(this->_fd, buffer, 9999999, MSG_DONTWAIT);
 			this->total += size; 
@@ -55,15 +65,29 @@ class Request{
 			// 	return(-1);
 			this->_request += buffer;
 			free(buffer);
-			if (this->_request.find("\r\n\r\n") == SIZE_MAX)
+			if (this->_request.find("\r\n\r\n") == SIZE_MAX){
+				std::cout << YELLOW << "Temps pour finir init " << difftime(time(NULL), tete) << "   sur fd = " << this->_fd << RESET << std::endl;
 				return (0);
-			if (this->_request.rfind("\r\n\r\n") < 15)
+			}
+			if (this->_request.rfind("\r\n\r\n") < 15){
+				std::cout << YELLOW << "Temps pour finir init " << difftime(time(NULL), tete) << "   sur fd = " << this->_fd << RESET << std::endl;
 				return (0);
-			if (this->_request.find("Transfer-Encoding") != SIZE_MAX && this->_request.rfind("\r\n\r\n") == this->_request.find("\r\n\r\n"))
+			}
+			if (this->_request.rfind("\r\n\r\n") < 15){
+				std::cout << YELLOW << "Temps pour finir init " << difftime(time(NULL), tete) << "   sur fd = " << this->_fd << RESET << std::endl;
 				return (0);
-			if (this->_request.find("Content-Length") != SIZE_MAX && this->_request.rfind("\r\n\r\n") == this->_request.find("\r\n\r\n"))
+			}
+			if (this->_request.find("Transfer-Encoding") != SIZE_MAX && this->_request.rfind("\r\n\r\n") == this->_request.find("\r\n\r\n")){
+				std::cout << YELLOW << "Temps pour finir init " << difftime(time(NULL), tete) << "   sur fd = " << this->_fd << RESET << std::endl;
 				return (0);
+			}
+			if (this->_request.find("Content-Length") != SIZE_MAX && this->_request.rfind("\r\n\r\n") == this->_request.find("\r\n\r\n")){
+				std::cout << YELLOW << "Temps pour finir init " << difftime(time(NULL), tete) << "   sur fd = " << this->_fd << RESET << std::endl;
+				return (0);
+			}
 
+			
+			std::cout << GREEN << "TIME TO CREATE THE REQUEST = " << difftime(time(NULL), this->_time) << RESET << std::endl;
 			this->_requestBody = CleanBody(this->_request);
 			this->_requestHeader = this->_request.substr(0, this->_request.find("\r\n\r\n") + 4);
 			// std::cout << "--------------REQUEST HEADER--------------" << std::endl << this->_requestHeader << std::endl;
@@ -79,6 +103,7 @@ class Request{
 			this->parsingMetasVars();
 			this->parsingAuthorizations();
 			this->setPathInfo();
+			std::cout << YELLOW << "Temps pour finir init " << difftime(time(NULL), tete) << "   sur fd = " << this->_fd << RESET << std::endl;
 			return (1);
 		}
 		/***************************************************
@@ -236,10 +261,11 @@ class Request{
 		*******************    SEND   **********************
 		***************************************************/
 		void									sendPacket(std::string content){
-			// std::cout << "SIZE ========= " << content.size() << std::endl;
+			//std::cout << YELLOW << "Send Packet" << RESET << std::endl;
 			send(this->_fd, content.c_str(), content.size(), MSG_CONFIRM);
 		}
 		void									sendPacket(char *content, size_t len){
+			//std::cout << YELLOW << "Send Packet" << RESET << std::endl;
 			send(this->_fd, content, len, MSG_CONFIRM);
 		}
 
@@ -306,6 +332,7 @@ class Request{
 			// std::cout << "---------- REQUEST URI ------------    "<< req->get_uri() << std::endl;
 			// std::cout << "---------- REPONSE HEADER----------" << std::endl << rep << std::endl;
 			// std::cout << "---------- FIN REPONSE HEADER----------" << std::endl;
+			// std::cout << RED << rep << RESET << std::endl;
 			sendPacket(rep.c_str());
 		}
 		void									basicHeaderFormat(){
@@ -343,6 +370,7 @@ class Request{
 			char line[2048];
 			int ret;
 			std::string tmp_out = "./tmp/tmp_out_" + NumberToString(this->_fd) + ".txt";
+			std::string tmp_in = "./tmp/tmp_in_" + NumberToString(this->_fd) + ".txt";
 			int fd = open(tmp_out.c_str(), O_CREAT | O_RDONLY);
 
 			while ((ret = read(fd, &line, 2046)) > 0){
@@ -357,6 +385,8 @@ class Request{
 				sendHeader();
 			}
 			sendPacket(buff);
+			remove(tmp_in.c_str());
+			remove(tmp_out.c_str());
 			close(fd);
 		}
 
@@ -415,6 +445,7 @@ private :
 		std::map<std::string, std::string>					_content;
 		size_t												_size;
 		std::map<std::string, std::string>					_mimeTypes;
+		time_t												_time;
 };
 
 #endif
