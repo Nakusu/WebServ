@@ -20,6 +20,8 @@ class Request{
 			this->pid = 0;
 			this->status = 0;
 			this->_time = 0;
+			this->findend = 0;
+			this->endHeader = 0;
 		}
 		Request(int fd, std::map<std::string, std::string> mineTypes){
 			this->_fd = fd;
@@ -37,6 +39,8 @@ class Request{
 			this->pid = 0;
 			this->status = 0;
 			this->_time = 0;
+			this->findend = 0;
+			this->endHeader = 0;
 		}
 		virtual ~Request(){
 			delete this->_parsing;
@@ -65,26 +69,36 @@ class Request{
 			// 	return(-1);
 			this->_request += buffer;
 			free(buffer);
-			if (this->_request.find("\r\n\r\n") == SIZE_MAX){
-				std::cout << YELLOW << "Temps pour finir init " << difftime(time(NULL), tete) << "   sur fd = " << this->_fd << RESET << std::endl;
+			std::cout << YELLOW << "Temps jusqu'a free " << difftime(time(NULL), tete) << " sur fd = " << this->_fd << RESET << std::endl;
+			//Verification du header
+			if (this->findend == 0){
+				if ((this->endHeader = this->_request.find("\r\n\r\n")) != SIZE_MAX){
+					this->findend = 1; 
+					if (this->_request.find("Transfer-Encoding") != SIZE_MAX || this->_request.find("Length-Encoding") != SIZE_MAX)
+						this->findend = 2;
+					std::cout << RED << "Trouvé le header" << RESET << std::endl;
+				}
+				else{
+					std::cout << this->_request << std::endl;
+					return (0);
+				}
+				
+				std::cout << YELLOW << "Temps pour finir init " << difftime(time(NULL), tete) << " sur fd = " << this->_fd << RESET << std::endl;
+			}
+			std::cout << "BEFORE FINDEND 0 = " << this->findend << std::endl;
+			// if (this->_request.find("\r\n\r\n") == SIZE_MAX){
+			// 	std::cout << YELLOW << "Temps pour finir init " << difftime(time(NULL), tete) << "   sur fd = " << this->_fd << RESET << std::endl;
+			// 	return (0);
+			// }
+			// if (this->_request.rfind("\r\n\r\n") < 15){
+			// 	std::cout << YELLOW << "Temps pour finir init " << difftime(time(NULL), tete) << "   sur fd = " << this->_fd << RESET << std::endl;
+			// 	return (0);
+			// }
+			if (this->findend == 2 && (this->endHeader == this->_request.size() - 4 || this->_request.compare(this->_request.size() - 4, 4, "\r\n\r\n") != 0)){
+				std::cout << YELLOW << "Temps pour finir init 2 " << difftime(time(NULL), tete) << " sur fd = " << this->_fd << RESET << std::endl;
 				return (0);
 			}
-			if (this->_request.rfind("\r\n\r\n") < 15){
-				std::cout << YELLOW << "Temps pour finir init " << difftime(time(NULL), tete) << "   sur fd = " << this->_fd << RESET << std::endl;
-				return (0);
-			}
-			if (this->_request.rfind("\r\n\r\n") < 15){
-				std::cout << YELLOW << "Temps pour finir init " << difftime(time(NULL), tete) << "   sur fd = " << this->_fd << RESET << std::endl;
-				return (0);
-			}
-			if (this->_request.find("Transfer-Encoding") != SIZE_MAX && this->_request.rfind("\r\n\r\n") == this->_request.find("\r\n\r\n")){
-				std::cout << YELLOW << "Temps pour finir init " << difftime(time(NULL), tete) << "   sur fd = " << this->_fd << RESET << std::endl;
-				return (0);
-			}
-			if (this->_request.find("Content-Length") != SIZE_MAX && this->_request.rfind("\r\n\r\n") == this->_request.find("\r\n\r\n")){
-				std::cout << YELLOW << "Temps pour finir init " << difftime(time(NULL), tete) << "   sur fd = " << this->_fd << RESET << std::endl;
-				return (0);
-			}
+			std::cout << "BEFORE FINDEND 2 = " << this->findend << std::endl;
 
 			
 			std::cout << GREEN << "TIME TO CREATE THE REQUEST = " << difftime(time(NULL), this->_time) << RESET << std::endl;
@@ -371,6 +385,7 @@ class Request{
 			int ret;
 			std::string tmp_out = "./tmp/tmp_out_" + NumberToString(this->_fd) + ".txt";
 			std::string tmp_in = "./tmp/tmp_in_" + NumberToString(this->_fd) + ".txt";
+			remove(tmp_in.c_str());
 			int fd = open(tmp_out.c_str(), O_CREAT | O_RDONLY);
 
 			while ((ret = read(fd, &line, 2046)) > 0){
@@ -385,15 +400,9 @@ class Request{
 				sendHeader();
 			}
 			sendPacket(buff);
-			remove(tmp_in.c_str());
 			remove(tmp_out.c_str());
 			close(fd);
 		}
-
-		/***************************************************
-		*********************    GET   *********************
-		***************************************************/
-
 
 
 
@@ -446,6 +455,9 @@ private :
 		size_t												_size;
 		std::map<std::string, std::string>					_mimeTypes;
 		time_t												_time;
+		size_t												findend;
+		size_t												endHeader;
+
 };
 
 #endif
