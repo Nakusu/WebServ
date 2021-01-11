@@ -65,7 +65,6 @@ class VirtualServer
 				perror("socket failed");
 				exit(EXIT_FAILURE);
 			}
-			// std::cout << "VIRTUAL SERVER SOCKET FD = " << this->_fd << std::endl;
 			if( setsockopt(this->_fd, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0 ){
 				perror("setsockopt");
 				exit(EXIT_FAILURE);
@@ -177,7 +176,6 @@ class VirtualServer
 			if (path.rfind('/') != path.size() - 1)
 				path.push_back('/');
 			std::vector<std::string> result;
-			//std::cout << "Check path = " << path << std::endl;
 			result = this->findOption("method", path, this->get_method());
 			return (result);
 		}
@@ -191,16 +189,11 @@ class VirtualServer
 			if (!vec.empty())
 			{
 				for (size_t i = 0; i < vec.size(); i++){
-						//std::cout << vec[i] << "diff de " << method << std::endl;
-					if (vec[i] == method){
-						//std::cout << "ici" << std::endl;
+					if (vec[i] == method)
 						return (true);
-					}
 				}
-				//std::cout << "la" << std::endl;
 				return (false);
 			}
-			//std::cout << "ici la" << std::endl;
 			return (true);
 		}
 		std::vector<std::string>											findCGI(std::string path, std::string extension){

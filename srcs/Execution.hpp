@@ -293,19 +293,11 @@ class Execution
 			else {
 				close(pfd[0]);
 				this->req->setPID(pid);
-				// if (waitpid(this->req->get_PID(), this->req->get_Status(), WNOHANG) == this->req->get_PID()){
-				// 	this->req->sendForCGI();
-				// 	this->req->setCGI(0);
-				// }
-				// waitpid(pid, &status, 0);
 			}
 
 			free(tmp[0]);
 			free(tmp);
 			free(env);
-			// remove(tmp_in.c_str());
-			// remove(tmp_out.c_str());
-			std::cout << RED << "FIN CGI" << RESET << std::endl;
 		}
 		int											initCGI(void){
 			std::string extension = (this->req->getExtension().find(".", 0) != SIZE_MAX) ? this->req->getExtension() : "." + this->req->getExtension();
@@ -314,21 +306,16 @@ class Execution
 				if (fileIsOpenable(path)){
 					std::map<std::string, std::string> args = setMetaCGI(path);
 					char **tmpargs = swapMaptoChar(args);
-					// for (size_t i = 0; tmpargs[i]; i++)
-						// std::cout << GREEN << "CHECK INFORMATION : " << tmpargs[i] << RESET << std::endl;
 					processCGI(path, tmpargs);
-					for (size_t i = 0; tmpargs[i]; i++){
+					for (size_t i = 0; tmpargs[i]; i++)
 						free(tmpargs[i]);
-					}
 					free(tmpargs);
-					
 					return (1);
 				}
 			}
 			return (0);
 		}
 		int											doPut(void) {
-			
 			if (this->req->get_method() == "PUT") {
 				std::string path = this->get_fullPath();
 				std::string newFileName = (path[path.length() - 1] == '/') ? path.substr(0, path.length() - 1) : path;
@@ -354,9 +341,7 @@ class Execution
 		}
 		int											doPost(void) {
 			if (this->req->get_method() == "POST") {
-				// std::cout << "ICI" << std::endl;
 				this->req->getDatas();
-				// std::cout << "LA" << std::endl;
 				this->req->basicHeaderFormat();
 				this->req->updateContent("HTTP/1.1", "200 OK");
 
@@ -449,7 +434,6 @@ class Execution
 		}
 		bool										checkMethod(void){
 			if (!fileIsOpenable(this->get_fullPath()) && this->req->get_method() != "POST" && this->req->get_method() != "PUT"){
-				// std::cout << "TU NOUS FAIS CHIER DANS LA METHOD!!!!" << std::endl;
 				this->searchError404();
 				return 1;
 			}
