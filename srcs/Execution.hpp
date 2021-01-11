@@ -280,6 +280,8 @@ class Execution
 				pfd[0]= open(tmp_in.c_str(), O_CREAT | O_RDONLY, 0777);
 				dup2(pfd[0], 0); // ici en entrée mettre le body
 				//Create a receive request in EXEC
+				close(pfd[0]);
+				remove(tmp_in.c_str());
 				int tmp_fd = open(tmp_out.c_str(), O_CREAT | O_WRONLY, 0777);
 				dup2(tmp_fd, 1);
 				errno = 0;
@@ -287,14 +289,13 @@ class Execution
 					std::cerr << "Error with CGI: " << strerror(errno) << std::endl;
 					exit(1);
 				}
-				close(pfd[0]);
+				// close(pfd[0]);
 				close(tmp_fd);
 			}
 			else {
 				close(pfd[0]);
 				this->req->setPID(pid);
 			}
-
 			free(tmp[0]);
 			free(tmp);
 			free(env);

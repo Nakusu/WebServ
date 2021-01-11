@@ -68,6 +68,7 @@ int			main(int argc, char **argv, char **env)
 					delete client;
 				}
 				nb_activity--;
+				serv->checkEndCGI();
 			}
 			for (size_t j = 0; j < serv->getVS(i)->get_clients().size() && nb_activity; j++){
 				client = serv->getVS(i)->get_client(j);
@@ -80,6 +81,7 @@ int			main(int argc, char **argv, char **env)
 						delete client;
 					}
 					nb_activity--;
+					serv->checkEndCGI();
 				}
 			}
 		}
