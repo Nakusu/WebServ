@@ -56,7 +56,6 @@ class Request{
 		int										init(void){
 			int 	size;
 			char*	buffer;
-			time_t tete = time(NULL);
 
 			if (this->_time == 0)
 				time(&this->_time);
@@ -188,26 +187,6 @@ class Request{
 		std::string								getContent(std::string key){
 			return (this->_content[key]);
 		}
-		// std::string								getDatas(void) {
-		// 	std::string							tmpbuffer = this->_request;
-		// 	std::string							ret;
-		// 	size_t								lock = 0;
-		// 	int									j = 0;
-
-		// 	tmpbuffer = &tmpbuffer[(tmpbuffer.find("\n\r") + 3)];
-		// 	for (size_t i = 0; i < tmpbuffer.size(); i++) {
-		// 		if (tmpbuffer[i] == '=')
-		// 			lock = 1;
-		// 		else if (tmpbuffer[i] == '&')
-		// 			lock = 0;
-		// 		if (lock == 1)
-		// 			j++;
-		// 		if (j < atoi(this->getContentLength().c_str()) && lock == 1)
-		// 			ret += tmpbuffer[i];
-		// 	}
-		// 	return (ret);
-		// }
-
 		void									getDatas(void) {
 			this->_datas = this->_requestBody;
 		}
