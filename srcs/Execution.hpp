@@ -321,7 +321,7 @@ class Execution
 			std::vector<std::string> global;
 			std::vector<std::string> option = this->vserv->findOption("Authenticate", this->req->get_uri(), global);
 			
-			if (!option.empty() && option.size() == 4) {
+			if (!option.empty() && option.size() == 3) {
 				if (!this->req->get_authType().empty() && !this->req->get_authCredential().empty()) {
 					if (this->req->get_authType() == "Basic") {
 						std::string tmp = decode64(this->req->get_authCredential());
