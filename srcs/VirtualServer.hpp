@@ -249,8 +249,8 @@ class VirtualServer
 			}
 			return ("");
 		}
-		std::string															get_authenticate(void) {
-			return (this->_authenticate);
+		std::vector<std::string>											get_authenticate(void) {
+			return (split(this->_authenticate, " "));
 		}
 		std::vector<Client *>												get_clients(void){
 			return (this->_clients);
@@ -467,7 +467,6 @@ class VirtualServer
 					std::string iss = this->_conf[i];
 					this->_authenticate = this->_conf[i];
 					this->_authenticate = this->_authenticate.erase(0, 13);
-					std::cout << "AUTH GLOBAL [" << this->_authenticate << "]" << std::endl;
 				}
 			}
 		}
