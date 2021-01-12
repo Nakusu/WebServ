@@ -323,15 +323,15 @@ class Execution
 			
 			if (!option.empty() && option.size() == 4) {
 				if (!this->req->get_authType().empty() && !this->req->get_authCredential().empty()) {
-					if (this->req->get_authType() == option[0]) {
+					if (this->req->get_authType() == "Basic") {
 						std::string tmp = decode64(this->req->get_authCredential());
 						std::vector<std::string> elements = split(tmp, ":");
-						if (elements.size() == 2 && elements[0] == option[2] && elements[1] == option[3]) {
+						if (elements.size() == 2 && elements[0] == option[1] && elements[1] == option[2]) {
 							return (0);
 						}
 					}
 				}
-				this->req->basicAuthentificate(option[0], option[1]);
+				this->req->basicAuthentificate(option[0]);
 				this->req->updateContent("Content-Length", "80");
 				this->req->sendHeader();
 				this->req->sendPacket("<html><head><title>Unauthorized</title></head><body><h1>Unauthorized</h1></body>");
