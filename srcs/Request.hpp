@@ -443,7 +443,6 @@ private :
 		std::string 										_pathInfo;
 		std::string											_extension;
 		std::string											_datas;
-		std::map<std::string, std::string> 					_mimesTypes;
 		int													headerSended;
 		pid_t												pid;
 		int													status;
