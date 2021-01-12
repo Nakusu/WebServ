@@ -19,6 +19,7 @@ class Execution
 			this->serv = serv;
 			this->vserv = vserv;
 			this->req = req;
+			this->req->updateURI(this->getFullPath());
 			this->_envs = envs;
 			this->file = 1;
 		}
@@ -85,6 +86,7 @@ class Execution
 				for (size_t i = 0; i < vec.size(); i++){
 					if ((index = searchInVec(vec[i], files)) != -1){//Compare index with files in Folder
 						this->req->setUri(this->req->get_uri() + files[index]); //Return new URI with the index
+						this->req->updateURI(this->getFullPath());
 						this->req->setPathInfo();
 						return (0);
 					}
@@ -190,7 +192,6 @@ class Execution
 		/***************************************************
 		********************    CGI    *********************
 		***************************************************/
-
  		std::map<std::string, std::string>			setMetaCGI(std::string script_name){
 			std::map<std::string, std::string> args;
 			if (this->req->get_Parsing()->getMap().size() > 0) {
@@ -260,13 +261,9 @@ class Execution
 			tmp[0] = strdup(cgi_path.c_str());
 			tmp[1] = NULL;
 			tmp[2] = NULL;
-			
-
-
 
 			std::string tmp_in = "./tmp/tmp_in_" + NumberToString(this->req->getfd()) + ".txt";
 			std::string tmp_out = "./tmp/tmp_out_" + NumberToString(this->req->getfd()) + ".txt";
-			this->req->setCGI(1);
 
 			if (pipe(pfd) == -1)
 				return ; // error pipe
@@ -295,6 +292,7 @@ class Execution
 			}
 			else {
 				close(pfd[0]);
+				this->req->setCGI(1);
 				this->req->setPID(pid);
 			}
 			free(tmp[0]);
@@ -385,7 +383,6 @@ class Execution
 			}
 			return (0);
 		}
-
 		int											doDelete(void) {
 			if (this->req->get_method() == "DELETE") {
 				std::string path = this->get_fullPath();
@@ -409,7 +406,6 @@ class Execution
 			}
 			return (0);
 		}
-
 		int											doOptions(void) {
 			
 			if (this->req->get_method() == "OPTIONS") {
@@ -468,12 +464,12 @@ class Execution
 		}
 
 	private:
-		ServerWeb *			serv;
-		VirtualServer *		vserv;
-		Request * 			req;
-		std::string 		_fullPath;
-		char **				_envs;
-		bool				file;
+		ServerWeb *									serv;
+		VirtualServer *								vserv;
+		Request * 									req;
+		std::string 								_fullPath;
+		char **										_envs;
+		bool										file;
 
 };
 #endif

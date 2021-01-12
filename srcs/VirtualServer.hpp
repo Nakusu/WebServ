@@ -11,8 +11,10 @@ class VirtualServer
 			initAddr(AF_INET, INADDR_ANY, htons(PORT));
 		}
 		VirtualServer(std::vector<std::string> file){
+			this->_fd = 0;
 			this->_conf = file;
 			this->_root = "./public";
+			// this->_autoIndex = 1;
 			this->parsing();
 			this->verifications();
 			initAddr(AF_INET, INADDR_ANY, htons(atoi(this->_listen.c_str())));
@@ -23,7 +25,10 @@ class VirtualServer
 		VirtualServer(VirtualServer const &rhs){
 			operator=(rhs);
 		}
-		virtual ~VirtualServer(void){}
+		virtual ~VirtualServer(void){
+			if (this->_fd != 0)
+				close(this->_fd );
+		}
 		VirtualServer &														operator=( VirtualServer const &rhs){
 			if (this != &rhs){
 			}
@@ -687,6 +692,9 @@ class VirtualServer
 				}
 			}
 			return (true);
+		}
+		void														delLastClient(void){
+			this->_clients.pop_back();
 		}
 
 	private:
