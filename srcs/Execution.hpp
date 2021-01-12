@@ -316,8 +316,7 @@ class Execution
 			return (0);
 		}
 		int											doAuthenticate(void) {
-			std::vector<std::string> global;
-			std::vector<std::string> option = this->vserv->findOption("Authenticate", this->req->get_uri(), global);
+			std::vector<std::string> option = this->vserv->findOption("Authenticate", this->req->get_uri(), this->vserv->get_authenticate());
 			
 			if (!option.empty() && option.size() == 3) {
 				if (!this->req->get_authType().empty() && !this->req->get_authCredential().empty()) {
