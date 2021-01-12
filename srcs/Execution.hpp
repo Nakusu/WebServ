@@ -19,6 +19,7 @@ class Execution
 			this->serv = serv;
 			this->vserv = vserv;
 			this->req = req;
+			this->req->updateURI(this->getFullPath());
 			this->_envs = envs;
 			this->file = 1;
 		}
@@ -85,6 +86,7 @@ class Execution
 				for (size_t i = 0; i < vec.size(); i++){
 					if ((index = searchInVec(vec[i], files)) != -1){//Compare index with files in Folder
 						this->req->setUri(this->req->get_uri() + files[index]); //Return new URI with the index
+						this->req->updateURI(this->getFullPath());
 						this->req->setPathInfo();
 						return (0);
 					}
@@ -314,10 +316,9 @@ class Execution
 			return (0);
 		}
 		int											doAuthenticate(void) {
-			std::vector<std::string> global;
-			std::vector<std::string> option = this->vserv->findOption("Authenticate", this->req->get_uri(), global);
+			std::vector<std::string> option = this->vserv->findOption("Authenticate", this->req->get_uri(), this->vserv->get_authenticate());
 			
-			if (!option.empty() && option.size() == 4) {
+			if (!option.empty() && option.size() == 3) {
 				if (!this->req->get_authType().empty() && !this->req->get_authCredential().empty()) {
 					if (this->req->get_authType() == "Basic") {
 						std::string tmp = decode64(this->req->get_authCredential());

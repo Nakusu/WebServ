@@ -98,7 +98,7 @@ class Request{
 			this->_parsing->parseGet();
 			this->_extension = this->_parsing->getExtension();
 			this->_datas = "";
-			//this->findAcceptLanguage();
+			this->findAcceptLanguage();
 			this->findUri();
 			this->findTypeContent();
 			this->parsingMetasVars();
@@ -260,7 +260,6 @@ class Request{
 			this->_uri = "";
 			std::vector<std::string> lineUri = split(this->_requestHeader, " \t");
 			this->_uri = lineUri[1];
-			//this->_uri = this->_request.substr(this->_request.find("/"), (this->_request.find("HTTP") - 5));
 			this->_uri = cleanLine(this->_uri);
 		}
 		void												findTypeContent(void){
@@ -270,32 +269,33 @@ class Request{
 		void												findAcceptLanguage(void){
 			std::string cleanedLanguages = cleanLine(this->_parsing->getMap()["Accept-Language"]);
 			std::vector<std::vector<std::string> > all;
-			std::vector<std::string> firstParsing = split(cleanedLanguages, ";");
-			size_t min;
-
+			std::vector<std::string> firstParsing = split(cleanedLanguages, ",");
+			size_t max;
+			
 			// Récupération de toute les langues et de leur priorite dans un vecteur
 			for (size_t i = 0; i < firstParsing.size(); i++) {
-				all.push_back(split(firstParsing[i], ","));
+				all.push_back(split(firstParsing[i], ";"));
 				if (all[i].size() > 1) {
 					if (all[i][1].find("=") != SIZE_MAX)
-						all[i][1] = &all[i][i][all[i][1].find("=") + 1];
+						all[i][1] = &all[i][1][all[i][1].find("=") + 1];
 					else
-						all[i].push_back("1");
+						all[i][1] = "0";
 				}
+				else
+						all[i].push_back("1");
 			}
 			// Tri des langue par ordre de priorite
 			for (size_t i = 0; i < all.size() - 1; i++)
 			{
-				min = i;
+				max = i;
 				for (size_t j = i + 1; j < all.size(); j++)
-					if (!all[j].empty() && !all[min].empty() && !all[min][1].empty() && !all[j][1].empty() && std::atof(all[j][1].c_str()) < std::atof(all[min][1].c_str()))
-						min = j;
-				if (min != i)
-					std::swap(all[i], all[min]);
+					if (!all[j].empty() && !all[max].empty() && !all[max][1].empty() && !all[j][1].empty() && std::atof(all[j][1].c_str()) > std::atof(all[max][1].c_str()))
+						max = j;
+				if (max != i)
+					std::swap(all[i], all[max]);
 			}
 			for (size_t k = 0; k < all.size(); k++){
 				this->_acceptLanguage.push_back(all[k][0]);
-				std::cout << all[k][0] << std::endl;
 			}
 		}
 
@@ -398,6 +398,30 @@ class Request{
 			close(fd);
 		}
 
+		void		updateURI(std::string fullPath)
+		{
+			std::string language = "";
+
+			if (folderIsOpenable(fullPath))
+				return;
+			for (size_t i = 0; i < this->_acceptLanguage.size(); i++)
+			{
+				if (fileIsOpenable((fullPath + "." + this->_acceptLanguage[i]))) {
+					this->_uri = this->_uri + "." + this->_acceptLanguage[i];
+					language = "." + this->_acceptLanguage[i];
+					return ;
+				}
+			}
+			if (!fileIsOpenable(fullPath + language) && !language.empty())
+			{
+				this->basicHeaderFormat();
+				this->updateContent("HTTP/1.1", "406 Not Accetpable");
+				this->updateContent("Content-Length", "0");
+				this->sendHeader();
+			}
+		}
+
+
 private :
 		int													_fd;
 		int													_CGI;
@@ -432,7 +456,6 @@ private :
 		size_t												endHeader;
 		std::vector<std::string>							_acceptLanguage;
 		char *												buffer;
-
 };
 
 #endif

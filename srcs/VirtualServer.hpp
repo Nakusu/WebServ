@@ -254,6 +254,9 @@ class VirtualServer
 			}
 			return ("");
 		}
+		std::vector<std::string>											get_authenticate(void) {
+			return (split(this->_authenticate, " "));
+		}
 		std::vector<Client *>												get_clients(void){
 			return (this->_clients);
 		}
@@ -335,6 +338,7 @@ class VirtualServer
 			this->parsingMethods();
 			this->parsingMaxBody();
 			this->parsingCGI();
+			this->parsingAuthenticate();
 		}
 		void																parsingAutoIndex(void){
 			unsigned int cpt = 0;
@@ -454,6 +458,20 @@ class VirtualServer
 					std::vector<std::string> results = split(iss, " ");
 					results.erase(results.begin());
 					this->_serverNames = results[0];
+				}
+			}
+		}
+		void																parsingAuthenticate(void){
+			size_t cpt = 0;
+			for (size_t i = 0; i < this->_conf.size(); i++){
+				if (this->_conf[i].find("{") != SIZE_MAX)
+					cpt++;
+				else if (this->_conf[i].find("}") != SIZE_MAX)
+					cpt--;
+				if (this->_conf[i].find("Authenticate") != SIZE_MAX && cpt == 1){
+					std::string iss = this->_conf[i];
+					this->_authenticate = this->_conf[i];
+					this->_authenticate = this->_authenticate.erase(0, 13);
 				}
 			}
 		}
@@ -695,6 +713,7 @@ class VirtualServer
 		std::string															_root;
 		std::string															_serverNames;
 		std::vector<Client *>												_clients;
+		std::string															_authenticate;
 };
 
 #endif
