@@ -19,6 +19,7 @@ class Execution
 			this->serv = serv;
 			this->vserv = vserv;
 			this->req = req;
+			this->req->updateURI(this->getFullPath());
 			this->_envs = envs;
 			this->file = 1;
 		}
@@ -85,6 +86,7 @@ class Execution
 				for (size_t i = 0; i < vec.size(); i++){
 					if ((index = searchInVec(vec[i], files)) != -1){//Compare index with files in Folder
 						this->req->setUri(this->req->get_uri() + files[index]); //Return new URI with the index
+						this->req->updateURI(this->getFullPath());
 						this->req->setPathInfo();
 						return (0);
 					}
