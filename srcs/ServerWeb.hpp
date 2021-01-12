@@ -11,6 +11,7 @@ class ServerWeb
 		ServerWeb(void){
 			this->_fdmax = 0;
 			this->_nbActivity = 0;
+			this->getContentType();
 		}
 		ServerWeb(ServerWeb const &rhs){
 			operator=(rhs);
@@ -61,10 +62,6 @@ class ServerWeb
 			}
 			(ifs).close();
 		}
-		std::map<std::string, std::string>								get_MimesTypes(void){
-			return (this->_mimesTypes);
-		}
-
 		/***************************************************
 		********************    SET   **********************
 		***************************************************/
