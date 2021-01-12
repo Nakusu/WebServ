@@ -64,6 +64,8 @@ class Request{
 			this->total += size; 
 			if (size == 0)
 				return (-1);
+			if (size == -1)
+				return (0);
 			this->_request += buffer;
 			free(buffer);
 			//Verification du header
@@ -86,6 +88,7 @@ class Request{
 			this->_parsing->parseGet();
 			this->_extension = this->_parsing->getExtension();
 			this->_datas = "";
+			//this->findAcceptLanguage();
 			this->findUri();
 			this->findTypeContent();
 			this->parsingMetasVars();
@@ -255,7 +258,6 @@ class Request{
 			size_t min;
 
 			// Récupération de toute les langues et de leur priorite dans un vecteur
-			
 			for (size_t i = 0; i < firstParsing.size(); i++) {
 				all.push_back(split(firstParsing[i], ","));
 				if (all[i].size() > 1) {
@@ -270,13 +272,15 @@ class Request{
 			{
 				min = i;
 				for (size_t j = i + 1; j < all.size(); j++)
-					if (std::atof(all[j][1].c_str()) < std::atof(all[min][1].c_str()))
+					if (!all[j].empty() && !all[min].empty() && !all[min][1].empty() && !all[j][1].empty() && std::atof(all[j][1].c_str()) < std::atof(all[min][1].c_str()))
 						min = j;
 				if (min != i)
 					std::swap(all[i], all[min]);
 			}
-			for (size_t k = 0; k < all.size(); k++)
+			for (size_t k = 0; k < all.size(); k++){
 				this->_acceptLanguage.push_back(all[k][0]);
+				std::cout << all[k][0] << std::endl;
+			}
 		}
 
 

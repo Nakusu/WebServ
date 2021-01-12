@@ -172,17 +172,18 @@ class Execution
 			long long unsigned int size_file = getSizeFileBits(tmp);
 			char *content = (char *)calloc(sizeof(char), size_file + 1);
 			this->req->basicHeaderFormat();
-			// this->req->basicHistory(this->vserv);
+			//this->req->basicHistory(this->vserv);
 			this->req->updateContent("Content-Length", NumberToString(size_file));
 			if (this->req->get_method() == "HEAD")
 				this->req->updateContent("Content-Length", "0");
 			this->req->sendHeader();
 			if (this->req->get_method() != "HEAD") {
 				opfile.read(content, size_file);
-				req->sendPacket(content, size_file);
+				req->sendPacket(std::string(content));
 			}
 			opfile.close();
 			free(content);
+
 			return (1);
 		}
 
@@ -321,9 +322,6 @@ class Execution
 			std::vector<std::string> option = this->vserv->findOption("Authenticate", this->req->get_uri(), global);
 			
 			if (!option.empty() && option.size() == 4) {
-				std::cout << "CHECK OPTION 1 " << option[0] << std::endl;
-				std::cout << "CHECK OPTION 2 " << option[1] << std::endl;
-				std::cout << "TEST " << decode64(std::string("c2FsdXQ=")) << " to salut" << std::endl;
 				if (!this->req->get_authType().empty() && !this->req->get_authCredential().empty()) {
 					if (this->req->get_authType() == option[0]) {
 						std::string tmp = decode64(this->req->get_authCredential());
@@ -431,7 +429,6 @@ class Execution
 		*****************    Operation    ******************
 		***************************************************/
 		int											needRedirection(void){
-
 			this->_fullPath = this->findFullPath();
 			if (fileIsOpenable(this->_fullPath) && !folderIsOpenable(this->_fullPath))
 				return (0);
