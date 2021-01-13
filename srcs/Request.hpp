@@ -91,6 +91,7 @@ class Request{
 			if (this->findend == 2 && (this->endHeader == this->_request.size() - 4 || this->_request.compare(this->_request.size() - 4, 4, "\r\n\r\n") != 0))
 				return (0);
 			this->_requestBody = CleanBody(this->_request);
+			std::cout << this->_requestBody << std::endl;
 			this->_requestHeader = this->_request.substr(0, this->_request.find("\r\n\r\n") + 4);
 			this->_method = this->set_method();
 			this->_parsing->parsingMap((char *)this->_requestHeader.c_str());
@@ -378,7 +379,7 @@ class Request{
 			int ret;
 			std::string tmp_out = "./tmp/tmp_out_" + NumberToString(this->_fd) + ".txt";
 			// std::string tmp_in = "./tmp/tmp_in_" + NumberToString(this->_fd) + ".txt";
-			// remove(tmp_in.c_str());
+			remove(tmp_in.c_str());
 			int fd = open(tmp_out.c_str(), O_CREAT | O_RDONLY);
 
 			while ((ret = read(fd, &line, 2046)) > 0){
@@ -393,7 +394,7 @@ class Request{
 				sendHeader();
 			}
 			sendPacket(buff);
-			remove(tmp_out.c_str());
+			// remove(tmp_out.c_str());
 			close(fd);
 		}
 

@@ -303,7 +303,9 @@ class Execution
 			std::string extension = (this->req->getExtension().find(".", 0) != SIZE_MAX) ? this->req->getExtension() : "." + this->req->getExtension();
 			std::string path = this->vserv->findCGI(this->req->get_uri(), extension, this->req->get_method());
 			if (path != "bad_method" && path != "no_cgi"){
+				std::cout << "Mon leo" << std::endl;
 				if (fileIsOpenable(path)){
+				std::cout << "Je t'aime" << std::endl;
 					std::map<std::string, std::string> args = setMetaCGI(path);
 					char **tmpargs = swapMaptoChar(args);
 					processCGI(path, tmpargs);
@@ -377,8 +379,10 @@ class Execution
 					this->req->updateContent("Content-Length", NumberToString(this->req->get_datas().size()));
 				this->req->sendHeader();
 				this->req->setheaderSended(1);
-				if (initCGI() == 0)
+				if (initCGI() == 0){
+					std::cout << "send body" << std::endl;
 					this->req->sendPacket(this->req->get_requestBody());
+				}
 				return (1);
 			}
 			return (0);
