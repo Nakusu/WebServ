@@ -17,7 +17,6 @@ class Request{
 			this->_authCredentials = "";
 			this->_authType = "";
 			this->_parsing = new ParsingRequest();
-			this->headerSended = 0;
 			this->pid = 0;
 			this->status = 0;
 			this->_time = 0;
@@ -37,7 +36,6 @@ class Request{
 			this->_parsing = new ParsingRequest();
 			this->addContent("HTTP/1.1", "200 OK");
 			this->_mimeTypes = mineTypes;
-			this->headerSended = 0;
 			this->pid = 0;
 			this->status = 0;
 			this->_time = 0;
@@ -91,7 +89,6 @@ class Request{
 			if (this->findend == 2 && (this->endHeader == this->_request.size() - 4 || this->_request.compare(this->_request.size() - 4, 4, "\r\n\r\n") != 0))
 				return (0);
 			this->_requestBody = CleanBody(this->_request);
-			std::cout << this->_requestBody << std::endl;
 			this->_requestHeader = this->_request.substr(0, this->_request.find("\r\n\r\n") + 4);
 			this->_method = this->set_method();
 			this->_parsing->parsingMap((char *)this->_requestHeader.c_str());
@@ -187,9 +184,6 @@ class Request{
 		std::string											get_datas(void) const{
 			return (this->_datas);
 		}
-		int													get_headerSended(void){
-			return (this->headerSended);
-		}
 		pid_t												get_PID(void){
 			return (this->pid);
 		}
@@ -226,9 +220,6 @@ class Request{
 		}
 		void												setUri(std::string uri){
 			this->_uri = uri;
-		}
-		void												setheaderSended(int i){
-			this->headerSended = i;
 		}
 		void												setPID(pid_t i){
 			this->pid = i;
@@ -416,8 +407,8 @@ class Request{
 			char line[2048];
 			int ret;
 			std::string tmp_out = "./tmp/tmp_out_" + NumberToString(this->_fd) + ".txt";
-			std::string tmp_in = "./tmp/tmp_in_" + NumberToString(this->_fd) + ".txt";
-			remove(tmp_in.c_str());
+			//std::string tmp_in = "./tmp/tmp_in_" + NumberToString(this->_fd) + ".txt";
+			//remove(tmp_in.c_str());
 			int fd = open(tmp_out.c_str(), O_CREAT | O_RDONLY);
 
 			while ((ret = read(fd, &line, 2046)) > 0){
@@ -426,13 +417,11 @@ class Request{
 			}
 			if (buff.find("\r\n\r\n") != SIZE_MAX)
 				buff = &buff[buff.find("\r\n\r\n") + 4];
-			if (this->headerSended == 0){
-				basicHeaderFormat();
-				updateContent("Content-Length", NumberToString(buff.size()));
-				sendHeader();
-			}
+			basicHeaderFormat();
+			updateContent("Content-Length", NumberToString(buff.size()));
+			sendHeader();
 			sendPacket(buff);
-			// remove(tmp_out.c_str());
+			remove(tmp_out.c_str());
 			close(fd);
 		}
 
@@ -482,7 +471,6 @@ private :
 		std::string 										_pathInfo;
 		std::string											_extension;
 		std::string											_datas;
-		int													headerSended;
 		pid_t												pid;
 		int													status;
 		std::map<std::string, std::string>					_content;
