@@ -378,7 +378,7 @@ class Request{
 			char line[2048];
 			int ret;
 			std::string tmp_out = "./tmp/tmp_out_" + NumberToString(this->_fd) + ".txt";
-			// std::string tmp_in = "./tmp/tmp_in_" + NumberToString(this->_fd) + ".txt";
+			std::string tmp_in = "./tmp/tmp_in_" + NumberToString(this->_fd) + ".txt";
 			remove(tmp_in.c_str());
 			int fd = open(tmp_out.c_str(), O_CREAT | O_RDONLY);
 
