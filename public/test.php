@@ -1,1 +1,1 @@
-<?php echo 1; ?>
+<?php echo $_GET["var"]; ?>

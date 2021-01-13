@@ -98,6 +98,7 @@ class Request{
 			this->findAcceptLanguage();
 			this->findAcceptCharset();
 			this->findUri();
+			this->setQueryString();
 			this->findTypeContent();
 			this->parsingMetasVars();
 			this->parsingAuthorizations();
@@ -211,6 +212,8 @@ class Request{
 		***************************************************/
 		void												setQueryString(void){
 			this->_queryString = (this->_uri.find("?") != SIZE_MAX) ? &this->_uri[this->_uri.find("?") + 1] : "";
+			if (!this->_queryString.empty())
+				this->_uri = this->_uri.erase(this->_uri.find("?"), (this->_uri.size() - this->_uri.find("?")));
 		}
 		void												setCGI(int i){
 			this->_CGI = i;
