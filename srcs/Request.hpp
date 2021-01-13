@@ -94,7 +94,6 @@ class Request{
 			this->_requestHeader = this->_request.substr(0, this->_request.find("\r\n\r\n") + 4);
 			this->_method = this->set_method();
 			this->_parsing->parsingMap((char *)this->_requestHeader.c_str());
-			this->_parsing->parsingMime();
 			this->_parsing->parseGet();
 			this->_extension = this->_parsing->getExtension();
 			this->_datas = "";
@@ -285,7 +284,7 @@ class Request{
 						all[i].push_back("1");
 			}
 			// Tri des langue par ordre de priorite
-			for (size_t i = 0; i < all.size() - 1; i++)
+			for (size_t i = 0; all.size() && i < all.size() - 1; i++)
 			{
 				max = i;
 				for (size_t j = i + 1; j < all.size(); j++)
@@ -444,7 +443,6 @@ private :
 		std::string 										_pathInfo;
 		std::string											_extension;
 		std::string											_datas;
-		std::map<std::string, std::string> 					_mimesTypes;
 		int													headerSended;
 		pid_t												pid;
 		int													status;

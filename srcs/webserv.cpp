@@ -40,9 +40,7 @@ void		closeServ(int code){
 
 	serv->clearFd();
 	std::cout << std::endl << RED << "Wait end of process still runnings..." << RESET << std::endl;
-	while (serv->checkEndCGI() != 0){
-		std::cout << serv->checkEndCGI() << std::endl;
-	}
+	while (serv->checkEndCGI() != 0){}
 	std::cout << RED << "Closing serveurs..." << RESET << std::endl;
 	int i;
 	int j;

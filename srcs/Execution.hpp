@@ -181,11 +181,10 @@ class Execution
 			this->req->sendHeader();
 			if (this->req->get_method() != "HEAD") {
 				opfile.read(content, size_file);
-				req->sendPacket(std::string(content));
+				req->sendPacket(content, size_file);
 			}
 			opfile.close();
 			free(content);
-
 			return (1);
 		}
 
