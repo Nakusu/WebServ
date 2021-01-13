@@ -264,7 +264,6 @@ class Execution
 
 			std::string tmp_in = "./tmp/tmp_in_" + NumberToString(this->req->getfd()) + ".txt";
 			std::string tmp_out = "./tmp/tmp_out_" + NumberToString(this->req->getfd()) + ".txt";
-
 			if (pipe(pfd) == -1)
 				return ; // error pipe
 			pid_t pid = fork();
@@ -303,9 +302,7 @@ class Execution
 			std::string extension = (this->req->getExtension().find(".", 0) != SIZE_MAX) ? this->req->getExtension() : "." + this->req->getExtension();
 			std::string path = this->vserv->findCGI(this->req->get_uri(), extension, this->req->get_method());
 			if (path != "bad_method" && path != "no_cgi"){
-				std::cout << "Mon leo" << std::endl;
 				if (fileIsOpenable(path)){
-				std::cout << "Je t'aime" << std::endl;
 					std::map<std::string, std::string> args = setMetaCGI(path);
 					char **tmpargs = swapMaptoChar(args);
 					processCGI(path, tmpargs);
@@ -367,7 +364,6 @@ class Execution
 				this->req->getDatas();
 				this->req->basicHeaderFormat();
 				this->req->updateContent("HTTP/1.1", "200 OK");
-
 				std::string maxbody = this->vserv->findOption("maxBody", this->req->get_uri(), this->vserv->get_maxBody());
 				if (!maxbody.empty() && std::strtoul(maxbody.c_str(), NULL, 10) < this->req->get_datas().size()){
 					this->req->updateContent("HTTP/1.1", "413 Request Entity Too Large");
@@ -375,12 +371,9 @@ class Execution
 					this->req->sendHeader();
 					return (1);
 				}
-				else
-					this->req->updateContent("Content-Length", NumberToString(this->req->get_datas().size()));
-				this->req->sendHeader();
-				this->req->setheaderSended(1);
 				if (initCGI() == 0){
-					std::cout << "send body" << std::endl;
+					this->req->updateContent("Content-Length", NumberToString(this->req->get_requestBody().size()));
+					this->req->sendHeader();
 					this->req->sendPacket(this->req->get_requestBody());
 				}
 				return (1);

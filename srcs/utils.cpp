@@ -183,22 +183,17 @@ std::string							getfilename(std::string uri) {
 std::string							CleanBody(std::string request){
 	std::string body;
 
-	std::cout << request << std::endl;
-	if (request.find("\r\n\r\n") != request.rfind("\r\n\r\n")){
-		body = request.substr(request.find("\r\n\r\n") + 2, request.rfind("\r\n\r\n"));
-		std::vector<std::string> bodyvec = split(body, "\r\n");
-		body = "";
-		for (size_t i = 1; i < bodyvec.size(); i += 2){
-			body += bodyvec[i];
+	if (request.find("\r\n\r\n") != request.rfind("\r\n\r\n") || (request.find("\r\n\r\n") != request.rfind("\n") && request.rfind("\n") != SIZE_MAX )){
+		if (request.find("\r\n\r\n") != request.rfind("\r\n\r\n")){
+			body = request.substr(request.find("\r\n\r\n") + 2, request.rfind("\r\n\r\n"));
+			std::vector<std::string> bodyvec = split(body, "\r\n");
+			body = "";
+			for (size_t i = 1; i < bodyvec.size(); i += 2){
+				body += bodyvec[i];
+			}
 		}
-	}
-	if (request.find("\r\n\r\n") != request.rfind("\r\n\r\n")){
-		body = request.substr(request.find("\r\n\r\n") + 2, request.rfind("\r\n\r\n"));
-		std::vector<std::string> bodyvec = split(body, "\r\n");
-		body = "";
-		for (size_t i = 1; i < bodyvec.size(); i += 2){
-			body += bodyvec[i];
-		}
+		else
+			body = request.substr(request.find("\r\n\r\n") + 4, request.rfind("\n"));
 	}
 	return (body);
 }
