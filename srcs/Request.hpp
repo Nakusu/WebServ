@@ -98,6 +98,7 @@ class Request{
 			this->_extension = this->_parsing->getExtension();
 			this->_datas = "";
 			this->findAcceptLanguage();
+			this->findAcceptCharset();
 			this->findUri();
 			this->findTypeContent();
 			this->parsingMetasVars();
@@ -159,6 +160,9 @@ class Request{
 		}
 		std::string											get_requestBody(void) const{
 			return (this->_requestBody);
+		}
+		std::vector<std::string>							get_acceptLanguage(void) const {
+			return (this->_acceptCharset);
 		}
 		std::string											set_method(void){
 			char *tmp = (char *)this->_requestHeader.c_str();
@@ -297,6 +301,38 @@ class Request{
 				this->_acceptLanguage.push_back(all[k][0]);
 			}
 		}
+		void												findAcceptCharset(void){
+			std::string cleanedLanguages = cleanLine(this->_parsing->getMap()["Accept-Charset"]);
+			std::vector<std::vector<std::string> > all;
+			std::vector<std::string> firstParsing = split(cleanedLanguages, ",");
+			size_t max;
+			
+			// Récupération de toute les langues et de leur priorite dans un vecteur
+			for (size_t i = 0; i < firstParsing.size(); i++) {
+				all.push_back(split(firstParsing[i], ";"));
+				if (all[i].size() > 1) {
+					if (all[i][1].find("=") != SIZE_MAX)
+						all[i][1] = &all[i][1][all[i][1].find("=") + 1];
+					else
+						all[i][1] = "0";
+				}
+				else
+						all[i].push_back("1");
+			}
+			// Tri des langue par ordre de priorite
+			for (size_t i = 0; all.size() && i < all.size() - 1; i++)
+			{
+				max = i;
+				for (size_t j = i + 1; j < all.size(); j++)
+					if (!all[j].empty() && !all[max].empty() && !all[max][1].empty() && !all[j][1].empty() && std::atof(all[j][1].c_str()) > std::atof(all[max][1].c_str()))
+						max = j;
+				if (max != i)
+					std::swap(all[i], all[max]);
+			}
+			for (size_t k = 0; k < all.size(); k++){
+				this->_acceptCharset.push_back(all[k][0]);
+			}
+		}
 
 		/***************************************************
 		******************    Parsing   ********************
@@ -343,6 +379,11 @@ class Request{
 			rep += "\n\n";
 			sendPacket(rep.c_str());
 		}
+		void												contentType() {
+			this->updateContent("Content-Type", "text/html");
+			if (this->_mimeTypes[getExtension()] != "")
+				this->updateContent("Content-Type", this->_mimeTypes[getExtension()]);
+		}
 		void												basicAuthentificate(std::string realm){
 			this->basicHeaderFormat();
 			this->updateContent("HTTP/1.1", "401 Unauthorized");
@@ -353,10 +394,7 @@ class Request{
 			this->updateContent("Content-Location", get_uri());
 			this->addContent("Server", "webserv");
 			this->addContent("Date", getTime());
-			this->updateContent("Content-Type", "text/html");
-			if (this->_mimeTypes[getExtension()] != "")
-				this->updateContent("Content-Type", this->_mimeTypes[getExtension()]);
-			this->updateContent("Accept-Charset", "utf-8");
+			this->contentType();
 		}
 		void												Error405HeaderFormat(std::string allowMethods){
 			this->basicHeaderFormat();
@@ -397,7 +435,7 @@ class Request{
 			close(fd);
 		}
 
-		void		updateURI(std::string fullPath)
+		void												updateURI(std::string fullPath)
 		{
 			std::string language = "";
 
@@ -453,6 +491,7 @@ private :
 		size_t												findend;
 		size_t												endHeader;
 		std::vector<std::string>							_acceptLanguage;
+		std::vector<std::string>							_acceptCharset;
 		char *												buffer;
 };
 
