@@ -103,6 +103,7 @@ class Request{
 			this->parsingMetasVars();
 			this->parsingAuthorizations();
 			this->setPathInfo();
+			this->setLastModified();
 			return (1);
 		}
 		/***************************************************
@@ -239,6 +240,15 @@ class Request{
 				this->_pathInfo = "";
 			else
 				this->_pathInfo = (this->_extension.find("/") != SIZE_MAX) ? &this->_extension[this->_extension.find("/") + 1] : "";
+		}
+		void												setLastModified(void)
+		{
+			this->_lastModified = "";
+			if (this->_requestHeader.find("If-Modified") != SIZE_MAX)
+			{
+				this->_lastModified = getTime();
+				this->updateContent("Last-Modified", this->_lastModified);
+			}
 		}
 
 		/***************************************************
@@ -485,6 +495,7 @@ private :
 		std::vector<std::string>							_acceptLanguage;
 		std::vector<std::string>							_acceptCharset;
 		char *												buffer;
+		std::string											_lastModified;
 };
 
 #endif
