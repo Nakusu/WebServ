@@ -180,11 +180,13 @@ std::string							getfilename(std::string uri) {
 	return (ret);
 }
 
-std::string							CleanBody(std::string request){
+std::string							CleanBody(std::string request, std::string contentType){
 	std::string body;
 
 	if (request.find("\r\n\r\n") != request.rfind("\r\n\r\n") || (request.find("\r\n\r\n") != request.rfind("\n") && request.rfind("\n") != SIZE_MAX )){
-		if (request.find("\r\n\r\n") != request.rfind("\r\n\r\n")){
+		if (contentType.find("boundary=") != SIZE_MAX && contentType.find("multipart/form-data;") != SIZE_MAX) {
+			body = request.substr(request.find("\r\n\r\n") + 2, request.rfind("\r\n\r\n"));
+		} else if (request.find("\r\n\r\n") != request.rfind("\r\n\r\n")){
 			body = request.substr(request.find("\r\n\r\n") + 2, request.rfind("\r\n\r\n"));
 			std::vector<std::string> bodyvec = split(body, "\r\n");
 			body = "";
