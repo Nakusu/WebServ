@@ -231,7 +231,7 @@ class Execution
 			args["REDIRECT_STATUS"] = "200";
 			args["PATH_INFO"] = this->req->get_uri();
 			args["REDIRECT_STATUS"] = "200";
-			args["PATH_TRANSLATED"] = "./" + this->vserv->get_root() + this->req->get_uri();
+			args["PATH_TRANSLATED"] = this->vserv->get_root() + this->req->get_uri();
 			return (args);
 		}
 		char **										swapMaptoChar(std::map<std::string, std::string> args){
