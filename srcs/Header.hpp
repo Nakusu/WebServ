@@ -71,5 +71,6 @@ std::string 							replaceStrStart(std::string line, std::string s1, std::string
 std::string								getfilename(std::string uri);
 std::string								CleanBody(std::string request);
 std::string								decode64(const std::string &in);
+std::string								CleanBody(std::string request, std::string contentType);
 
 #endif
