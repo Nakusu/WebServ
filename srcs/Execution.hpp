@@ -105,7 +105,8 @@ class Execution
 					// this->req->basicHistory(this->vserv);
 					this->req->updateContent("Content-Length", NumberToString(autoindex.size()));
 					this->req->sendHeader();
-					this->req->sendPacket(autoindex);
+					if (this->req->sendPacket(autoindex) == -1)
+						return (0);
 				}
 				else
 					searchError404();
@@ -122,12 +123,14 @@ class Execution
 			if (redir.empty()){
 				this->req->updateContent("Content-Length", "159");
 				this->req->sendHeader();
-				req->sendPacket("<html><head><title>404 Not Found</title></head><body bgcolor=\"white\"><center><h1>404 Not Found</h1></center><hr><center>Les Poldters Server Web</center></html>");
+				if (req->sendPacket("<html><head><title>404 Not Found</title></head><body bgcolor=\"white\"><center><h1>404 Not Found</h1></center><hr><center>Les Poldters Server Web</center></html>") == -1)
+					return ;
 				
 			}
 			else{
 				this->req->sendHeader();
-				req->sendPacket(fileToString(redir));
+				if (req->sendPacket(fileToString(redir)) == -1)
+					return ;
 			}
 		}
 		void										searchError405(void){
@@ -139,12 +142,14 @@ class Execution
 				this->req->updateContent("Content-Length", "177");
 				this->req->sendHeader();
 				if (this->req->get_method() != "HEAD")
-					req->sendPacket("<html><head><title>405 Method Not Allowed</title></head><body bgcolor=\"white\"><center><h1>405 Method Not Allowed</h1></center><hr><center>Les Poldters Server Web</center></html>");
+					if (req->sendPacket("<html><head><title>405 Method Not Allowed</title></head><body bgcolor=\"white\"><center><h1>405 Method Not Allowed</h1></center><hr><center>Les Poldters Server Web</center></html>") == -1)
+						return ;
 			}
 			else{
 				this->req->sendHeader();
 				if (this->req->get_method() != "HEAD")
-					req->sendPacket(fileToString(redir));
+					if (req->sendPacket(fileToString(redir)) == -1)
+						return ;
 			} 
 		}
 
@@ -181,7 +186,11 @@ class Execution
 			this->req->sendHeader();
 			if (this->req->get_method() != "HEAD") {
 				opfile.read(content, size_file);
-				req->sendPacket(content, size_file);
+				if (req->sendPacket(content, size_file) == -1) {
+					opfile.close();
+					free(content);
+					return (0);
+				}
 			}
 			opfile.close();
 			free(content);
@@ -331,7 +340,8 @@ class Execution
 				this->req->basicAuthentificate(option[0]);
 				this->req->updateContent("Content-Length", "80");
 				this->req->sendHeader();
-				this->req->sendPacket("<html><head><title>Unauthorized</title></head><body><h1>Unauthorized</h1></body>");
+				if (this->req->sendPacket("<html><head><title>Unauthorized</title></head><body><h1>Unauthorized</h1></body>") == -1)
+					return (0);
 				return (1);
 			}
 			return (0);
@@ -375,7 +385,8 @@ class Execution
 				if (initCGI() == 0){
 					this->req->updateContent("Content-Length", NumberToString(this->req->get_requestBody().size()));
 					this->req->sendHeader();
-					this->req->sendPacket(this->req->get_requestBody());
+					if (this->req->sendPacket(this->req->get_requestBody()) == -1)
+						return (0);
 				}
 				return (1);
 			}
@@ -393,7 +404,8 @@ class Execution
 					this->req->updateContent("Content-Location", headerLoc);
 					this->req->updateContent("Content-Length", "48");
 					this->req->sendHeader();
-					this->req->sendPacket("<html><body><h1>File deleted.</h1></body></html>");
+					if (this->req->sendPacket("<html><body><h1>File deleted.</h1></body></html>") == -1)
+						return (0);
 					return (1);
 				}
 				this->req->updateContent("HTTP/1.1", "204 No Content");

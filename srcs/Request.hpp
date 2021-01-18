@@ -8,6 +8,7 @@ class Request{
 	public:
 		Request(){
 			this->_fd = 0;
+			this->_error = 0;
 			this->buffer = NULL;
 			this->_CGI = 0;
 			this->total = 0;
@@ -24,6 +25,7 @@ class Request{
 			this->endHeader = 0;
 		}
 		Request(int fd, std::map<std::string, std::string> mineTypes){
+			this->_error = 0;
 			this->_fd = fd;
 			this->buffer = NULL;
 			this->_CGI = 0;
@@ -188,8 +190,11 @@ class Request{
 		pid_t												get_PID(void){
 			return (this->pid);
 		}
-		int *												get_Status(void){
+		int													*get_Status(void){
 			return (&this->status);
+		}
+		int													get_error(void) const {
+			return (this->_error);
 		}
 		size_t												getSize(void) const{
 			return (this->_content.size());
@@ -244,11 +249,19 @@ class Request{
 		/***************************************************
 		*******************    SEND   **********************
 		***************************************************/
-		void												sendPacket(std::string content){
-			send(this->_fd, content.c_str(), content.size(), MSG_CONFIRM);
+		int													sendPacket(std::string content){
+			if (send(this->_fd, content.c_str(), content.size(), MSG_CONFIRM) == -1) {
+				this->status = -1;
+				return (-1);
+			}
+			return (1);
 		}
-		void												sendPacket(char *content, size_t len){
-			send(this->_fd, content, len, MSG_CONFIRM);
+		int													sendPacket(char *content, size_t len){
+			if (send(this->_fd, content, len, MSG_CONFIRM) == -1) {
+				this->status = -1;
+				return (-1);
+			}
+			return (1);
 		}
 
 		/***************************************************
@@ -372,7 +385,8 @@ class Request{
 			rep.erase(rep.size() - 1);
 			rep.erase(rep.size() - 1);
 			rep += "\n\n";
-			sendPacket(rep.c_str());
+			if (sendPacket(rep.c_str()) == -1)
+				return ;
 		}
 		void												contentType() {
 			this->updateContent("Content-Type", "text/html");
@@ -455,6 +469,7 @@ class Request{
 private :
 		int													_fd;
 		int													_CGI;
+		int													_error;
 		size_t												total;
 
 		std::string											_request;

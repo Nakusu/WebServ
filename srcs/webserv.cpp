@@ -100,7 +100,7 @@ int			main(int argc, char **argv, char **env)
 				int ret = client->get_req()->init();
 				if (ret > 0)
 					Exec(serv, client, i, env);
-				else if (ret == -1){
+				else if (ret == -1 || client->get_req()->get_error() == -1){
 					serv->getVS(i)->delClient(client);
 					delete client;
 				}
