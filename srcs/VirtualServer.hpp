@@ -714,6 +714,7 @@ class VirtualServer
 		std::string															_serverNames;
 		std::vector<Client *>												_clients;
 		std::string															_authenticate;
+		std::string															_servername;
 };
 
 #endif

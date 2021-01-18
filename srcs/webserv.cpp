@@ -32,6 +32,15 @@ void		Exec(ServerWeb *serv, Client *client, int i, char **env){
 	client->setHistory(NumberToString(client->get_fd()), client->get_req()->get_uri());
 	Execution exec = Execution(serv, serv->getVS(i), req, env);
 	std::string Method = req->get_method();
+	std::cout << "HOSTS COMP " << req->get_host() << " TO " << serv->getVS(i)->get_serverNames() << std::endl;
+	if (serv->getVS(i)->get_serverNames() != req->get_host()) {
+		req->basicHeaderFormat();
+		req->updateContent("HTTP/1.1", "400 Bad Request Error");
+		req->updateContent("Content-Length", "0");
+		req->sendHeader();
+		std::cout << "400 Bad Request Error" << std::endl;
+		return ;
+	}
 	if (!exec.needRedirection() && !exec.doAuthenticate() && !exec.checkMethod() && !exec.doPost() && !exec.doDelete() && !exec.doPut() && !exec.searchIndex() && !exec.initCGI() && !exec.binaryFile())
 		exec.searchError404();
 	if (!client->CGIIsRunning()){
