@@ -20,6 +20,10 @@ int			checkArgs(int argc, char **argv, std::string *defaultConf, ServerWeb *serv
 	}
 	serv->fileToVectorAndClean(&ifs);
 	ifs.close();
+	if (!folderIsOpenable("./tmp")) {
+		std::cerr << "Folder Error : no ./tmp folder in this repository" << std::endl;
+		return (0);
+	}
 	return (1);
 }
 
@@ -63,7 +67,8 @@ int			main(int argc, char **argv, char **env)
 	Client 		*client;
 
 
-	defaultConf = checkArgs(argc, argv, &defaultConf, serv);
+	if (!checkArgs(argc, argv, &defaultConf, serv))
+		return (-1);
 	serv->createVServs();
 	signal(SIGPIPE, SIG_IGN);
 	signal(SIGINT, &closeServ);
