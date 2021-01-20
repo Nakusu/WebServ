@@ -33,7 +33,7 @@ void		Exec(ServerWeb *serv, Client *client, int i, char **env){
 	Execution exec = Execution(serv, serv->getVS(i), req, env);
 	std::string Method = req->get_method();
 	std::cout << "HOSTS COMP " << req->get_host() << " TO " << serv->getVS(i)->get_serverNames() << std::endl;
-	if (serv->getVS(i)->get_serverNames() != req->get_host()) {
+	if (serv->getVS(i)->get_serverNames().find(req->get_host()) == SIZE_MAX) {
 		req->basicHeaderFormat();
 		req->updateContent("HTTP/1.1", "400 Bad Request Error");
 		req->updateContent("Content-Length", "0");

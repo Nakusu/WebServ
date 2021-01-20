@@ -345,7 +345,7 @@ class Request{
 		/***************************************************
 		******************    Parsing   ********************
 		***************************************************/
-		void												parsingMetasVars(void){
+		void												parsingMetasVars(void) {
 			this->_hostName = this->_parsing->getMap()["Host"].substr(0, this->_parsing->getMap()["Host"].find_first_of(":"));
 			this->_hostPort = &this->_parsing->getMap()["Host"][this->_parsing->getMap()["Host"].find_first_of(":") + 1];
 			this->_userAgent = this->_parsing->getMap()["User-Agent"];
