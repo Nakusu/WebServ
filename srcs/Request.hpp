@@ -65,6 +65,7 @@ class Request{
 			this->buffer = (char *)calloc(sizeof(char), 9999999);
 			size = recv(this->_fd, this->buffer, 9999999, MSG_DONTWAIT);
 			this->total += size; 
+			std::cout << RED << this->buffer << RESET << std::endl;
 			if (size == 0){
 				free(this->buffer);
 				this->buffer = NULL;
@@ -78,7 +79,8 @@ class Request{
 			this->_request += this->buffer;
 			free(this->buffer);
 			this->buffer = NULL;
-			//Verification du header
+			//std::cout << "____ REQUEST ____" << std::endl << this->_request << std::endl << "____ END REQUEST ____" << std::endl;
+			//Verification du header 
 			if (this->findend == 0){
 				if ((this->endHeader = this->_request.find("\r\n\r\n")) != SIZE_MAX){
 					this->findend = 1; 
@@ -88,6 +90,8 @@ class Request{
 				else
 					return (0);
 			}
+			if (this->findend == 0 &&  this->getContentMimes().find("boundary=") != SIZE_MAX && this->getContentMimes().find("multipart/form-data;") != SIZE_MAX)
+				return (0);
 			if (this->findend == 2 && (this->endHeader == this->_request.size() - 4 || this->_request.compare(this->_request.size() - 4, 4, "\r\n\r\n") != 0))
 				return (0);
 			this->_requestHeader = this->_request.substr(0, this->_request.find("\r\n\r\n") + 4);

@@ -429,6 +429,18 @@ class Execution
 			}
 			return (0);
 		}
+		int											doTrace(void) {
+			if (this->req->get_method() == "TRACE") {
+				this->req->basicHeaderFormat();
+				this->req->updateContent("HTTP/1.1", "200 OK");
+				this->req->updateContent("Content-Length", NumberToString(this->req->get_requestHeader().size()));
+				this->req->sendHeader();
+				if (this->req->sendPacket(this->req->get_requestHeader()) == -1)
+					return (0);
+				return (1);
+			}
+			return (0);
+		}
 	
 		/***************************************************
 		*****************    Operation    ******************

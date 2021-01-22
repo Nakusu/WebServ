@@ -41,7 +41,7 @@ void		Exec(ServerWeb *serv, Client *client, int i, char **env){
 		std::cout << "400 Bad Request Error" << std::endl;
 		return ;
 	}
-	if (!exec.needRedirection() && !exec.doAuthenticate() && !exec.checkMethod() && !exec.doPost() && !exec.doDelete() && !exec.doPut() && !exec.searchIndex() && !exec.initCGI() && !exec.binaryFile())
+	if (!exec.needRedirection() && !exec.doTrace() && !exec.doOptions() && !exec.doAuthenticate() && !exec.checkMethod() && !exec.doPost() && !exec.doDelete() && !exec.doPut() && !exec.searchIndex() && !exec.initCGI() && !exec.binaryFile())
 		exec.searchError404();
 	if (!client->CGIIsRunning()){
 		client->new_req();

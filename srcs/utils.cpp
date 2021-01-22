@@ -186,6 +186,8 @@ std::string							CleanBody(std::string request, std::string contentType){
 	if (request.find("\r\n\r\n") != request.rfind("\r\n\r\n") || (request.find("\r\n\r\n") != request.rfind("\n") && request.rfind("\n") != SIZE_MAX )){
 		if (contentType.find("boundary=") != SIZE_MAX && contentType.find("multipart/form-data;") != SIZE_MAX) {
 			body = request.substr(request.find("\r\n\r\n") + 2, request.rfind("\r\n\r\n"));
+			std::cout << "____ CHECK BODY ____" << std::endl << body << std::endl << "____ END BODY ____" << std::endl << std::endl;
+			std::cout << "____ CHECK REQUEST ___ " << std::endl << request << std::endl << "____ END REQUEST ____" << std::endl;
 		} else if (request.find("\r\n\r\n") != request.rfind("\r\n\r\n")){
 			body = request.substr(request.find("\r\n\r\n") + 2, request.rfind("\r\n\r\n"));
 			std::vector<std::string> bodyvec = split(body, "\r\n");
